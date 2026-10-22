@@ -3,20 +3,14 @@ namespace My_Life_Admin.Models;
 public class Reminder
 {
     public int Id { get; set; }
-
-    public string Title { get; set; } = string.Empty;
-
-    public string? Description { get; set; }
-
-    public DateTime ReminderTime { get; set; }
-
-    public bool IsCompleted { get; set; } = false;
-
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-    // Foreign key
     public int UserId { get; set; }
+    public int? EventId { get; set; }
+    public int? DocumentId { get; set; }
+    public DateTime ReminderDate { get; set; }
+    public DateTime? SentAt { get; set; }
+    public ReminderStatus Status { get; set; } = ReminderStatus.Pending;
 
-    // Navigation property
     public User User { get; set; } = null!;
+    public Event? Event { get; set; }
+    public Document? Document { get; set; }
 }
