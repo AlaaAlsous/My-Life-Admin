@@ -27,9 +27,9 @@ if (app.Environment.IsDevelopment())
     db.Database.Migrate();
 }
 
-app.MapGet("/", () => "Hello World!");
 app.UseCors();
 
+app.MapGet("/", () => "Hello World!");
 app.MapGet("/api/health", () => new { status = "Healthy" });
 
 app.Run();
