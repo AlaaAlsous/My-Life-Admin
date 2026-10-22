@@ -51,10 +51,10 @@ jobs:
           dotnet-version: "10.0.x"
 
       - name: Restore dependencies
-        run: dotnet restore My-Life-Admin-Backend/My-Life-Admin-Backend.csproj
+        run: dotnet restore My-Life-Admin-Backend/MyLife-Admin.csproj
 
       - name: Check formatting
-        run: dotnet format My-Life-Admin-Backend/My-Life-Admin-Backend.csproj --verify-no-changes --no-restore
+        run: dotnet format My-Life-Admin-Backend/MyLife-Admin.csproj --verify-no-changes --no-restore
 
       - name: Build with warnings as errors
-        run: dotnet build My-Life-Admin-Backend/My-Life-Admin-Backend.csproj --no-restore --warnaserror
+        run: dotnet build My-Life-Admin-Backend/MyLife-Admin.csproj --no-restore --warnaserror
