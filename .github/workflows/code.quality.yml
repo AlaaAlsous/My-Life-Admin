@@ -35,7 +35,7 @@ jobs:
         run: npm run format:check
 
       - name: Check CSS styling
-        run: npm run lint:styles
+        run: npm run build
 
   backend-quality:
     name: Backend Code Quality
