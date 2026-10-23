@@ -11,4 +11,5 @@ public class User
     public ICollection<Document> Documents { get; set; } = new List<Document>();
     public ICollection<Event> Events { get; set; } = new List<Event>();
     public ICollection<Reminder> Reminders { get; set; } = new List<Reminder>();
+    public ICollection<ChatMessage> ChatMessages { get; set; } = new List<ChatMessage>();
 }
