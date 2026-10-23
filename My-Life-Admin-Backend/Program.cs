@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using My_Life_Admin.Data;
+using My_Life_Admin.Endpoints;
 using My_Life_Admin.Models;
 using My_Life_Admin.Repositories;
 using My_Life_Admin.Services;
@@ -39,5 +40,6 @@ app.UseCors();
 
 app.MapGet("/", () => "Hello World!");
 app.MapGet("/api/health", () => new { status = "Healthy" });
+app.MapAuthEndpoints();
 
 app.Run();
