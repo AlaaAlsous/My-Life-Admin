@@ -1,2 +1,12 @@
 <p>Backend status: {{ status() }}</p>
+<button
+  type="button"
+  class="rounded bg-blue-600 px-4 py-2 text-white"
+  (click)="showLogin.set(true)"
+>
+  Logga in
+</button>
+@if (showLogin()) {
+  <app-login-modal (closed)="showLogin.set(false)" />
+}
 <router-outlet />
