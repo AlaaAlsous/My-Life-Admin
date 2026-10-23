@@ -28,6 +28,7 @@ builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
 builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<ILoginService, LoginService>();
+builder.Services.AddScoped<IChatService, ChatService>();
 
 var app = builder.Build();
 
