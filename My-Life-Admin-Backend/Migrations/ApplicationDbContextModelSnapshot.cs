@@ -17,6 +17,35 @@ namespace MyLife_Admin.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.13");
 
+            modelBuilder.Entity("My_Life_Admin.Models.ChatMessage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.ToTable("ChatMessages");
+                });
+
             modelBuilder.Entity("My_Life_Admin.Models.Document", b =>
                 {
                     b.Property<int>("Id")
@@ -170,6 +199,17 @@ namespace MyLife_Admin.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("My_Life_Admin.Models.ChatMessage", b =>
+                {
+                    b.HasOne("My_Life_Admin.Models.User", "User")
+                        .WithMany("ChatMessages")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("My_Life_Admin.Models.Document", b =>
                 {
                     b.HasOne("My_Life_Admin.Models.User", "User")
@@ -238,6 +278,8 @@ namespace MyLife_Admin.Migrations
 
             modelBuilder.Entity("My_Life_Admin.Models.User", b =>
                 {
+                    b.Navigation("ChatMessages");
+
                     b.Navigation("Documents");
 
                     b.Navigation("Events");
