@@ -1,17 +1,15 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import { LoginModal } from './login/login-modal';
+import { AppLayout } from './layout/app-layout';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, LoginModal],
+  imports: [AppLayout],
   templateUrl: './app.html',
 })
 export class App {
   private http = inject(HttpClient);
   protected readonly status = signal('Checking…');
-  protected readonly showLogin = signal(false);
 
   constructor() {
     this.http.get<{ status: string }>('http://localhost:5076/api/health').subscribe({
