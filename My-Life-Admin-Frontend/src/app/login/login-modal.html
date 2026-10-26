@@ -12,11 +12,11 @@
     (click)="$event.stopPropagation()"
   >
     <div class="mb-4 flex items-center justify-between">
-      <h2 id="login-title" class="text-title font-semibold">Logga in</h2>
+      <h2 id="login-title" class="text-title font-semibold">Log in</h2>
       <button
         type="button"
         class="text-text-muted hover:text-text"
-        aria-label="Stäng"
+        aria-label="Close"
         (click)="close()"
       >
         &times;
@@ -25,7 +25,7 @@
 
     <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="space-y-4">
       <div>
-        <label for="login-email" class="mb-1 block text-label font-medium">E-post</label>
+        <label for="login-email" class="mb-1 block text-label font-medium">Email</label>
         <input
           id="login-email"
           type="email"
@@ -37,16 +37,16 @@
         @if (email.touched && email.errors) {
           <p class="mt-1 text-label text-error" role="alert">
             @if (email.errors['required']) {
-              E-post krävs.
+              Email is required.
             } @else {
-              Ange en giltig e-postadress.
+              Enter a valid email address.
             }
           </p>
         }
       </div>
 
       <div>
-        <label for="login-password" class="mb-1 block text-label font-medium">Lösenord</label>
+        <label for="login-password" class="mb-1 block text-label font-medium">Password</label>
         <input
           id="login-password"
           type="password"
@@ -58,9 +58,9 @@
         @if (password.touched && password.errors) {
           <p class="mt-1 text-label text-error" role="alert">
             @if (password.errors['required']) {
-              Lösenord krävs.
+              Password is required.
             } @else {
-              Lösenordet måste vara minst 6 tecken.
+              Password must be at least 6 characters.
             }
           </p>
         }
@@ -77,7 +77,7 @@
         class="w-full rounded-control bg-primary px-4 py-2 font-medium text-white hover:bg-primary-hover disabled:opacity-50"
         [disabled]="submitting()"
       >
-        {{ submitting() ? 'Loggar in…' : 'Logga in' }}
+        {{ submitting() ? 'Logging in…' : 'Log in' }}
       </button>
     </form>
   </div>

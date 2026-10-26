@@ -42,6 +42,14 @@ public class LoginServiceTests
     }
 
     [Fact]
+    public async Task LoginAsync_EmailInDifferentCase_Succeeds()
+    {
+        var result = await _service.LoginAsync(Email.ToUpperInvariant(), Password);
+
+        Assert.True(result.Succeeded);
+    }
+
+    [Fact]
     public async Task LoginAsync_WrongPassword_Fails()
     {
         var result = await _service.LoginAsync(Email, "wrong-password");
@@ -82,6 +90,14 @@ public class LoginServiceTests
         {
             LookupCount++;
             return Task.FromResult(Users.FirstOrDefault(u => u.Email == email));
+        }
+
+        public Task<bool> ExistsByEmailAsync(string email) => Task.FromResult(Users.Any(u => u.Email == email));
+
+        public Task AddUserAsync(User user)
+        {
+            Users.Add(user);
+            return Task.CompletedTask;
         }
     }
 }

@@ -8,7 +8,7 @@ describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     }).compileComponents();
   });
 
@@ -17,14 +17,16 @@ describe('App', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should render the backend status from the health endpoint', async () => {
+  it('should render the layout and show the backend status', async () => {
     const fixture = TestBed.createComponent(App);
     TestBed.inject(HttpTestingController)
       .expectOne('http://localhost:5076/api/health')
       .flush({ status: 'Healthy' });
     await fixture.whenStable();
+    fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('p')?.textContent).toContain('Backend status: Healthy');
+    expect(compiled.querySelector('app-layout')).toBeTruthy();
+    expect(compiled.querySelector('footer')?.textContent).toContain('Healthy');
   });
 });
