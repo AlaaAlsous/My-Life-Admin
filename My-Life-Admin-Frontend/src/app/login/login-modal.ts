@@ -58,11 +58,11 @@ export class LoginModal {
 
   private toMessage(err: HttpErrorResponse): string {
     if (err.status === 400 || err.status === 401) {
-      return 'Fel e-postadress eller lösenord.';
+      return 'Incorrect email or password.';
     }
     if (err.status === 0) {
-      return 'Kunde inte nå servern. Försök igen senare.';
+      return 'Could not reach the server. Please try again later.';
     }
-    return 'Något gick fel vid inloggningen. Försök igen.';
+    return 'Something went wrong while logging in. Please try again.';
   }
 }
