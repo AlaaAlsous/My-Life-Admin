@@ -27,7 +27,9 @@ describe('LoadingState', () => {
   });
 
   it('renders the requested number of skeleton lines', () => {
-    expect(setup({ lineCount: 5 }).querySelectorAll('[data-testid="skeleton-line"]').length).toBe(5);
+    expect(setup({ lineCount: 5 }).querySelectorAll('[data-testid="skeleton-line"]').length).toBe(
+      5,
+    );
   });
 
   it('only animates when motion is allowed', () => {
