@@ -1,5 +1,6 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -67,6 +68,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ClockSkew = TimeSpan.Zero
         };
     });
+builder.Services.AddAuthorizationBuilder()
+    .SetFallbackPolicy(new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build());
 
 var app = builder.Build();
 
@@ -81,8 +86,8 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapGet("/", () => "Hello World!");
-app.MapGet("/api/health", () => new { status = "Healthy" });
+app.MapGet("/", () => "Hello World!").AllowAnonymous();
+app.MapGet("/api/health", () => new { status = "Healthy" }).AllowAnonymous();
 app.MapAuthEndpoints();
 
 app.Run();
