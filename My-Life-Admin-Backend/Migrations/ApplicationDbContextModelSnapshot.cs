@@ -199,6 +199,23 @@ namespace MyLife_Admin.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("My_Life_Admin.Models.UserSettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("UserSettings");
+                });
+
             modelBuilder.Entity("My_Life_Admin.Models.ChatMessage", b =>
                 {
                     b.HasOne("My_Life_Admin.Models.User", "User")
@@ -264,6 +281,17 @@ namespace MyLife_Admin.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("My_Life_Admin.Models.UserSettings", b =>
+                {
+                    b.HasOne("My_Life_Admin.Models.User", "User")
+                        .WithOne("Settings")
+                        .HasForeignKey("My_Life_Admin.Models.UserSettings", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("My_Life_Admin.Models.Document", b =>
                 {
                     b.Navigation("Events");
@@ -285,6 +313,8 @@ namespace MyLife_Admin.Migrations
                     b.Navigation("Events");
 
                     b.Navigation("Reminders");
+
+                    b.Navigation("Settings");
                 });
 #pragma warning restore 612, 618
         }
