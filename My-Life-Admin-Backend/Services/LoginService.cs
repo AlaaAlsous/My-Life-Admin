@@ -16,7 +16,7 @@ public class LoginService(IUserRepository userRepository, IPasswordHasher<User> 
             return LoginResult.Failure(MissingCredentialsError);
         }
 
-        var user = await userRepository.GetByEmailAsync(email.Trim());
+        var user = await userRepository.GetByEmailAsync(email.Trim().ToLowerInvariant());
         if (user is null)
         {
             return LoginResult.Failure(InvalidCredentialsError);

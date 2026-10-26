@@ -30,6 +30,7 @@ builder.Services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
 builder.Services.AddScoped<IReminderRepository, ReminderRepository>();
 builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<ILoginService, LoginService>();
+builder.Services.AddScoped<IRegisterService, RegisterService>();
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IReminderService, ReminderService>();
