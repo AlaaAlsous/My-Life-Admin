@@ -29,7 +29,77 @@
 
 @layer base {
   body {
+    background-color: var(--color-surface);
     color: var(--color-text);
     font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+  }
+
+  h1 {
+    font-size: var(--text-3xl);
+    font-weight: 600;
+    line-height: var(--text-3xl--line-height);
+  }
+
+  h2 {
+    font-size: var(--text-2xl);
+    font-weight: 600;
+    line-height: var(--text-2xl--line-height);
+  }
+
+  h3 {
+    font-size: var(--text-xl);
+    font-weight: 600;
+    line-height: var(--text-xl--line-height);
+  }
+
+  h4 {
+    font-size: var(--text-lg);
+    font-weight: 600;
+    line-height: var(--text-lg--line-height);
+  }
+
+  h5 {
+    font-size: var(--text-base);
+    font-weight: 600;
+    line-height: var(--text-base--line-height);
+  }
+
+  h6 {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    line-height: var(--text-sm--line-height);
+  }
+
+  a {
+    color: var(--color-primary);
+    text-decoration-line: underline;
+    text-underline-offset: 0.15em;
+  }
+
+  a:visited {
+    color: var(--color-secondary);
+  }
+
+  a:hover,
+  a:active {
+    color: var(--color-primary-hover);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
