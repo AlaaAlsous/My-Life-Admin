@@ -12,4 +12,6 @@ public class User
     public ICollection<Event> Events { get; set; } = new List<Event>();
     public ICollection<Reminder> Reminders { get; set; } = new List<Reminder>();
     public ICollection<ChatMessage> ChatMessages { get; set; } = new List<ChatMessage>();
+
+    public UserSettings? Settings { get; set; }
 }
