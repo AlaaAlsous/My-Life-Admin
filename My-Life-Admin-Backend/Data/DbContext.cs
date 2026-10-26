@@ -15,6 +15,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Event> Events => Set<Event>();
     public DbSet<Reminder> Reminders => Set<Reminder>();
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
+    public DbSet<UserSettings> UserSettings => Set<UserSettings>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -61,6 +62,12 @@ public class ApplicationDbContext : DbContext
             .WithMany(d => d.Reminders)
             .HasForeignKey(r => r.DocumentId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<UserSettings>()
+            .HasOne(s => s.User)
+            .WithOne(u => u.Settings)
+            .HasForeignKey<UserSettings>(s => s.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<ChatMessage>(c =>
         {
