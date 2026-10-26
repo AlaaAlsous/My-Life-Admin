@@ -1,0 +1,73 @@
+<div class="flex min-h-screen flex-col bg-surface-muted text-text">
+  <header class="border-b border-border bg-surface">
+    <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
+      <a routerLink="/" class="text-title font-semibold no-underline">My Life Admin</a>
+
+      <div class="flex items-center gap-3 md:order-last">
+        <button
+          type="button"
+          class="rounded-control bg-primary px-4 py-2 font-medium text-white hover:bg-primary-hover"
+          (click)="showLogin.set(true)"
+        >
+          Log in
+        </button>
+
+        @if (navLinks().length > 0) {
+          <button
+            type="button"
+            class="rounded-control border border-border px-3 py-2 md:hidden"
+            aria-controls="main-nav"
+            [attr.aria-expanded]="menuOpen()"
+            (click)="toggleMenu()"
+          >
+            Menu
+          </button>
+        }
+      </div>
+
+      @if (navLinks().length > 0) {
+        <nav
+          id="main-nav"
+          aria-label="Main navigation"
+          class="w-full md:block md:w-auto"
+          [class.hidden]="!menuOpen()"
+        >
+          <ul class="flex flex-col gap-1 md:flex-row md:gap-4">
+            @for (link of navLinks(); track link.path) {
+              <li>
+                <a
+                  [routerLink]="'/' + link.path"
+                  routerLinkActive="font-semibold"
+                  ariaCurrentWhenActive="page"
+                  class="block rounded-control px-2 py-2"
+                  (click)="closeMenu()"
+                >
+                  {{ link.label }}
+                </a>
+              </li>
+            }
+          </ul>
+        </nav>
+      }
+    </div>
+  </header>
+
+  <main id="main-content" class="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
+    <router-outlet />
+  </main>
+
+  <footer class="border-t border-border bg-surface">
+    <div
+      class="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-4 text-label text-text-muted sm:flex-row sm:justify-between"
+    >
+      <p>&copy; {{ currentYear }} My Life Admin</p>
+      @if (status()) {
+        <p>Backend status: {{ status() }}</p>
+      }
+    </div>
+  </footer>
+</div>
+
+@if (showLogin()) {
+  <app-login-modal (closed)="showLogin.set(false)" />
+}
