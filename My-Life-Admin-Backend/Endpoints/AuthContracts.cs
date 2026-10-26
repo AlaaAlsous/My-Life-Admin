@@ -1,11 +1,11 @@
 namespace My_Life_Admin.Endpoints;
 
-public record LoginRequest(string Email, string Password);
+public sealed record LoginRequest(string Email, string Password);
 
-public record LoginResponse(int Id, string Name, string Email);
+public sealed record LoginResponse(int Id, string Name, string Email, string Token);
 
-public record RegisterRequest(string Name, string Email, string Password);
+public sealed record RegisterRequest(string Name, string Email, string Password);
 
-public record RegisterResponse(int Id, string Name, string Email);
+public sealed record RegisterResponse(int Id, string Name, string Email);
 
-public record ErrorResponse(string Error);
+public sealed record ErrorResponse(string Error);
