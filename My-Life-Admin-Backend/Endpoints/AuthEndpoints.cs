@@ -6,8 +6,8 @@ public static class AuthEndpoints
 {
     public static IEndpointRouteBuilder MapAuthEndpoints(this IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/auth/login", LoginAsync);
-        app.MapPost("/api/auth/register", RegisterAsync);
+        app.MapPost("/api/auth/login", LoginAsync).AllowAnonymous();
+        app.MapPost("/api/auth/register", RegisterAsync).AllowAnonymous();
         return app;
     }
 
@@ -29,13 +29,14 @@ public static class AuthEndpoints
             : TypedResults.BadRequest(error);
     }
 
-    public static async Task<IResult> LoginAsync(LoginRequest request, ILoginService loginService)
+    public static async Task<IResult> LoginAsync(LoginRequest request, ILoginService loginService, ITokenService tokenService)
     {
         var result = await loginService.LoginAsync(request.Email, request.Password);
 
         if (result.Succeeded && result.User is { } user)
         {
-            return TypedResults.Ok(new LoginResponse(user.Id, user.Name, user.Email));
+            var token = tokenService.CreateToken(user);
+            return TypedResults.Ok(new LoginResponse(user.Id, user.Name, user.Email, token));
         }
 
         var error = new ErrorResponse(result.Error ?? LoginService.InvalidCredentialsError);
