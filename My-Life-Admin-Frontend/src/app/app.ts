@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { AppLayout } from './layout/app-layout';
+import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
@@ -12,7 +13,7 @@ export class App {
   protected readonly status = signal('Checking…');
 
   constructor() {
-    this.http.get<{ status: string }>('http://localhost:5076/api/health').subscribe({
+    this.http.get<{ status: string }>(`${environment.apiUrl}/api/health`).subscribe({
       next: (res) => this.status.set(res.status),
       error: () => this.status.set('Offline'),
     });
