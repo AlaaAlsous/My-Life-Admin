@@ -14,8 +14,11 @@ using My_Life_Admin.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var corsOrigins = builder.Configuration["Cors:AllowedOrigins"] ?? "http://localhost:4200";
 builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
-    p.WithOrigins("http://localhost:4200").AllowAnyHeader().AllowAnyMethod()));
+    p.WithOrigins(corsOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        .AllowAnyHeader()
+        .AllowAnyMethod()));
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
@@ -25,7 +28,16 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     }
     else
     {
-        options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServerConnection"));
+        var connectionString = builder.Configuration.GetConnectionString("SqlServerConnection");
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new InvalidOperationException(
+                "Connection string 'SqlServerConnection' is missing. " +
+                "Set the ConnectionStrings__SqlServerConnection environment variable " +
+                "(or the matching Azure App Service setting).");
+        }
+
+        options.UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure());
     }
 });
 
