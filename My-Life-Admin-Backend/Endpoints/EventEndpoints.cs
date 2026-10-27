@@ -23,7 +23,7 @@ public static class EventEndpoints
         return app;
     }
 
-    private static async Task<IResult> GetAllAsync(
+    public static async Task<IResult> GetAllAsync(
     DateTime? from,
     DateTime? to,
     ClaimsPrincipal user,
@@ -51,7 +51,7 @@ public static class EventEndpoints
         return TypedResults.Ok(events.Select(ToDto).ToList());
     }
 
-    private static async Task<IResult> GetByIdAsync(
+    public static async Task<IResult> GetByIdAsync(
         int id,
         ClaimsPrincipal user,
         IEventService eventService)
@@ -68,7 +68,7 @@ public static class EventEndpoints
             : TypedResults.Ok(ToDto(eventItem));
     }
 
-    private static async Task<IResult> CreateAsync(
+    public static async Task<IResult> CreateAsync(
         CreateEventDto dto,
         ClaimsPrincipal user,
         IEventService eventService)
@@ -95,7 +95,7 @@ public static class EventEndpoints
             ToDto(createdEvent));
     }
 
-    private static async Task<IResult> UpdateAsync(
+    public static async Task<IResult> UpdateAsync(
         int id,
         UpdateEventDto dto,
         ClaimsPrincipal user,
@@ -125,7 +125,7 @@ public static class EventEndpoints
             : TypedResults.Ok(ToDto(updatedEvent));
     }
 
-    private static async Task<IResult> DeleteAsync(
+    public static async Task<IResult> DeleteAsync(
         int id,
         ClaimsPrincipal user,
         IEventService eventService)
@@ -142,7 +142,7 @@ public static class EventEndpoints
             : TypedResults.NotFound();
     }
 
-    private static EventDto ToDto(Event eventItem)
+    public static EventDto ToDto(Event eventItem)
     {
         return new EventDto
         {
