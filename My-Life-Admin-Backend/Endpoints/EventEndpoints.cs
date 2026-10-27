@@ -69,5 +69,41 @@ public static class EventEndpoints
 
             return Results.Created($"/api/events/{createdEvent.Id}", result);
         });
+
+        app.MapPut("/api/events/{id:int}", async (
+    int id,
+    UpdateEventDto dto,
+    IEventService eventService) =>
+        {
+            var changes = new Event
+            {
+                DocumentId = dto.DocumentId,
+                Title = dto.Title,
+                Description = dto.Description,
+                Category = dto.Category,
+                EventDate = dto.EventDate
+            };
+
+            var updatedEvent = await eventService.UpdateAsync(id, changes);
+
+            if (updatedEvent is null)
+            {
+                return Results.NotFound();
+            }
+
+            var result = new EventDto
+            {
+                Id = updatedEvent.Id,
+                UserId = updatedEvent.UserId,
+                DocumentId = updatedEvent.DocumentId,
+                Title = updatedEvent.Title,
+                Description = updatedEvent.Description,
+                Category = updatedEvent.Category,
+                EventDate = updatedEvent.EventDate,
+                CreatedAt = updatedEvent.CreatedAt
+            };
+
+            return Results.Ok(result);
+        });
     }
 }
