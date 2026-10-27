@@ -27,6 +27,24 @@ public class ApplicationDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        modelBuilder.Entity<Document>()
+            .HasOne(d => d.User)
+            .WithMany(u => u.Documents)
+            .HasForeignKey(d => d.UserId)
+            .OnDelete(DeleteBehavior.ClientCascade);
+
+        modelBuilder.Entity<Event>()
+            .HasOne(e => e.User)
+            .WithMany(u => u.Events)
+            .HasForeignKey(e => e.UserId)
+            .OnDelete(DeleteBehavior.ClientCascade);
+
+        modelBuilder.Entity<Reminder>()
+            .HasOne(r => r.User)
+            .WithMany(u => u.Reminders)
+            .HasForeignKey(r => r.UserId)
+            .OnDelete(DeleteBehavior.ClientCascade);
+
         modelBuilder.Entity<User>(u =>
         {
             u.Property(x => x.Name).HasMaxLength(200);

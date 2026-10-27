@@ -12,7 +12,7 @@ using My_Life_Admin.Data;
 namespace MyLife_Admin.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20261027162155_InitialCreate")]
+    [Migration("20261027164340_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -252,7 +252,7 @@ namespace MyLife_Admin.Migrations
                     b.HasOne("My_Life_Admin.Models.User", "User")
                         .WithMany("Documents")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -268,7 +268,7 @@ namespace MyLife_Admin.Migrations
                     b.HasOne("My_Life_Admin.Models.User", "User")
                         .WithMany("Events")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
 
                     b.Navigation("Document");
@@ -291,7 +291,7 @@ namespace MyLife_Admin.Migrations
                     b.HasOne("My_Life_Admin.Models.User", "User")
                         .WithMany("Reminders")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
 
                     b.Navigation("Document");
