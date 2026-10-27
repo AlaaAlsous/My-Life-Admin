@@ -8,6 +8,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint:styles": "prettier --check src/styles.css",
+    "lint:styles:fix": "prettier --write src/styles.css",
     "format:check": "prettier --check ."
   },
   "private": true,
