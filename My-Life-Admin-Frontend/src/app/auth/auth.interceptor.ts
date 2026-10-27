@@ -1,8 +1,9 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { AuthTokenService } from './auth-token.service';
+import { environment } from '../../environments/environment';
 
-const backendBaseUrl = 'http://localhost:5076';
+const backendBaseUrl = environment.apiUrl;
 const authPathPrefix = `${backendBaseUrl}/api/auth/`;
 
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
