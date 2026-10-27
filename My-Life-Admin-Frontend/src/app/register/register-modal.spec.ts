@@ -65,9 +65,14 @@ describe('RegisterModal', () => {
       email: 'anna@example.com',
       password: 'secret123',
     });
-    registerReq.flush({ id: 1, name: 'Anna', email: 'anna@example.com' }, { status: 201, statusText: 'Created' });
+    registerReq.flush(
+      { id: 1, name: 'Anna', email: 'anna@example.com' },
+      { status: 201, statusText: 'Created' },
+    );
 
-    http.expectOne(loginUrl).flush({ id: 1, name: 'Anna', email: 'anna@example.com', token: 'jwt' });
+    http
+      .expectOne(loginUrl)
+      .flush({ id: 1, name: 'Anna', email: 'anna@example.com', token: 'jwt' });
 
     expect(TestBed.inject(AuthTokenService).getToken()).toBe('jwt');
     expect(loggedIn).toBe(1);
@@ -78,7 +83,9 @@ describe('RegisterModal', () => {
 
     fill('Anna', 'anna@example.com', 'secret123');
     submit();
-    http.expectOne(registerUrl).flush({ error: 'Email is already registered.' }, { status: 409, statusText: 'Conflict' });
+    http
+      .expectOne(registerUrl)
+      .flush({ error: 'Email is already registered.' }, { status: 409, statusText: 'Conflict' });
     fixture.detectChanges();
 
     expect(el.textContent).toContain('This email is already registered.');

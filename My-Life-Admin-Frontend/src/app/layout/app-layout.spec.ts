@@ -104,7 +104,9 @@ describe('AppLayout', () => {
 
   it('hides guarded links when logged out', async () => {
     localStorage.clear();
-    const { el } = await setup([{ path: 'tasks', component: TasksPage, canActivate: [() => true] }]);
+    const { el } = await setup([
+      { path: 'tasks', component: TasksPage, canActivate: [() => true] },
+    ]);
 
     expect(el.querySelector('header nav')).toBeNull();
   });

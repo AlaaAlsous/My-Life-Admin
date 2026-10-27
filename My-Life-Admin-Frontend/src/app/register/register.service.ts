@@ -20,7 +20,9 @@ export class RegisterService {
     return this.http
       .post(this.url, request)
       .pipe(
-        switchMap(() => this.loginService.login({ email: request.email, password: request.password })),
+        switchMap(() =>
+          this.loginService.login({ email: request.email, password: request.password }),
+        ),
       );
   }
 }

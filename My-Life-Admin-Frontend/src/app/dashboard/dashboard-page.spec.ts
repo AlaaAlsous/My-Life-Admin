@@ -26,9 +26,17 @@ describe('DashboardPage', () => {
     const { fixture, el, http } = setup();
     http.expectOne(url).flush({
       recentDocuments: [
-        { id: 1, title: 'Passport', category: 'ID', uploadedAt: '2026-06-01T00:00:00Z', expiryDate: null },
+        {
+          id: 1,
+          title: 'Passport',
+          category: 'ID',
+          uploadedAt: '2026-06-01T00:00:00Z',
+          expiryDate: null,
+        },
       ],
-      upcomingEvents: [{ id: 2, title: 'Dentist', category: 'Health', eventDate: '2026-07-01T10:00:00Z' }],
+      upcomingEvents: [
+        { id: 2, title: 'Dentist', category: 'Health', eventDate: '2026-07-01T10:00:00Z' },
+      ],
       dueReminders: [{ id: 3, reminderDate: '2026-06-10T00:00:00Z', title: 'Renew insurance' }],
     });
     await fixture.whenStable();
