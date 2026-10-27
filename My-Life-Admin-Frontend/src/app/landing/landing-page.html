@@ -1,0 +1,30 @@
+<section aria-labelledby="hero-heading" class="py-12 text-center sm:py-20">
+  <p class="text-label font-semibold uppercase tracking-wide text-primary">My-Life-Admin</p>
+  <h1 id="hero-heading" class="mx-auto mt-3 max-w-3xl text-4xl sm:text-5xl">
+    All your personal admin, organized in one place
+  </h1>
+  <p class="mx-auto mt-5 max-w-2xl text-lg text-text-muted">
+    Keep your documents, receipts, personal details and important dates together, so you spend
+    less time searching and more time living.
+  </p>
+  <div class="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
+    <button
+      type="button"
+      class="rounded-control bg-primary px-6 py-3 font-medium text-white hover:bg-primary-hover"
+      (click)="showLogin.set(true)"
+    >
+      Get Started
+    </button>
+    <button
+      type="button"
+      class="rounded-control border border-border bg-surface px-6 py-3 font-medium text-text hover:bg-surface-muted"
+      (click)="showLogin.set(true)"
+    >
+      Log In
+    </button>
+  </div>
+</section>
+
+@if (showLogin()) {
+  <app-login-modal (closed)="showLogin.set(false)" />
+}
