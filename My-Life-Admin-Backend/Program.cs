@@ -108,11 +108,16 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapGet("/", () => "Hello World!").AllowAnonymous();
+app.MapGet("/", () => "Backend is running!").AllowAnonymous();
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.MapGet("/api/health", () => new { status = "Healthy" }).AllowAnonymous();
 app.MapAuthEndpoints();
 app.MapEventEndpoints();
 app.MapDashboardEndpoints();
 app.MapDocumentEndpoints();
+
+app.MapFallbackToFile("index.html").AllowAnonymous();
 
 app.Run();
