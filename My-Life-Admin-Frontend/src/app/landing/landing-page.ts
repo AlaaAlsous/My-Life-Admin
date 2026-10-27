@@ -1,10 +1,11 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { LoginModal } from '../login/login-modal';
+import { RegisterModal } from '../register/register-modal';
 
 @Component({
   selector: 'app-landing-page',
-  imports: [LoginModal],
+  imports: [LoginModal, RegisterModal],
   templateUrl: './landing-page.html',
 })
 export class LandingPage {
@@ -39,6 +40,17 @@ export class LandingPage {
   private readonly router = inject(Router);
 
   protected readonly showLogin = signal(false);
+  protected readonly showRegister = signal(false);
+
+  protected switchToRegister(): void {
+    this.showLogin.set(false);
+    this.showRegister.set(true);
+  }
+
+  protected switchToLogin(): void {
+    this.showRegister.set(false);
+    this.showLogin.set(true);
+  }
 
   protected onLoggedIn(): void {
     this.router.navigateByUrl('/dashboard');

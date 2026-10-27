@@ -119,5 +119,16 @@
 </div>
 
 @if (showLogin()) {
-  <app-login-modal (closed)="showLogin.set(false)" (loggedIn)="onLoggedIn()" />
+  <app-login-modal
+    (closed)="showLogin.set(false)"
+    (loggedIn)="onLoggedIn()"
+    (registerRequested)="switchToRegister()"
+  />
+}
+@if (showRegister()) {
+  <app-register-modal
+    (closed)="showRegister.set(false)"
+    (loggedIn)="onLoggedIn()"
+    (loginRequested)="switchToLogin()"
+  />
 }

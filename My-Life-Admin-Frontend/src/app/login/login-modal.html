@@ -80,5 +80,16 @@
         {{ submitting() ? 'Logging in…' : 'Log in' }}
       </button>
     </form>
+
+    <p class="mt-4 text-center text-label text-text-muted">
+      Don't have an account?
+      <button
+        type="button"
+        class="font-medium text-primary underline underline-offset-2 hover:text-primary-hover"
+        (click)="registerRequested.emit()"
+      >
+        Create one
+      </button>
+    </p>
   </div>
 </div>
