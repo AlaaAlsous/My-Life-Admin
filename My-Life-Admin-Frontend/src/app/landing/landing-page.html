@@ -25,6 +25,21 @@
   </div>
 </section>
 
+<section aria-labelledby="features-heading" class="py-10">
+  <h2 id="features-heading" class="text-center">Everything you need to stay organized</h2>
+  <p class="mx-auto mt-3 max-w-2xl text-center text-text-muted">
+    My-Life-Admin brings the main areas of your personal administration together.
+  </p>
+  <ul class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    @for (feature of features; track feature.title) {
+      <li class="rounded-card border border-border bg-surface p-6">
+        <h3>{{ feature.title }}</h3>
+        <p class="mt-2 text-text-muted">{{ feature.description }}</p>
+      </li>
+    }
+  </ul>
+</section>
+
 @if (showLogin()) {
   <app-login-modal (closed)="showLogin.set(false)" />
 }
