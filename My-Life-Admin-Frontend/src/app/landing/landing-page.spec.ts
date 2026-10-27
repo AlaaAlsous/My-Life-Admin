@@ -17,9 +17,9 @@ describe('LandingPage', () => {
     await TestBed.configureTestingModule({ imports: [LandingPage] }).compileComponents();
     const fixture = TestBed.createComponent(LandingPage);
     await fixture.whenStable();
-    const titles = Array.from(
-      (fixture.nativeElement as HTMLElement).querySelectorAll('li h3'),
-    ).map((h) => h.textContent?.trim());
+    const titles = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('li h3')).map(
+      (h) => h.textContent?.trim(),
+    );
 
     expect(titles).toEqual([
       'Personal Documents',

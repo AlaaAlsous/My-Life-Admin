@@ -1,7 +1,10 @@
 <div class="flex min-h-screen flex-col bg-surface-muted text-text">
   <header class="sticky top-0 z-40 border-b border-border-soft bg-white/80 backdrop-blur">
     <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
-      <a routerLink="/" class="flex items-center gap-2.5 font-display text-title font-semibold text-plum no-underline visited:text-plum hover:text-primary">
+      <a
+        routerLink="/"
+        class="flex items-center gap-2.5 font-display text-title font-semibold text-plum no-underline visited:text-plum hover:text-primary"
+      >
         <img src="logo.svg" alt="" width="36" height="36" class="h-9 w-9 rounded-control" />
         <span>My Life Admin</span>
       </a>
@@ -71,16 +74,29 @@
         </div>
         <nav aria-label="Footer navigation">
           <ul class="flex flex-col gap-1">
-            <li><a routerLink="/" fragment="features" class="text-blush visited:text-blush hover:text-white">Features</a></li>
             <li>
-              <button type="button" class="text-blush underline underline-offset-2 hover:text-white" (click)="showLogin.set(true)">
+              <a
+                routerLink="/"
+                fragment="features"
+                class="text-blush visited:text-blush hover:text-white"
+                >Features</a
+              >
+            </li>
+            <li>
+              <button
+                type="button"
+                class="text-blush underline underline-offset-2 hover:text-white"
+                (click)="showLogin.set(true)"
+              >
                 Log in
               </button>
             </li>
           </ul>
         </nav>
       </div>
-      <div class="mt-4 flex flex-col gap-1 border-t border-white/10 pt-5 sm:flex-row sm:justify-between">
+      <div
+        class="mt-4 flex flex-col gap-1 border-t border-white/10 pt-5 sm:flex-row sm:justify-between"
+      >
         <p>&copy; {{ currentYear }} My Life Admin</p>
         @if (status()) {
           <p>Backend status: {{ status() }}</p>
