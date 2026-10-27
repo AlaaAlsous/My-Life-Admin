@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, switchMap } from 'rxjs';
 import { LoginResponse, LoginService } from '../login/login.service';
+import { environment } from '../../environments/environment';
 
 export interface RegisterRequest {
   name: string;
@@ -13,7 +14,7 @@ export interface RegisterRequest {
 export class RegisterService {
   private readonly http = inject(HttpClient);
   private readonly loginService = inject(LoginService);
-  private readonly url = 'http://localhost:5076/api/auth/register';
+  private readonly url = `${environment.apiUrl}/api/auth/register`;
 
   // Registers the user and then logs in, so they land on the dashboard right away.
   register(request: RegisterRequest): Observable<LoginResponse> {
