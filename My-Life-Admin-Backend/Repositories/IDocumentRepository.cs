@@ -4,7 +4,11 @@ namespace My_Life_Admin.Repositories;
 
 public interface IDocumentRepository : IRepository<Document>
 {
-    Task<IEnumerable<Document>> SearchAsync(string query);
+    Task<Document?> GetByIdForUserAsync(int id, int userId);
 
-    Task<IEnumerable<Document>> GetExpiringWithinAsync(int days);
+    Task<IEnumerable<Document>> GetAllForUserAsync(int userId);
+
+    Task<IEnumerable<Document>> SearchAsync(int userId, string query);
+
+    Task<IEnumerable<Document>> GetExpiringWithinAsync(int userId, int days);
 }
