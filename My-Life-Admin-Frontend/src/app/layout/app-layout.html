@@ -60,13 +60,32 @@
   </main>
 
   <footer class="border-t border-border bg-surface">
-    <div
-      class="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-4 text-label text-text-muted sm:flex-row sm:justify-between"
-    >
-      <p>&copy; {{ currentYear }} My Life Admin</p>
-      @if (status()) {
-        <p>Backend status: {{ status() }}</p>
-      }
+    <div class="mx-auto max-w-6xl px-4 py-6 text-label text-text-muted">
+      <div class="flex flex-col gap-4 sm:flex-row sm:justify-between">
+        <div class="max-w-sm">
+          <p class="font-semibold text-text">My-Life-Admin</p>
+          <p class="mt-1">
+            Keep your documents, receipts, personal details and important dates organized in one
+            place.
+          </p>
+        </div>
+        <nav aria-label="Footer navigation">
+          <ul class="flex flex-col gap-1">
+            <li><a routerLink="/" fragment="features">Features</a></li>
+            <li>
+              <button type="button" class="text-primary underline" (click)="showLogin.set(true)">
+                Log in
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+      <div class="mt-4 flex flex-col gap-1 border-t border-border pt-4 sm:flex-row sm:justify-between">
+        <p>&copy; {{ currentYear }} My Life Admin</p>
+        @if (status()) {
+          <p>Backend status: {{ status() }}</p>
+        }
+      </div>
     </div>
   </footer>
 </div>

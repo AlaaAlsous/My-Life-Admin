@@ -31,7 +31,7 @@ describe('AppLayout', () => {
   it('shows no navigation when no routes exist', async () => {
     const { el } = await setup();
 
-    expect(el.querySelector('nav')).toBeNull();
+    expect(el.querySelector('header nav')).toBeNull();
     expect(el.querySelector('button[aria-controls="main-nav"]')).toBeNull();
   });
 
@@ -42,11 +42,11 @@ describe('AppLayout', () => {
       { path: '**', redirectTo: '' },
     ]);
 
-    const links = Array.from(el.querySelectorAll('nav a'));
+    const links = Array.from(el.querySelectorAll('header nav a'));
     expect(links.length).toBe(1);
     expect(links[0].textContent).toContain('Tasks');
     expect(links[0].getAttribute('href')).toBe('/tasks');
-    expect(el.querySelector('nav')?.getAttribute('aria-label')).toBe('Main navigation');
+    expect(el.querySelector('header nav')?.getAttribute('aria-label')).toBe('Main navigation');
   });
 
   it('toggles the mobile menu with aria-expanded', async () => {
@@ -54,13 +54,22 @@ describe('AppLayout', () => {
     const toggle = el.querySelector<HTMLButtonElement>('button[aria-controls="main-nav"]')!;
 
     expect(toggle.getAttribute('aria-expanded')).toBe('false');
-    expect(el.querySelector('nav')?.classList).toContain('hidden');
+    expect(el.querySelector('header nav')?.classList).toContain('hidden');
 
     toggle.click();
     fixture.detectChanges();
 
     expect(toggle.getAttribute('aria-expanded')).toBe('true');
-    expect(el.querySelector('nav')?.classList).not.toContain('hidden');
+    expect(el.querySelector('header nav')?.classList).not.toContain('hidden');
+  });
+
+  it('shows app info and navigation links in the footer', async () => {
+    const { el } = await setup();
+    const footer = el.querySelector('footer')!;
+
+    expect(footer.textContent).toContain('My-Life-Admin');
+    expect(footer.querySelector('nav')?.getAttribute('aria-label')).toBe('Footer navigation');
+    expect(footer.querySelector('a')?.textContent).toContain('Features');
   });
 
   it('shows the backend status in the footer', async () => {
