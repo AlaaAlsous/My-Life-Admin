@@ -17,6 +17,8 @@ public static class EventEndpoints
         group.MapPost("/", CreateAsync);
         group.MapPut("/{id:int}", UpdateAsync);
 
+        group.MapDelete("/{id:int}", DeleteAsync);
+
         return app;
     }
 
@@ -92,7 +94,7 @@ public static class EventEndpoints
             EventDate = dto.EventDate
         };
 
-        var updatedEvent = await eventService.UpdateAsync(id, changes);
+    var updatedEvent = await eventService.UpdateAsync(id, changes);
 
         if (updatedEvent is null)
         {
@@ -100,6 +102,18 @@ public static class EventEndpoints
         }
 
         return Results.Ok(ToDto(updatedEvent));
+    }
+
+    private static async Task<IResult> DeleteAsync(int id, IEventService eventService)
+    {
+        var deleted = await eventService.DeleteAsync(id);
+
+        if (!deleted)
+        {
+            return Results.NotFound();
+        }
+
+        return Results.NoContent();
     }
 
     private static EventDto ToDto(Event eventItem)
