@@ -40,6 +40,8 @@ builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IReminderService, ReminderService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IUserSettingsRepository, UserSettingsRepository>();
+builder.Services.AddScoped<IUserSettingsService, UserSettingsService>();
 
 builder.Services
     .AddOptions<JwtOptions>()
