@@ -47,6 +47,8 @@ builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.Configure<FileStorageOptions>(builder.Configuration.GetSection(FileStorageOptions.SectionName));
 // TODO(Azure Blob): register AzureBlobFileStorage here instead of LocalFileStorage once Blob Storage is set up.
 builder.Services.AddSingleton<IFileStorage, LocalFileStorage>();
+builder.Services.AddScoped<IUserSettingsRepository, UserSettingsRepository>();
+builder.Services.AddScoped<IUserSettingsService, UserSettingsService>();
 
 builder.Services
     .AddOptions<JwtOptions>()
