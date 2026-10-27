@@ -41,6 +41,7 @@ builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IReminderService, ReminderService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
 
@@ -98,6 +99,7 @@ app.UseAuthorization();
 app.MapGet("/", () => "Hello World!").AllowAnonymous();
 app.MapGet("/api/health", () => new { status = "Healthy" }).AllowAnonymous();
 app.MapAuthEndpoints();
+app.MapDashboardEndpoints();
 app.MapDocumentEndpoints();
 
 app.Run();

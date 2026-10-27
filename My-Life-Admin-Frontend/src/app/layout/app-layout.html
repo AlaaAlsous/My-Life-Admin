@@ -10,13 +10,23 @@
       </a>
 
       <div class="flex items-center gap-3 md:order-last">
-        <button
-          type="button"
-          class="rounded-full bg-primary px-5 py-2 font-medium text-white shadow-soft transition hover:bg-primary-hover hover:shadow-lift"
-          (click)="showLogin.set(true)"
-        >
-          Log in
-        </button>
+        @if (isLoggedIn()) {
+          <button
+            type="button"
+            class="rounded-full bg-primary px-5 py-2 font-medium text-white shadow-soft transition hover:bg-primary-hover hover:shadow-lift"
+            (click)="logout()"
+          >
+            Log out
+          </button>
+        } @else {
+          <button
+            type="button"
+            class="rounded-full bg-primary px-5 py-2 font-medium text-white shadow-soft transition hover:bg-primary-hover hover:shadow-lift"
+            (click)="showLogin.set(true)"
+          >
+            Log in
+          </button>
+        }
 
         @if (navLinks().length > 0) {
           <button
@@ -82,15 +92,17 @@
                 >Features</a
               >
             </li>
-            <li>
-              <button
-                type="button"
-                class="text-blush underline underline-offset-2 hover:text-white"
-                (click)="showLogin.set(true)"
-              >
-                Log in
-              </button>
-            </li>
+            @if (!isLoggedIn()) {
+              <li>
+                <button
+                  type="button"
+                  class="text-blush underline underline-offset-2 hover:text-white"
+                  (click)="showLogin.set(true)"
+                >
+                  Log in
+                </button>
+              </li>
+            }
           </ul>
         </nav>
       </div>
@@ -107,5 +119,16 @@
 </div>
 
 @if (showLogin()) {
-  <app-login-modal (closed)="showLogin.set(false)" />
+  <app-login-modal
+    (closed)="showLogin.set(false)"
+    (loggedIn)="onLoggedIn()"
+    (registerRequested)="switchToRegister()"
+  />
+}
+@if (showRegister()) {
+  <app-register-modal
+    (closed)="showRegister.set(false)"
+    (loggedIn)="onLoggedIn()"
+    (loginRequested)="switchToLogin()"
+  />
 }

@@ -3,6 +3,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Routes, provideRouter } from '@angular/router';
+import { AuthTokenService } from '../auth/auth-token.service';
 import { AppLayout } from './app-layout';
 
 @Component({ template: '<p>Tasks page</p>' })
@@ -78,6 +79,36 @@ describe('AppLayout', () => {
     fixture.detectChanges();
 
     expect(el.querySelector('footer')?.textContent).toContain('Backend status: Healthy');
+  });
+
+  it('shows Log out and guarded links when logged in, and logs out', async () => {
+    localStorage.clear();
+    localStorage.setItem('my-life-admin.auth-token', 'jwt');
+    const { fixture, el } = await setup([
+      { path: 'tasks', component: TasksPage, canActivate: [() => true] },
+    ]);
+
+    expect(el.querySelector('header nav a')?.textContent).toContain('Tasks');
+    const logout = Array.from(el.querySelectorAll<HTMLButtonElement>('header button')).find(
+      (b) => b.textContent?.trim() === 'Log out',
+    )!;
+    expect(logout).toBeTruthy();
+
+    logout.click();
+    fixture.detectChanges();
+
+    expect(TestBed.inject(AuthTokenService).getToken()).toBeNull();
+    expect(el.querySelector('header nav')).toBeNull();
+    localStorage.clear();
+  });
+
+  it('hides guarded links when logged out', async () => {
+    localStorage.clear();
+    const { el } = await setup([
+      { path: 'tasks', component: TasksPage, canActivate: [() => true] },
+    ]);
+
+    expect(el.querySelector('header nav')).toBeNull();
   });
 
   it('opens and closes the login modal from the header button', async () => {
