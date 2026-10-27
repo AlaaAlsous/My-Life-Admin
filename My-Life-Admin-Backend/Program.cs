@@ -91,5 +91,6 @@ app.UseAuthorization();
 app.MapGet("/", () => "Hello World!").AllowAnonymous();
 app.MapGet("/api/health", () => new { status = "Healthy" }).AllowAnonymous();
 app.MapAuthEndpoints();
+app.MapEventEndpoints();
 
 app.Run();
