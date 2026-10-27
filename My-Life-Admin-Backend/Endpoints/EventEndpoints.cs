@@ -1,109 +1,119 @@
 using My_Life_Admin.DTOs.Events;
-using My_Life_Admin.Services;
 using My_Life_Admin.Models;
+using My_Life_Admin.Services;
 
 namespace My_Life_Admin.Endpoints;
 
 public static class EventEndpoints
 {
-    public static void MapEventEndpoints(this WebApplication app)
+    public static IEndpointRouteBuilder MapEventEndpoints(
+        this IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/events", async (
-            DateTime? from,
-            DateTime? to,
-            IEventService eventService) =>
+        var group = app.MapGroup("/api/events");
+
+        group.MapGet("/", GetAllAsync);
+        group.MapGet("/{id:int}", GetByIdAsync);
+
+        group.MapPost("/", CreateAsync);
+        group.MapPut("/{id:int}", UpdateAsync);
+
+        return app;
+    }
+
+    private static async Task<IResult> GetAllAsync(
+        DateTime? from,
+        DateTime? to,
+        IEventService eventService)
+    {
+        IEnumerable<Event> events;
+
+        if (from.HasValue && to.HasValue)
         {
-            IEnumerable<Event> events;
-
-            if (from.HasValue && to.HasValue)
-            {
-                events = await eventService.GetBetweenAsync(from.Value, to.Value);
-            }
-            else
-            {
-                events = await eventService.GetAllAsync();
-            }
-
-            var result = events.Select(e => new EventDto
-            {
-                Id = e.Id,
-                UserId = e.UserId,
-                DocumentId = e.DocumentId,
-                Title = e.Title,
-                Description = e.Description,
-                Category = e.Category,
-                EventDate = e.EventDate,
-                CreatedAt = e.CreatedAt
-            });
-
-            return Results.Ok(result);
-        });
-
-        app.MapPost("/api/events", async (
-            CreateEventDto dto,
-            IEventService eventService) =>
+            events = await eventService.GetBetweenAsync(
+                from.Value,
+                to.Value);
+        }
+        else
         {
-            var newEvent = new Event
-            {
-                UserId = dto.UserId,
-                DocumentId = dto.DocumentId,
-                Title = dto.Title,
-                Description = dto.Description,
-                Category = dto.Category,
-                EventDate = dto.EventDate
-            };
+            events = await eventService.GetAllAsync();
+        }
 
-            var createdEvent = await eventService.CreateAsync(newEvent);
+        var result = events.Select(ToDto);
 
-            var result = new EventDto
-            {
-                Id = createdEvent.Id,
-                UserId = createdEvent.UserId,
-                DocumentId = createdEvent.DocumentId,
-                Title = createdEvent.Title,
-                Description = createdEvent.Description,
-                Category = createdEvent.Category,
-                EventDate = createdEvent.EventDate,
-                CreatedAt = createdEvent.CreatedAt
-            };
+        return Results.Ok(result);
+    }
 
-            return Results.Created($"/api/events/{createdEvent.Id}", result);
-        });
+    private static async Task<IResult> GetByIdAsync(
+        int id,
+        IEventService eventService)
+    {
+        var eventItem = await eventService.GetByIdAsync(id);
 
-        app.MapPut("/api/events/{id:int}", async (
-    int id,
-    UpdateEventDto dto,
-    IEventService eventService) =>
+        if (eventItem is null)
         {
-            var changes = new Event
-            {
-                DocumentId = dto.DocumentId,
-                Title = dto.Title,
-                Description = dto.Description,
-                Category = dto.Category,
-                EventDate = dto.EventDate
-            };
+            return Results.NotFound();
+        }
 
-            var updatedEvent = await eventService.UpdateAsync(id, changes);
+        return Results.Ok(ToDto(eventItem));
+    }
 
-            if (updatedEvent is null)
-            {
-                return Results.NotFound();
-            }
+    private static async Task<IResult> CreateAsync(
+        CreateEventDto dto,
+        IEventService eventService)
+    {
+        var newEvent = new Event
+        {
+            UserId = dto.UserId,
+            DocumentId = dto.DocumentId,
+            Title = dto.Title,
+            Description = dto.Description,
+            Category = dto.Category,
+            EventDate = dto.EventDate
+        };
 
-            var result = new EventDto
-            {
-                Id = updatedEvent.Id,
-                UserId = updatedEvent.UserId,
-                DocumentId = updatedEvent.DocumentId,
-                Title = updatedEvent.Title,
-                Description = updatedEvent.Description,
-                Category = updatedEvent.Category,
-                EventDate = updatedEvent.EventDate,
-                CreatedAt = updatedEvent.CreatedAt
-            };
+        var createdEvent = await eventService.CreateAsync(newEvent);
 
-            return Results.Ok(result);
-        });
+        return Results.Created(
+            $"/api/events/{createdEvent.Id}",
+            ToDto(createdEvent));
+    }
+
+    private static async Task<IResult> UpdateAsync(
+        int id,
+        UpdateEventDto dto,
+        IEventService eventService)
+    {
+        var changes = new Event
+        {
+            DocumentId = dto.DocumentId,
+            Title = dto.Title,
+            Description = dto.Description,
+            Category = dto.Category,
+            EventDate = dto.EventDate
+        };
+
+        var updatedEvent = await eventService.UpdateAsync(id, changes);
+
+        if (updatedEvent is null)
+        {
+            return Results.NotFound();
+        }
+
+        return Results.Ok(ToDto(updatedEvent));
+    }
+
+    private static EventDto ToDto(Event eventItem)
+    {
+        return new EventDto
+        {
+            Id = eventItem.Id,
+            UserId = eventItem.UserId,
+            DocumentId = eventItem.DocumentId,
+            Title = eventItem.Title,
+            Description = eventItem.Description,
+            Category = eventItem.Category,
+            EventDate = eventItem.EventDate,
+            CreatedAt = eventItem.CreatedAt
+        };
     }
 }
