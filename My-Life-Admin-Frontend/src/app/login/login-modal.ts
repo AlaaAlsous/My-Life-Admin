@@ -14,6 +14,7 @@ export class LoginModal {
 
   readonly closed = output<void>();
   readonly loggedIn = output<void>();
+  readonly registerRequested = output<void>();
 
   protected readonly submitting = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
