@@ -96,5 +96,5 @@
 </section>
 
 @if (showLogin()) {
-  <app-login-modal (closed)="showLogin.set(false)" />
+  <app-login-modal (closed)="showLogin.set(false)" (loggedIn)="onLoggedIn()" />
 }

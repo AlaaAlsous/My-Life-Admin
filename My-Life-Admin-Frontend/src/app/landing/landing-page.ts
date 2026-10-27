@@ -1,4 +1,5 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { LoginModal } from '../login/login-modal';
 
 @Component({
@@ -35,5 +36,11 @@ export class LandingPage {
     },
   ];
 
+  private readonly router = inject(Router);
+
   protected readonly showLogin = signal(false);
+
+  protected onLoggedIn(): void {
+    this.router.navigateByUrl('/dashboard');
+  }
 }
