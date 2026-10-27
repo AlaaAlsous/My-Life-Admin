@@ -14,11 +14,32 @@ public class EventRepository : Repository<Event>, IEventRepository
         _db = db;
     }
 
-    public async Task<IEnumerable<Event>> GetEventsBetweenAsync(DateTime start, DateTime end)
+    public async Task<IEnumerable<Event>> GetByUserIdAsync(int userId)
     {
         return await _db.Events
             .AsNoTracking()
-            .Where(e => e.EventDate >= start && e.EventDate <= end)
+            .Where(e => e.UserId == userId)
+            .OrderBy(e => e.EventDate)
+            .ToListAsync();
+    }
+
+    public async Task<Event?> GetByIdAndUserIdAsync(int id, int userId)
+    {
+        return await _db.Events
+            .FirstOrDefaultAsync(e => e.Id == id && e.UserId == userId);
+    }
+
+    public async Task<IEnumerable<Event>> GetEventsBetweenAsync(
+        int userId,
+        DateTime start,
+        DateTime end)
+    {
+        return await _db.Events
+            .AsNoTracking()
+            .Where(e =>
+                e.UserId == userId &&
+                e.EventDate >= start &&
+                e.EventDate <= end)
             .OrderBy(e => e.EventDate)
             .ToListAsync();
     }

@@ -5,26 +5,43 @@ namespace My_Life_Admin.Services;
 
 public class EventService(IEventRepository repository) : IEventService
 {
-    public Task<Event?> GetByIdAsync(int id) => repository.GetByIdAsync(id);
+    public Task<Event?> GetByIdAsync(int id, int userId)
+    {
+        return repository.GetByIdAndUserIdAsync(id, userId);
+    }
 
-    public Task<IEnumerable<Event>> GetAllAsync() => repository.GetAllAsync();
+    public Task<IEnumerable<Event>> GetAllAsync(int userId)
+    {
+        return repository.GetByUserIdAsync(userId);
+    }
 
-    public async Task<IEnumerable<Event>> GetBetweenAsync(DateTime start, DateTime end)
+    public async Task<IEnumerable<Event>> GetBetweenAsync(
+        int userId,
+        DateTime start,
+        DateTime end)
     {
         if (end < start)
         {
-            throw new ArgumentException("End must not be before start.", nameof(end));
+            throw new ArgumentException(
+                "End must not be before start.",
+                nameof(end));
         }
 
-        return await repository.GetEventsBetweenAsync(start, end);
+        return await repository.GetEventsBetweenAsync(
+            userId,
+            start,
+            end);
     }
 
-    public async Task<IEnumerable<Event>> GetForMonthAsync(int year, int month)
+    public async Task<IEnumerable<Event>> GetForMonthAsync(
+        int userId,
+        int year,
+        int month)
     {
         var start = new DateTime(year, month, 1);
         var end = start.AddMonths(1).AddTicks(-1);
 
-        return await GetBetweenAsync(start, end);
+        return await GetBetweenAsync(userId, start, end);
     }
 
     public async Task<Event> CreateAsync(Event newEvent)
@@ -37,11 +54,17 @@ public class EventService(IEventRepository repository) : IEventService
         return newEvent;
     }
 
-    public async Task<Event?> UpdateAsync(int id, Event changes)
+    public async Task<Event?> UpdateAsync(
+        int id,
+        int userId,
+        Event changes)
     {
         ValidateTitle(changes);
 
-        var existing = await repository.GetByIdAsync(id);
+        var existing = await repository.GetByIdAndUserIdAsync(
+            id,
+            userId);
+
         if (existing is null)
         {
             return null;
@@ -59,9 +82,12 @@ public class EventService(IEventRepository repository) : IEventService
         return existing;
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(int id, int userId)
     {
-        var existing = await repository.GetByIdAsync(id);
+        var existing = await repository.GetByIdAndUserIdAsync(
+            id,
+            userId);
+
         if (existing is null)
         {
             return false;
@@ -77,7 +103,9 @@ public class EventService(IEventRepository repository) : IEventService
     {
         if (string.IsNullOrWhiteSpace(e.Title))
         {
-            throw new ArgumentException("Title is required.", nameof(e));
+            throw new ArgumentException(
+                "Title is required.",
+                nameof(e));
         }
     }
 }

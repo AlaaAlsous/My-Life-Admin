@@ -25,9 +25,16 @@ public class EventRepositoryTests : IDisposable
         _db = new ApplicationDbContext(options);
         _db.Database.EnsureCreated();
 
-        var user = new User { Name = "Anna", Email = "anna@example.com", PasswordHash = "hash" };
+        var user = new User
+        {
+            Name = "Anna",
+            Email = "anna@example.com",
+            PasswordHash = "hash"
+        };
+
         _db.Users.Add(user);
         _db.SaveChanges();
+
         _userId = user.Id;
 
         _repository = new EventRepository(_db);
@@ -47,7 +54,10 @@ public class EventRepositoryTests : IDisposable
             Event("Inside", new DateTime(2026, 10, 15, 12, 0, 0)),
             Event("After", new DateTime(2026, 11, 1, 0, 0, 1)));
 
-        var result = await _repository.GetEventsBetweenAsync(new DateTime(2026, 10, 1), new DateTime(2026, 10, 31, 23, 59, 59));
+        var result = await _repository.GetEventsBetweenAsync(
+            _userId,
+            new DateTime(2026, 10, 1),
+            new DateTime(2026, 10, 31, 23, 59, 59));
 
         Assert.Equal(["Inside"], result.Select(e => e.Title));
     }
@@ -57,11 +67,19 @@ public class EventRepositoryTests : IDisposable
     {
         var start = new DateTime(2026, 10, 1);
         var end = new DateTime(2026, 10, 31, 23, 59, 59);
-        await Seed(Event("AtStart", start), Event("AtEnd", end));
 
-        var result = await _repository.GetEventsBetweenAsync(start, end);
+        await Seed(
+            Event("AtStart", start),
+            Event("AtEnd", end));
 
-        Assert.Equal(["AtStart", "AtEnd"], result.Select(e => e.Title));
+        var result = await _repository.GetEventsBetweenAsync(
+            _userId,
+            start,
+            end);
+
+        Assert.Equal(
+            ["AtStart", "AtEnd"],
+            result.Select(e => e.Title));
     }
 
     [Fact]
@@ -72,28 +90,73 @@ public class EventRepositoryTests : IDisposable
             Event("First", new DateTime(2026, 10, 2)),
             Event("Second", new DateTime(2026, 10, 10)));
 
-        var result = await _repository.GetEventsBetweenAsync(new DateTime(2026, 10, 1), new DateTime(2026, 10, 31));
+        var result = await _repository.GetEventsBetweenAsync(
+            _userId,
+            new DateTime(2026, 10, 1),
+            new DateTime(2026, 10, 31));
 
-        Assert.Equal(["First", "Second", "Third"], result.Select(e => e.Title));
+        Assert.Equal(
+            ["First", "Second", "Third"],
+            result.Select(e => e.Title));
     }
 
     [Fact]
     public async Task GetEventsBetweenAsync_NoEventsInRange_ReturnsEmpty()
     {
-        await Seed(Event("Elsewhere", new DateTime(2026, 1, 1)));
+        await Seed(
+            Event("Elsewhere", new DateTime(2026, 1, 1)));
 
-        var result = await _repository.GetEventsBetweenAsync(new DateTime(2026, 10, 1), new DateTime(2026, 10, 31));
+        var result = await _repository.GetEventsBetweenAsync(
+            _userId,
+            new DateTime(2026, 10, 1),
+            new DateTime(2026, 10, 31));
 
         Assert.Empty(result);
     }
 
     [Fact]
+    public async Task GetEventsBetweenAsync_DoesNotReturnOtherUsersEvents()
+    {
+        var otherUser = new User
+        {
+            Name = "Bob",
+            Email = "bob@example.com",
+            PasswordHash = "hash"
+        };
+
+        _db.Users.Add(otherUser);
+        await _db.SaveChangesAsync();
+
+        await Seed(
+            Event("My Event", new DateTime(2026, 10, 10)),
+            new Event
+            {
+                UserId = otherUser.Id,
+                Title = "Other User Event",
+                Category = "Test",
+                EventDate = new DateTime(2026, 10, 10)
+            });
+
+        var result = await _repository.GetEventsBetweenAsync(
+            _userId,
+            new DateTime(2026, 10, 1),
+            new DateTime(2026, 10, 31));
+
+        Assert.Equal(
+            ["My Event"],
+            result.Select(e => e.Title));
+    }
+
+    [Fact]
     public async Task AddAndGetById_RoundTripsEvent()
     {
-        var newEvent = Event("Passport expires", new DateTime(2027, 3, 5));
+        var newEvent = Event(
+            "Passport expires",
+            new DateTime(2027, 3, 5));
 
         await _repository.AddAsync(newEvent);
         await _repository.SaveChangesAsync();
+
         var loaded = await _repository.GetByIdAsync(newEvent.Id);
 
         Assert.NotNull(loaded);
@@ -101,7 +164,13 @@ public class EventRepositoryTests : IDisposable
     }
 
     private Event Event(string title, DateTime date) =>
-        new() { UserId = _userId, Title = title, Category = "Test", EventDate = date };
+        new()
+        {
+            UserId = _userId,
+            Title = title,
+            Category = "Test",
+            EventDate = date
+        };
 
     private async Task Seed(params Event[] events)
     {
