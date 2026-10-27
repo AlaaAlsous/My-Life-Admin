@@ -1,39 +1,53 @@
 @import 'tailwindcss';
 
-:root {
-  --color-primary: #1d4ed8;
-  --color-primary-hover: #1e40af;
-  --color-secondary: #475569;
+@theme {
+  --color-primary: #8c4a5e;
+  --color-primary-hover: #723a4b;
+  --color-secondary: #67555d;
   --color-surface: #ffffff;
-  --color-surface-muted: #f8fafc;
-  --color-surface-error: #fef2f2;
-  --color-text: #111827;
-  --color-text-muted: #4b5563;
-  --color-border: #6b7280;
+  --color-surface-muted: #faf5f7;
+  --color-surface-error: #fdf0f2;
+  --color-text: #2f2229;
+  --color-text-muted: #67555d;
+  --color-border: #8f7b85;
+  --color-border-soft: #ebdfe4;
   --color-success: #166534;
   --color-warning: #92400e;
-  --color-error: #b91c1c;
+  --color-error: #b3263e;
 
-  --font-sans: Arial, sans-serif;
+  --color-rose: #bb7e8c;
+  --color-mauve: #c9b6be;
+  --color-blush: #d1becf;
+  --color-plum: #3a2a33;
+
+  --font-sans: 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  --font-display: Georgia, 'Times New Roman', serif;
   --text-body: 1rem;
-  --text-body--line-height: 1.5;
+  --text-body--line-height: 1.6;
   --text-label: 0.875rem;
   --text-label--line-height: 1.25rem;
   --text-title: 1.25rem;
   --text-title--line-height: 1.75rem;
 
-  --radius-card: 0.5rem;
-  --radius-control: 0.25rem;
-  --shadow-card: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --radius-card: 1.25rem;
+  --radius-control: 0.75rem;
+  --shadow-card: 0 20px 40px -12px rgb(140 74 94 / 0.25);
+  --shadow-soft: 0 1px 2px rgb(58 42 51 / 0.05), 0 8px 24px -8px rgb(140 74 94 / 0.18);
+  --shadow-lift: 0 2px 4px rgb(58 42 51 / 0.06), 0 18px 36px -10px rgb(140 74 94 / 0.3);
 }
-
 @layer base {
   body {
-    background-color: var(--color-surface);
+    background-color: var(--color-surface-muted);
     color: var(--color-text);
     font-family: var(--font-sans);
     font-size: var(--text-body);
     line-height: var(--text-body--line-height);
+  }
+
+  h1,
+  h2 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
   }
 
   h1 {

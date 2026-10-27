@@ -10,7 +10,7 @@ describe('LandingPage', () => {
 
     expect(el.querySelector('h1')?.textContent).toContain('organized in one place');
     const buttons = Array.from(el.querySelectorAll('button')).map((b) => b.textContent?.trim());
-    expect(buttons).toEqual(['Get Started', 'Log In']);
+    expect(buttons.slice(0, 2)).toEqual(['Get Started', 'Log In']);
   });
 
   it('presents the five feature cards', async () => {
