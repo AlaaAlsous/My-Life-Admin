@@ -2,236 +2,323 @@ using Moq;
 using My_Life_Admin.Models;
 using My_Life_Admin.Repositories;
 using My_Life_Admin.Services;
+using My_Life_Admin.Storage;
 
 namespace My_Life_Admin.Tests.Services;
 
 public class DocumentServiceTests
 {
-    [Fact]
-    public async Task GetByIdAsync_ReturnsDocument_WhenDocumentExists()
+    private const int UserId = 1;
+
+    private readonly Mock<IDocumentRepository> _repositoryMock = new();
+    private readonly Mock<IFileStorage> _fileStorageMock = new();
+    private readonly DocumentService _service;
+
+    public DocumentServiceTests()
     {
-        // Arrange
-        var document = new Document
-        {
-            Id = 1,
-            Title = "Passport",
-            FileName = "passport.pdf",
-            FilePath = "/documents/passport.pdf",
-            UserId = 1
-        };
-
-        var repositoryMock = new Mock<IDocumentRepository>();
-
-        repositoryMock
-            .Setup(r => r.GetByIdAsync(1))
-            .ReturnsAsync(document);
-
-        var service = new DocumentService(repositoryMock.Object);
-
-        // Act
-        var result = await service.GetByIdAsync(1);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Equal(document.Id, result.Id);
-        Assert.Equal(document.Title, result.Title);
+        _service = new DocumentService(_repositoryMock.Object, _fileStorageMock.Object);
     }
 
     [Fact]
-    public async Task AddAsync_AddsDocumentAndSavesChanges()
+    public async Task GetByIdAsync_ReturnsDocument_WhenUserOwnsIt()
     {
         // Arrange
-        var document = new Document
-        {
-            Id = 1,
-            Title = "Passport",
-            FileName = "passport.pdf",
-            FilePath = "/documents/passport.pdf",
-            UserId = 1
-        };
+        var document = Passport();
 
-        var repositoryMock = new Mock<IDocumentRepository>();
-
-        var service = new DocumentService(repositoryMock.Object);
+        _repositoryMock
+            .Setup(r => r.GetByIdForUserAsync(1, UserId))
+            .ReturnsAsync(document);
 
         // Act
-        await service.AddAsync(document);
+        var result = await _service.GetByIdAsync(1, UserId);
 
         // Assert
-        repositoryMock.Verify(
+        Assert.Same(document, result);
+    }
+
+    [Fact]
+    public async Task GetAllAsync_ReturnsUsersDocumentsFromRepository()
+    {
+        // Arrange
+        _repositoryMock
+            .Setup(r => r.GetAllForUserAsync(UserId))
+            .ReturnsAsync(new List<Document> { Passport() });
+
+        // Act
+        var result = await _service.GetAllAsync(UserId);
+
+        // Assert
+        Assert.Single(result);
+    }
+
+    [Fact]
+    public async Task SearchAsync_PassesUserIdAndQueryToRepository()
+    {
+        // Arrange
+        _repositoryMock
+            .Setup(r => r.SearchAsync(UserId, "Passport"))
+            .ReturnsAsync(new List<Document> { Passport() });
+
+        // Act
+        var result = await _service.SearchAsync(UserId, "Passport");
+
+        // Assert
+        Assert.Single(result);
+
+        _repositoryMock.Verify(
+            r => r.SearchAsync(UserId, "Passport"),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task GetExpiringWithinAsync_PassesUserIdAndDaysToRepository()
+    {
+        // Arrange
+        _repositoryMock
+            .Setup(r => r.GetExpiringWithinAsync(UserId, 30))
+            .ReturnsAsync(new List<Document> { Passport() });
+
+        // Act
+        var result = await _service.GetExpiringWithinAsync(UserId, 30);
+
+        // Assert
+        Assert.Single(result);
+
+        _repositoryMock.Verify(
+            r => r.GetExpiringWithinAsync(UserId, 30),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateAsync_StoresFileAndSavesDocumentWithStorageKey()
+    {
+        // Arrange
+        var document = new Document { UserId = UserId, Title = "Passport", FileName = "passport.pdf" };
+        using var content = new MemoryStream([1, 2, 3]);
+
+        _fileStorageMock
+            .Setup(s => s.SaveAsync(content, ".pdf", It.IsAny<CancellationToken>()))
+            .ReturnsAsync("stored-key.pdf");
+
+        // Act
+        var result = await _service.CreateAsync(document, content);
+
+        // Assert
+        Assert.Same(document, result);
+        Assert.Equal("stored-key.pdf", document.FilePath);
+
+        _repositoryMock.Verify(
             r => r.AddAsync(document),
             Times.Once);
 
-        repositoryMock.Verify(
+        _repositoryMock.Verify(
             r => r.SaveChangesAsync(),
             Times.Once);
     }
 
     [Fact]
-    public async Task UpdateAsync_UpdatesDocumentAndSavesChanges()
+    public async Task CreateAsync_DeletesStoredFile_WhenSavingDocumentFails()
     {
         // Arrange
-        var document = new Document
-        {
-            Id = 1,
-            Title = "Updated Passport",
-            FileName = "passport.pdf",
-            FilePath = "/documents/passport.pdf",
-            UserId = 1
-        };
+        var document = new Document { UserId = UserId, Title = "Passport", FileName = "passport.pdf" };
+        using var content = new MemoryStream([1, 2, 3]);
 
-        var repositoryMock = new Mock<IDocumentRepository>();
+        _fileStorageMock
+            .Setup(s => s.SaveAsync(content, ".pdf", It.IsAny<CancellationToken>()))
+            .ReturnsAsync("stored-key.pdf");
 
-        var service = new DocumentService(repositoryMock.Object);
+        _repositoryMock
+            .Setup(r => r.SaveChangesAsync())
+            .ThrowsAsync(new InvalidOperationException("Database error"));
 
         // Act
-        await service.UpdateAsync(document);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateAsync(document, content));
 
         // Assert
-        repositoryMock.Verify(
+        _fileStorageMock.Verify(
+            s => s.DeleteAsync("stored-key.pdf", It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_UpdatesMetadataAndSaves_WhenUserOwnsDocument()
+    {
+        // Arrange
+        var document = Passport();
+
+        _repositoryMock
+            .Setup(r => r.GetByIdForUserAsync(1, UserId))
+            .ReturnsAsync(document);
+
+        var changes = new Document
+        {
+            Title = "New passport",
+            Description = "Renewed",
+            Category = "Travel",
+            ExpiryDate = new DateTime(2036, 1, 1),
+        };
+
+        // Act
+        var result = await _service.UpdateAsync(1, UserId, changes);
+
+        // Assert
+        Assert.Same(document, result);
+        Assert.Equal("New passport", document.Title);
+        Assert.Equal("Renewed", document.Description);
+        Assert.Equal("Travel", document.Category);
+        Assert.Equal(new DateTime(2036, 1, 1), document.ExpiryDate);
+        Assert.Equal("passport.pdf", document.FileName);
+        Assert.Equal("stored-key.pdf", document.FilePath);
+        Assert.Equal(UserId, document.UserId);
+
+        _repositoryMock.Verify(
             r => r.Update(document),
             Times.Once);
 
-        repositoryMock.Verify(
+        _repositoryMock.Verify(
             r => r.SaveChangesAsync(),
             Times.Once);
     }
 
     [Fact]
-    public async Task DeleteAsync_DeletesDocumentAndSavesChanges_WhenDocumentExists()
+    public async Task UpdateAsync_ReturnsNull_WhenUserDoesNotOwnDocument()
     {
         // Arrange
-        var document = new Document
-        {
-            Id = 1,
-            Title = "Passport",
-            FileName = "passport.pdf",
-            FilePath = "/documents/passport.pdf",
-            UserId = 1
-        };
-
-        var repositoryMock = new Mock<IDocumentRepository>();
-
-        repositoryMock
-            .Setup(r => r.GetByIdAsync(1))
-            .ReturnsAsync(document);
-
-        var service = new DocumentService(repositoryMock.Object);
+        _repositoryMock
+            .Setup(r => r.GetByIdForUserAsync(1, UserId))
+            .ReturnsAsync((Document?)null);
 
         // Act
-        await service.DeleteAsync(1);
+        var result = await _service.UpdateAsync(1, UserId, new Document { Title = "New" });
 
         // Assert
-        repositoryMock.Verify(
-            r => r.GetByIdAsync(1),
-            Times.Once);
+        Assert.Null(result);
 
-        repositoryMock.Verify(
+        _repositoryMock.Verify(
+            r => r.SaveChangesAsync(),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_DeletesDocumentAndFile_WhenUserOwnsDocument()
+    {
+        // Arrange
+        var document = Passport();
+
+        _repositoryMock
+            .Setup(r => r.GetByIdForUserAsync(1, UserId))
+            .ReturnsAsync(document);
+
+        // Act
+        var result = await _service.DeleteAsync(1, UserId);
+
+        // Assert
+        Assert.True(result);
+
+        _repositoryMock.Verify(
             r => r.Delete(document),
             Times.Once);
 
-        repositoryMock.Verify(
+        _repositoryMock.Verify(
             r => r.SaveChangesAsync(),
+            Times.Once);
+
+        _fileStorageMock.Verify(
+            s => s.DeleteAsync("stored-key.pdf", It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
     [Fact]
-    public async Task DeleteAsync_DoesNotDelete_WhenDocumentDoesNotExist()
+    public async Task DeleteAsync_ReturnsFalse_WhenUserDoesNotOwnDocument()
     {
         // Arrange
-        var repositoryMock = new Mock<IDocumentRepository>();
-
-        repositoryMock
-            .Setup(r => r.GetByIdAsync(1))
+        _repositoryMock
+            .Setup(r => r.GetByIdForUserAsync(1, UserId))
             .ReturnsAsync((Document?)null);
 
-        var service = new DocumentService(repositoryMock.Object);
-
         // Act
-        await service.DeleteAsync(1);
+        var result = await _service.DeleteAsync(1, UserId);
 
         // Assert
-        repositoryMock.Verify(
-            r => r.GetByIdAsync(1),
-            Times.Once);
+        Assert.False(result);
 
-        repositoryMock.Verify(
+        _repositoryMock.Verify(
             r => r.Delete(It.IsAny<Document>()),
             Times.Never);
 
-        repositoryMock.Verify(
-            r => r.SaveChangesAsync(),
+        _fileStorageMock.Verify(
+            s => s.DeleteAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
     [Fact]
-    public async Task SearchAsync_ReturnsDocumentsFromRepository()
+    public async Task OpenFileAsync_ReturnsDocumentAndContent_WhenFileExists()
     {
         // Arrange
-        var documents = new List<Document>
-    {
-        new Document
-        {
-            Id = 1,
-            Title = "Passport",
-            FileName = "passport.pdf",
-            FilePath = "/documents/passport.pdf",
-            UserId = 1
-        }
-    };
+        var document = Passport();
+        using var content = new MemoryStream([1, 2, 3]);
 
-        var repositoryMock = new Mock<IDocumentRepository>();
+        _repositoryMock
+            .Setup(r => r.GetByIdForUserAsync(1, UserId))
+            .ReturnsAsync(document);
 
-        repositoryMock
-            .Setup(r => r.SearchAsync("Passport"))
-            .ReturnsAsync(documents);
-
-        var service = new DocumentService(repositoryMock.Object);
+        _fileStorageMock
+            .Setup(s => s.OpenReadAsync("stored-key.pdf", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(content);
 
         // Act
-        var result = await service.SearchAsync("Passport");
+        var result = await _service.OpenFileAsync(1, UserId);
 
         // Assert
-        Assert.Single(result);
-
-        repositoryMock.Verify(
-            r => r.SearchAsync("Passport"),
-            Times.Once);
+        Assert.NotNull(result);
+        Assert.Same(document, result.Document);
+        Assert.Same(content, result.Content);
     }
 
     [Fact]
-    public async Task GetExpiringWithinAsync_ReturnsExpiringDocumentsFromRepository()
+    public async Task OpenFileAsync_ReturnsNull_WhenFileIsMissing()
     {
         // Arrange
-        var documents = new List<Document>
-    {
-        new Document
-        {
-            Id = 1,
-            Title = "Passport",
-            FileName = "passport.pdf",
-            FilePath = "/documents/passport.pdf",
-            ExpiryDate = DateTime.UtcNow.AddDays(10),
-            UserId = 1
-        }
-    };
+        _repositoryMock
+            .Setup(r => r.GetByIdForUserAsync(1, UserId))
+            .ReturnsAsync(Passport());
 
-        var repositoryMock = new Mock<IDocumentRepository>();
-
-        repositoryMock
-            .Setup(r => r.GetExpiringWithinAsync(30))
-            .ReturnsAsync(documents);
-
-        var service = new DocumentService(repositoryMock.Object);
+        _fileStorageMock
+            .Setup(s => s.OpenReadAsync("stored-key.pdf", It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Stream?)null);
 
         // Act
-        var result = await service.GetExpiringWithinAsync(30);
+        var result = await _service.OpenFileAsync(1, UserId);
 
         // Assert
-        Assert.Single(result);
-
-        repositoryMock.Verify(
-            r => r.GetExpiringWithinAsync(30),
-            Times.Once);
+        Assert.Null(result);
     }
+
+    [Fact]
+    public async Task OpenFileAsync_ReturnsNull_WithoutReadingStorage_WhenUserDoesNotOwnDocument()
+    {
+        // Arrange
+        _repositoryMock
+            .Setup(r => r.GetByIdForUserAsync(1, UserId))
+            .ReturnsAsync((Document?)null);
+
+        // Act
+        var result = await _service.OpenFileAsync(1, UserId);
+
+        // Assert
+        Assert.Null(result);
+
+        _fileStorageMock.Verify(
+            s => s.OpenReadAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    private static Document Passport() => new()
+    {
+        Id = 1,
+        Title = "Passport",
+        FileName = "passport.pdf",
+        FilePath = "stored-key.pdf",
+        UserId = UserId,
+    };
 }

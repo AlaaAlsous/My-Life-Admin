@@ -10,6 +10,9 @@
 *.sqlite
 *.sqlite3
 
+# ---------- Uppladdade dokument (LocalFileStorage) ----------
+My-Life-Admin-Backend/uploads/
+
 # ---------- .NET / Visual Studio ----------
 [Bb]in/
 [Oo]bj/

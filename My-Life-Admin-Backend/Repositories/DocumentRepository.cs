@@ -43,9 +43,24 @@ public class DocumentRepository : IDocumentRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<Document>> SearchAsync(string query)
+    public async Task<Document?> GetByIdForUserAsync(int id, int userId)
     {
         return await _context.Documents
+            .FirstOrDefaultAsync(d => d.Id == id && d.UserId == userId);
+    }
+
+    public async Task<IEnumerable<Document>> GetAllForUserAsync(int userId)
+    {
+        return await _context.Documents
+            .Where(d => d.UserId == userId)
+            .OrderByDescending(d => d.UploadedAt)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Document>> SearchAsync(int userId, string query)
+    {
+        return await _context.Documents
+            .Where(d => d.UserId == userId)
             .Where(d =>
                 d.Title.Contains(query) ||
                 (d.Description != null && d.Description.Contains(query)) ||
@@ -53,16 +68,18 @@ public class DocumentRepository : IDocumentRepository
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<Document>> GetExpiringWithinAsync(int days)
+    public async Task<IEnumerable<Document>> GetExpiringWithinAsync(int userId, int days)
     {
         var today = DateTime.UtcNow;
         var expiryLimit = today.AddDays(days);
 
         return await _context.Documents
+            .Where(d => d.UserId == userId)
             .Where(d =>
                 d.ExpiryDate.HasValue &&
                 d.ExpiryDate.Value >= today &&
                 d.ExpiryDate.Value <= expiryLimit)
+            .OrderBy(d => d.ExpiryDate)
             .ToListAsync();
     }
 }

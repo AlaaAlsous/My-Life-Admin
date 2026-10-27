@@ -4,17 +4,19 @@ namespace My_Life_Admin.Services;
 
 public interface IDocumentService
 {
-    Task<Document?> GetByIdAsync(int id);
+    Task<Document?> GetByIdAsync(int id, int userId);
 
-    Task<IEnumerable<Document>> GetAllAsync();
+    Task<IEnumerable<Document>> GetAllAsync(int userId);
 
-    Task<IEnumerable<Document>> SearchAsync(string query);
+    Task<IEnumerable<Document>> SearchAsync(int userId, string query);
 
-    Task<IEnumerable<Document>> GetExpiringWithinAsync(int days);
+    Task<IEnumerable<Document>> GetExpiringWithinAsync(int userId, int days);
 
-    Task AddAsync(Document document);
+    Task<Document> CreateAsync(Document document, Stream content);
 
-    Task UpdateAsync(Document document);
+    Task<Document?> UpdateAsync(int id, int userId, Document changes);
 
-    Task DeleteAsync(int id);
+    Task<bool> DeleteAsync(int id, int userId);
+
+    Task<DocumentFile?> OpenFileAsync(int id, int userId);
 }
