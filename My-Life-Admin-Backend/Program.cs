@@ -10,6 +10,7 @@ using My_Life_Admin.Models;
 using My_Life_Admin.Options;
 using My_Life_Admin.Repositories;
 using My_Life_Admin.Services;
+using My_Life_Admin.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,6 +42,12 @@ builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IReminderService, ReminderService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
+builder.Services.AddScoped<IDocumentService, DocumentService>();
+
+builder.Services.Configure<FileStorageOptions>(builder.Configuration.GetSection(FileStorageOptions.SectionName));
+// TODO(Azure Blob): register AzureBlobFileStorage here instead of LocalFileStorage once Blob Storage is set up.
+builder.Services.AddSingleton<IFileStorage, LocalFileStorage>();
 builder.Services.AddScoped<IUserSettingsRepository, UserSettingsRepository>();
 builder.Services.AddScoped<IUserSettingsService, UserSettingsService>();
 
@@ -93,5 +100,6 @@ app.MapGet("/", () => "Hello World!").AllowAnonymous();
 app.MapGet("/api/health", () => new { status = "Healthy" }).AllowAnonymous();
 app.MapAuthEndpoints();
 app.MapDashboardEndpoints();
+app.MapDocumentEndpoints();
 
 app.Run();
