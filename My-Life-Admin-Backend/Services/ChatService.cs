@@ -1,15 +1,69 @@
+using Microsoft.Extensions.Options;
+using My_Life_Admin.Ai;
 using My_Life_Admin.Models;
+using My_Life_Admin.Options;
 using My_Life_Admin.Repositories;
 
 namespace My_Life_Admin.Services;
 
-public class ChatService(IChatMessageRepository repository) : IChatService
+public class ChatService(
+    IChatMessageRepository repository,
+    IAiChatClient aiClient,
+    IOptions<AiOptions> aiOptions) : IChatService
 {
     public const int DefaultHistoryCount = 50;
     public const int MaxHistoryCount = 200;
     public const int MaxContentLength = 4000;
 
     public async Task<ChatMessage> AddMessageAsync(int userId, ChatRole role, string content)
+    {
+        var message = new ChatMessage
+        {
+            UserId = userId,
+            Role = role,
+            Content = ValidateContent(content),
+            CreatedAt = DateTime.UtcNow
+        };
+
+        await repository.AddAsync(message);
+        await repository.SaveChangesAsync();
+        return message;
+    }
+
+    public Task<IReadOnlyList<ChatMessage>> GetHistoryAsync(int userId, int count = DefaultHistoryCount)
+    {
+        return repository.GetHistoryAsync(userId, Math.Min(count, MaxHistoryCount));
+    }
+
+    public async Task<ChatExchange> SendAsync(int userId, string content, CancellationToken cancellationToken = default)
+    {
+        var userMessage = new ChatMessage
+        {
+            UserId = userId,
+            Role = ChatRole.User,
+            Content = ValidateContent(content),
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var history = await repository.GetHistoryAsync(userId, Math.Max(0, aiOptions.Value.MaxHistoryMessages));
+        var replyText = await aiClient.GetReplyAsync([.. history, userMessage], cancellationToken);
+
+        var reply = new ChatMessage
+        {
+            UserId = userId,
+            Role = ChatRole.Assistant,
+            Content = Truncate(replyText.Trim(), MaxContentLength),
+            CreatedAt = DateTime.UtcNow
+        };
+
+        await repository.AddAsync(userMessage);
+        await repository.AddAsync(reply);
+        await repository.SaveChangesAsync();
+
+        return new ChatExchange(userMessage, reply);
+    }
+
+    private static string ValidateContent(string content)
     {
         if (string.IsNullOrWhiteSpace(content))
         {
@@ -23,21 +77,9 @@ public class ChatService(IChatMessageRepository repository) : IChatService
                 $"Message content cannot exceed {MaxContentLength} characters.", nameof(content));
         }
 
-        var message = new ChatMessage
-        {
-            UserId = userId,
-            Role = role,
-            Content = trimmed,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        await repository.AddAsync(message);
-        await repository.SaveChangesAsync();
-        return message;
+        return trimmed;
     }
 
-    public Task<IReadOnlyList<ChatMessage>> GetHistoryAsync(int userId, int count = DefaultHistoryCount)
-    {
-        return repository.GetHistoryAsync(userId, Math.Min(count, MaxHistoryCount));
-    }
+    private static string Truncate(string value, int maxLength) =>
+        value.Length <= maxLength ? value : value[..maxLength];
 }
