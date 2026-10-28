@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using My_Life_Admin.Ai;
 using My_Life_Admin.Data;
 using My_Life_Admin.Endpoints;
 using My_Life_Admin.Models;
@@ -70,6 +71,24 @@ else
 builder.Services.AddScoped<IUserSettingsRepository, UserSettingsRepository>();
 builder.Services.AddScoped<IUserSettingsService, UserSettingsService>();
 
+builder.Services.Configure<AiOptions>(builder.Configuration.GetSection(AiOptions.SectionName));
+var aiOptions = builder.Configuration.GetSection(AiOptions.SectionName).Get<AiOptions>() ?? new AiOptions();
+
+if (aiOptions.IsConfigured)
+{
+    builder.Services.AddSingleton<IAiChatClient, AzureOpenAiChatClient>();
+}
+else if (aiOptions.HasAnyConnectionSetting)
+{
+    throw new InvalidOperationException(
+        "Ai:Endpoint, Ai:ApiKey and Ai:Deployment must all be set to enable the AI assistant " +
+        "(leave all of them empty to use the placeholder reply).");
+}
+else
+{
+    builder.Services.AddSingleton<IAiChatClient, PlaceholderAiChatClient>();
+}
+
 builder.Services
     .AddOptions<JwtOptions>()
     .Bind(builder.Configuration.GetSection(JwtOptions.SectionName))
@@ -124,6 +143,7 @@ app.MapAuthEndpoints();
 app.MapEventEndpoints();
 app.MapDashboardEndpoints();
 app.MapDocumentEndpoints();
+app.MapChatEndpoints();
 
 app.MapFallbackToFile("index.html").AllowAnonymous();
 
