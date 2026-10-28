@@ -4,11 +4,20 @@ namespace My_Life_Admin.Services;
 
 public interface IReminderService
 {
-    Task<IEnumerable<Reminder>> GetPendingAsync();
-    Task<Reminder?> MarkAsSentAsync(int id);
-    Task<IEnumerable<Reminder>> GetAllAsync();
-    Task<Reminder?> GetByIdAsync(int id);
+    Task<IEnumerable<Reminder>> GetPendingAsync(int userId);
+
+    Task<Reminder?> MarkAsSentAsync(int id, int userId);
+
+    Task<IEnumerable<Reminder>> GetAllAsync(int userId);
+
+    Task<Reminder?> GetByIdAsync(int id, int userId);
+
     Task<Reminder> AddAsync(Reminder reminder);
-    Task<Reminder?> UpdateAsync(Reminder reminder);
-    Task<bool> DeleteAsync(int id);
+
+    Task<Reminder?> UpdateAsync(
+        int id,
+        int userId,
+        Reminder changes);
+
+    Task<bool> DeleteAsync(int id, int userId);
 }

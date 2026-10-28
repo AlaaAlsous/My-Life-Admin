@@ -5,14 +5,15 @@ namespace My_Life_Admin.Services;
 
 public class ReminderService(IReminderRepository repository) : IReminderService
 {
-    public async Task<IEnumerable<Reminder>> GetPendingAsync()
+    public Task<IEnumerable<Reminder>> GetPendingAsync(int userId)
     {
-        return await repository.GetPendingAsync();
+        return repository.GetPendingAsync(userId);
     }
 
-    public async Task<Reminder?> MarkAsSentAsync(int id)
+    public async Task<Reminder?> MarkAsSentAsync(int id, int userId)
     {
-        var reminder = await repository.GetByIdAsync(id);
+        var reminder = await repository.GetByIdAndUserIdAsync(id, userId);
+
         if (reminder is null)
         {
             return null;
@@ -20,45 +21,60 @@ public class ReminderService(IReminderRepository repository) : IReminderService
 
         reminder.Status = ReminderStatus.Sent;
         reminder.SentAt = DateTime.UtcNow;
+
         repository.Update(reminder);
         await repository.SaveChangesAsync();
 
         return reminder;
     }
 
-    public async Task<IEnumerable<Reminder>> GetAllAsync()
+    public Task<IEnumerable<Reminder>> GetAllAsync(int userId)
     {
-        return await repository.GetAllAsync();
+        return repository.GetByUserIdAsync(userId);
     }
 
-    public async Task<Reminder?> GetByIdAsync(int id)
+    public Task<Reminder?> GetByIdAsync(int id, int userId)
     {
-        return await repository.GetByIdAsync(id);
+        return repository.GetByIdAndUserIdAsync(id, userId);
     }
 
     public async Task<Reminder> AddAsync(Reminder reminder)
     {
+        reminder.Status = ReminderStatus.Pending;
+        reminder.SentAt = null;
+
         await repository.AddAsync(reminder);
         await repository.SaveChangesAsync();
+
         return reminder;
     }
 
-    public async Task<Reminder?> UpdateAsync(Reminder reminder)
+    public async Task<Reminder?> UpdateAsync(
+        int id,
+        int userId,
+        Reminder changes)
     {
-        var existing = await repository.GetByIdAsync(reminder.Id);
+        var existing = await repository.GetByIdAndUserIdAsync(id, userId);
+
         if (existing is null)
         {
             return null;
         }
 
-        repository.Update(reminder);
+        existing.EventId = changes.EventId;
+        existing.DocumentId = changes.DocumentId;
+        existing.ReminderDate = changes.ReminderDate;
+
+        repository.Update(existing);
         await repository.SaveChangesAsync();
-        return reminder;
+
+        return existing;
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(int id, int userId)
     {
-        var reminder = await repository.GetByIdAsync(id);
+        var reminder = await repository.GetByIdAndUserIdAsync(id, userId);
+
         if (reminder is null)
         {
             return false;
@@ -66,6 +82,7 @@ public class ReminderService(IReminderRepository repository) : IReminderService
 
         repository.Delete(reminder);
         await repository.SaveChangesAsync();
+
         return true;
     }
 }
