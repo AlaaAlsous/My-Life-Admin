@@ -1,0 +1,162 @@
+<section
+  aria-labelledby="documents-heading"
+  class="relative isolate overflow-hidden rounded-4xl bg-linear-to-br from-white via-[#f6ecf0] to-blush/60 px-6 py-10 shadow-soft ring-1 ring-border-soft sm:px-12 sm:py-14"
+>
+  <div
+    aria-hidden="true"
+    class="absolute -left-16 -top-16 -z-10 h-64 w-64 rounded-full bg-rose/25 blur-3xl"
+  ></div>
+  <p class="text-label font-semibold uppercase tracking-widest text-rose">Documents</p>
+  <h1 id="documents-heading" class="mt-2 text-4xl text-plum sm:text-5xl">
+    Your <span class="text-primary">documents</span>
+  </h1>
+  <p class="mt-3 max-w-2xl text-lg text-text-muted">
+    Upload, view and download your files. They are stored securely in Azure Blob Storage.
+  </p>
+</section>
+
+<div class="mt-10 grid gap-6 lg:grid-cols-3">
+  <section
+    aria-labelledby="upload-heading"
+    class="rounded-card bg-white p-7 shadow-soft ring-1 ring-border-soft"
+  >
+    <h2 id="upload-heading" class="text-title text-plum">Upload a document</h2>
+
+    @if (uploadError(); as error) {
+      <div class="mt-4">
+        <app-error-state [message]="error" />
+      </div>
+    }
+
+    <div class="mt-4 space-y-4">
+      <div>
+        <label for="doc-title" class="block text-label font-medium text-plum">Title</label>
+        <input
+          id="doc-title"
+          type="text"
+          class="mt-1 w-full rounded-control border border-border bg-white px-3 py-2"
+          [value]="title()"
+          (input)="title.set($any($event.target).value)"
+        />
+      </div>
+
+      <div>
+        <label for="doc-category" class="block text-label font-medium text-plum">Category</label>
+        <input
+          id="doc-category"
+          type="text"
+          class="mt-1 w-full rounded-control border border-border bg-white px-3 py-2"
+          [value]="category()"
+          (input)="category.set($any($event.target).value)"
+        />
+      </div>
+
+      <div>
+        <label for="doc-description" class="block text-label font-medium text-plum"
+          >Description</label
+        >
+        <textarea
+          id="doc-description"
+          rows="3"
+          class="mt-1 w-full rounded-control border border-border bg-white px-3 py-2"
+          [value]="description()"
+          (input)="description.set($any($event.target).value)"
+        ></textarea>
+      </div>
+
+      <div>
+        <label for="doc-expiry" class="block text-label font-medium text-plum">Expiry date</label>
+        <input
+          id="doc-expiry"
+          type="date"
+          class="mt-1 w-full rounded-control border border-border bg-white px-3 py-2"
+          [value]="expiryDate()"
+          (input)="expiryDate.set($any($event.target).value)"
+        />
+      </div>
+
+      <div>
+        <label for="doc-file" class="block text-label font-medium text-plum"
+          >File (PDF, JPG or PNG)</label
+        >
+        <input
+          id="doc-file"
+          type="file"
+          accept=".pdf,.jpg,.jpeg,.png"
+          class="mt-1 w-full text-label"
+          (change)="onFileSelected($event)"
+        />
+      </div>
+
+      <button
+        type="button"
+        class="rounded-full bg-primary px-6 py-2.5 font-medium text-white shadow-soft transition hover:bg-primary-hover hover:shadow-lift disabled:opacity-50"
+        [disabled]="uploading()"
+        (click)="upload()"
+      >
+        {{ uploading() ? 'Uploading…' : 'Upload' }}
+      </button>
+    </div>
+  </section>
+
+  <section
+    aria-labelledby="list-heading"
+    class="rounded-card bg-white p-7 shadow-soft ring-1 ring-border-soft lg:col-span-2"
+  >
+    <h2 id="list-heading" class="text-title text-plum">Your files</h2>
+
+    @if (loading()) {
+      <div class="mt-4">
+        <app-loading-state label="Loading documents…" [lineCount]="5" />
+      </div>
+    } @else if (failed()) {
+      <div class="mt-4">
+        <app-error-state
+          message="We could not load your documents."
+          retryLabel="Try again"
+          (retry)="load()"
+        />
+      </div>
+    } @else if (documents().length === 0) {
+      <div class="mt-4">
+        <app-empty-state
+          title="No documents yet"
+          message="Upload your first document using the form."
+        />
+      </div>
+    } @else {
+      <ul class="mt-4 divide-y divide-border-soft">
+        @for (document of documents(); track document.id) {
+          <li class="flex flex-wrap items-center justify-between gap-3 py-4">
+            <div class="min-w-0">
+              <p class="font-medium text-plum">{{ document.title }}</p>
+              <p class="text-label text-text-muted">
+                {{ document.fileName }}
+                @if (document.category) {
+                  · {{ document.category }}
+                }
+                · Added {{ document.uploadedAt | date: 'mediumDate' }}
+              </p>
+            </div>
+            <div class="flex shrink-0 gap-2">
+              <button
+                type="button"
+                class="rounded-full bg-primary px-4 py-2 text-label font-medium text-white hover:bg-primary-hover"
+                (click)="download(document)"
+              >
+                Download
+              </button>
+              <button
+                type="button"
+                class="rounded-full border border-error px-4 py-2 text-label font-medium text-error hover:bg-surface-error"
+                (click)="deleteDocument(document.id)"
+              >
+                Delete
+              </button>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+</div>
