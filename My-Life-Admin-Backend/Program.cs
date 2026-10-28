@@ -115,7 +115,6 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapGet("/", () => "Backend is running!").AllowAnonymous();
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
