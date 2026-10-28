@@ -16,7 +16,10 @@
 </section>
 
 <div class="mt-10 grid gap-6 lg:grid-cols-3">
-  <section aria-labelledby="upload-heading" class="rounded-card bg-white p-7 shadow-soft ring-1 ring-border-soft">
+  <section
+    aria-labelledby="upload-heading"
+    class="rounded-card bg-white p-7 shadow-soft ring-1 ring-border-soft"
+  >
     <h2 id="upload-heading" class="text-title text-plum">Upload a document</h2>
 
     @if (uploadError(); as error) {
@@ -49,7 +52,9 @@
       </div>
 
       <div>
-        <label for="doc-description" class="block text-label font-medium text-plum">Description</label>
+        <label for="doc-description" class="block text-label font-medium text-plum"
+          >Description</label
+        >
         <textarea
           id="doc-description"
           rows="3"
@@ -71,7 +76,9 @@
       </div>
 
       <div>
-        <label for="doc-file" class="block text-label font-medium text-plum">File (PDF, JPG or PNG)</label>
+        <label for="doc-file" class="block text-label font-medium text-plum"
+          >File (PDF, JPG or PNG)</label
+        >
         <input
           id="doc-file"
           type="file"
@@ -112,7 +119,10 @@
       </div>
     } @else if (documents().length === 0) {
       <div class="mt-4">
-        <app-empty-state title="No documents yet" message="Upload your first document using the form." />
+        <app-empty-state
+          title="No documents yet"
+          message="Upload your first document using the form."
+        />
       </div>
     } @else {
       <ul class="mt-4 divide-y divide-border-soft">
