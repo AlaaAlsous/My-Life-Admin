@@ -123,6 +123,7 @@ app.MapAuthEndpoints();
 app.MapEventEndpoints();
 app.MapDashboardEndpoints();
 app.MapDocumentEndpoints();
+app.MapReminderEndpoints();
 
 app.MapFallbackToFile("index.html").AllowAnonymous();
 
