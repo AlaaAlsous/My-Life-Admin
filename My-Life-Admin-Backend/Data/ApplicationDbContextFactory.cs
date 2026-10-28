@@ -15,7 +15,7 @@ public sealed class ApplicationDbContextFactory : IDesignTimeDbContextFactory<Ap
         }
 
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseSqlServer(connectionString)
+            .UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure())
             .Options;
 
         return new ApplicationDbContext(options);
