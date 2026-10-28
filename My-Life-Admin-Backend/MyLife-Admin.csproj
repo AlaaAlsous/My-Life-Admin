@@ -1,10 +1,11 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>MyLife_Admin</RootNamespace>
+    <UserSecretsId>2d1248a4-25dd-4549-a677-154e982c51f9</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

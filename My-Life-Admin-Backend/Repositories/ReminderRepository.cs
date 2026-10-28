@@ -12,10 +12,49 @@ public class ReminderRepository : Repository<Reminder>, IReminderRepository
     {
         _db = db;
     }
-    public async Task<IEnumerable<Reminder>> GetPendingAsync()
+
+    public async Task<IEnumerable<Reminder>> GetByUserIdAsync(int userId)
     {
         return await _db.Reminders
-            .Where(r => r.Status == ReminderStatus.Pending)
+            .AsNoTracking()
+            .Where(r => r.UserId == userId)
+            .OrderBy(r => r.ReminderDate)
+            .ToListAsync();
+    }
+
+    public async Task<Reminder?> GetByIdAndUserIdAsync(int id, int userId)
+    {
+        return await _db.Reminders
+            .FirstOrDefaultAsync(r =>
+                r.Id == id &&
+                r.UserId == userId);
+    }
+
+    public async Task<IEnumerable<Reminder>> GetPendingAsync(int userId)
+    {
+        var now = DateTime.UtcNow;
+
+        return await _db.Reminders
+            .AsNoTracking()
+            .Where(r =>
+                r.UserId == userId &&
+                r.Status == ReminderStatus.Pending &&
+                r.ReminderDate <= now)
+            .OrderBy(r => r.ReminderDate)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Reminder>> GetAllPendingAsync()
+    {
+        var now = DateTime.UtcNow;
+
+        return await _db.Reminders
+            .Include(r => r.User)
+            .Include(r => r.Event)
+            .Include(r => r.Document)
+            .Where(r =>
+                r.Status == ReminderStatus.Pending &&
+                r.ReminderDate <= now)
             .OrderBy(r => r.ReminderDate)
             .ToListAsync();
     }

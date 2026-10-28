@@ -90,5 +90,30 @@ jobs:
                 "name": "FileStorage__ConnectionString",
                 "value": "${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}",
                 "slotSetting": false
+              },
+              {
+                "name": "Email__SmtpHost",
+                "value": "${{ secrets.SMTP_HOST }}",
+                "slotSetting": false
+              },
+              {
+                "name": "Email__SmtpPort",
+                "value": "${{ secrets.SMTP_PORT }}",
+                "slotSetting": false
+              },
+              {
+                "name": "Email__Username",
+                "value": "${{ secrets.SMTP_USERNAME }}",
+                "slotSetting": false
+              },
+              {
+                "name": "Email__Password",
+                "value": "${{ secrets.SMTP_PASSWORD }}",
+                "slotSetting": false
+              },
+              {
+                "name": "Email__FromEmail",
+                "value": "${{ secrets.SMTP_FROM_EMAIL }}",
+                "slotSetting": false
               }
             ]
