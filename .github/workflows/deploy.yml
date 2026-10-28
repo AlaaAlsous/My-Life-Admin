@@ -1,7 +1,7 @@
 name: Deploy to Azure
 
 on:
-  workflow_dispatch: # manuell körning
+  workflow_dispatch:
   push:
     branches:
       - release
@@ -9,11 +9,11 @@ on:
 env:
   DOTNET_VERSION: "10.0.x"
   NODE_VERSION: "24"
-  APP_NAME: "mylife-admin-app-h5hubbcacjgtbcaj"
+  APP_NAME: "mylife-admin-app"
 
 jobs:
   deploy:
-    name: Build & Deploy (API + SPA)
+    name: Build & Deploy
     runs-on: ubuntu-latest
 
     steps:
