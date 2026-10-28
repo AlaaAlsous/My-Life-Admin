@@ -8,9 +8,6 @@ on:
     branches:
       - release
 
-permissions:
-  contents: write
-
 jobs:
   frontend-quality:
     name: Frontend Code Quality
@@ -34,13 +31,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Format code
-        run: npm run format
-
-      - name: Commit formatting changes
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: 'style: apply prettier formatting'
+      - name: Check formatting
+        run: npm run format:check
 
       - name: Check CSS styling
         run: npm run build
@@ -61,13 +53,8 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore My-Life-Admin-Backend/MyLife-Admin.csproj
 
-      - name: Format code
-        run: dotnet format My-Life-Admin-Backend/MyLife-Admin.csproj --no-restore
-
-      - name: Commit formatting changes
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: 'style: apply dotnet format'
+      - name: Check formatting
+        run: dotnet format My-Life-Admin-Backend/MyLife-Admin.csproj --verify-no-changes --no-restore
 
       - name: Build with warnings as errors
         run: dotnet build My-Life-Admin-Backend/MyLife-Admin.csproj --no-restore --warnaserror
