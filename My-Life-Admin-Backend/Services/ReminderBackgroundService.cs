@@ -12,53 +12,58 @@ public class ReminderBackgroundService(
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            try
-            {
-                using var scope = scopeFactory.CreateScope();
-
-                var reminderService =
-                    scope.ServiceProvider
-                        .GetRequiredService<IReminderService>();
-
-                var emailService =
-                    scope.ServiceProvider
-                        .GetRequiredService<IEmailService>();
-
-                var reminders =
-                    await reminderService.GetAllPendingAsync();
-
-                foreach (var reminder in reminders)
-                {
-                    try
-                    {
-                        await emailService.SendReminderAsync(
-                            reminder.User.Email,
-                            "Reminder",
-                            CreateMessage(reminder));
-
-                        await reminderService.MarkAsSentAsync(
-                            reminder.Id,
-                            reminder.UserId);
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.LogError(
-                            ex,
-                            "Failed to send reminder {ReminderId}",
-                            reminder.Id);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(
-                    ex,
-                    "Failed to process reminders");
-            }
+            await ProcessRemindersAsync();
 
             await Task.Delay(
                 TimeSpan.FromMinutes(1),
                 stoppingToken);
+        }
+    }
+
+    public async Task ProcessRemindersAsync()
+    {
+        try
+        {
+            using var scope = scopeFactory.CreateScope();
+
+            var reminderService =
+                scope.ServiceProvider
+                    .GetRequiredService<IReminderService>();
+
+            var emailService =
+                scope.ServiceProvider
+                    .GetRequiredService<IEmailService>();
+
+            var reminders =
+                await reminderService.GetAllPendingAsync();
+
+            foreach (var reminder in reminders)
+            {
+                try
+                {
+                    await emailService.SendReminderAsync(
+                        reminder.User.Email,
+                        "Reminder",
+                        CreateMessage(reminder));
+
+                    await reminderService.MarkAsSentAsync(
+                        reminder.Id,
+                        reminder.UserId);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(
+                        ex,
+                        "Failed to send reminder {ReminderId}",
+                        reminder.Id);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(
+                ex,
+                "Failed to process reminders");
         }
     }
 
