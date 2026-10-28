@@ -112,11 +112,12 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors();
-app.UseAuthentication();
-app.UseAuthorization();
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapGet("/api/health", () => new { status = "Healthy" }).AllowAnonymous();
 app.MapAuthEndpoints();
