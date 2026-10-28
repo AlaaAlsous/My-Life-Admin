@@ -20,4 +20,6 @@ public interface IReminderService
         Reminder changes);
 
     Task<bool> DeleteAsync(int id, int userId);
+
+    Task<IEnumerable<Reminder>> GetAllPendingAsync();
 }

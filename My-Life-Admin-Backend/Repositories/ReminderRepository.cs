@@ -43,4 +43,19 @@ public class ReminderRepository : Repository<Reminder>, IReminderRepository
             .OrderBy(r => r.ReminderDate)
             .ToListAsync();
     }
+
+    public async Task<IEnumerable<Reminder>> GetAllPendingAsync()
+    {
+        var now = DateTime.UtcNow;
+
+        return await _db.Reminders
+            .Include(r => r.User)
+            .Include(r => r.Event)
+            .Include(r => r.Document)
+            .Where(r =>
+                r.Status == ReminderStatus.Pending &&
+                r.ReminderDate <= now)
+            .OrderBy(r => r.ReminderDate)
+            .ToListAsync();
+    }
 }

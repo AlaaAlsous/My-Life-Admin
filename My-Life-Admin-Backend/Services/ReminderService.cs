@@ -85,4 +85,9 @@ public class ReminderService(IReminderRepository repository) : IReminderService
 
         return true;
     }
+
+    public Task<IEnumerable<Reminder>> GetAllPendingAsync()
+    {
+        return repository.GetAllPendingAsync();
+    }
 }

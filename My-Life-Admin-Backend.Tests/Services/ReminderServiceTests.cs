@@ -230,5 +230,12 @@ public class ReminderServiceTests
                         r.Status == ReminderStatus.Pending)
                     .OrderBy(r => r.ReminderDate)
                     .ToList());
+
+        public Task<IEnumerable<Reminder>> GetAllPendingAsync() =>
+            Task.FromResult<IEnumerable<Reminder>>(
+                Reminders
+                    .Where(r => r.Status == ReminderStatus.Pending)
+                    .OrderBy(r => r.ReminderDate)
+                    .ToList());
     }
 }
