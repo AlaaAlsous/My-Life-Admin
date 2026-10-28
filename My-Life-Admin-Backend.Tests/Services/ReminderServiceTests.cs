@@ -6,15 +6,37 @@ namespace MyLife_Admin.Tests.Services;
 
 public class ReminderServiceTests
 {
+    private const int UserId = 1;
+
     [Fact]
-    public async Task GetPendingAsync_ReturnsOnlyPendingReminders()
+    public async Task GetPendingAsync_ReturnsOnlyPendingRemindersForUser()
     {
         var repository = new FakeReminderRepository();
-        repository.Reminders.Add(new Reminder { Id = 1, UserId = 1, Status = ReminderStatus.Pending });
-        repository.Reminders.Add(new Reminder { Id = 2, UserId = 1, Status = ReminderStatus.Sent });
+
+        repository.Reminders.Add(new Reminder
+        {
+            Id = 1,
+            UserId = UserId,
+            Status = ReminderStatus.Pending
+        });
+
+        repository.Reminders.Add(new Reminder
+        {
+            Id = 2,
+            UserId = UserId,
+            Status = ReminderStatus.Sent
+        });
+
+        repository.Reminders.Add(new Reminder
+        {
+            Id = 3,
+            UserId = 2,
+            Status = ReminderStatus.Pending
+        });
+
         var service = new ReminderService(repository);
 
-        var result = (await service.GetPendingAsync()).ToList();
+        var result = (await service.GetPendingAsync(UserId)).ToList();
 
         Assert.Single(result);
         Assert.Equal(1, result[0].Id);
@@ -24,23 +46,34 @@ public class ReminderServiceTests
     public async Task MarkAsSentAsync_ExistingReminder_SetsStatusAndSentAt()
     {
         var repository = new FakeReminderRepository();
-        repository.Reminders.Add(new Reminder { Id = 1, UserId = 1, ReminderDate = DateTime.UtcNow, Status = ReminderStatus.Pending });
+
+        repository.Reminders.Add(new Reminder
+        {
+            Id = 1,
+            UserId = UserId,
+            ReminderDate = DateTime.UtcNow,
+            Status = ReminderStatus.Pending
+        });
+
         var service = new ReminderService(repository);
 
-        var result = await service.MarkAsSentAsync(1);
+        var result = await service.MarkAsSentAsync(1, UserId);
 
         Assert.NotNull(result);
         Assert.Equal(ReminderStatus.Sent, result.Status);
         Assert.NotNull(result.SentAt);
-        Assert.Equal(ReminderStatus.Sent, repository.Reminders.Single().Status);
+        Assert.Equal(
+            ReminderStatus.Sent,
+            repository.Reminders.Single().Status);
     }
 
     [Fact]
     public async Task MarkAsSentAsync_UnknownId_ReturnsNull()
     {
-        var service = new ReminderService(new FakeReminderRepository());
+        var service = new ReminderService(
+            new FakeReminderRepository());
 
-        var result = await service.MarkAsSentAsync(999);
+        var result = await service.MarkAsSentAsync(999, UserId);
 
         Assert.Null(result);
     }
@@ -51,9 +84,15 @@ public class ReminderServiceTests
         var repository = new FakeReminderRepository();
         var service = new ReminderService(repository);
 
-        var result = await service.AddAsync(new Reminder { Id = 1, UserId = 1 });
+        var result = await service.AddAsync(new Reminder
+        {
+            Id = 1,
+            UserId = UserId
+        });
 
         Assert.Equal(1, result.Id);
+        Assert.Equal(ReminderStatus.Pending, result.Status);
+        Assert.Null(result.SentAt);
         Assert.Single(repository.Reminders);
     }
 
@@ -61,21 +100,52 @@ public class ReminderServiceTests
     public async Task UpdateAsync_ExistingReminder_UpdatesAndReturns()
     {
         var repository = new FakeReminderRepository();
-        repository.Reminders.Add(new Reminder { Id = 1, UserId = 1, Status = ReminderStatus.Pending });
+
+        repository.Reminders.Add(new Reminder
+        {
+            Id = 1,
+            UserId = UserId,
+            EventId = 2,
+            ReminderDate = new DateTime(2026, 10, 1),
+            Status = ReminderStatus.Pending
+        });
+
         var service = new ReminderService(repository);
 
-        var result = await service.UpdateAsync(new Reminder { Id = 1, UserId = 1, Status = ReminderStatus.Failed });
+        var result = await service.UpdateAsync(
+            1,
+            UserId,
+            new Reminder
+            {
+                EventId = 3,
+                DocumentId = 4,
+                ReminderDate = new DateTime(2026, 11, 1)
+            });
 
         Assert.NotNull(result);
-        Assert.Equal(ReminderStatus.Failed, result.Status);
+        Assert.Equal(3, result.EventId);
+        Assert.Equal(4, result.DocumentId);
+        Assert.Equal(
+            new DateTime(2026, 11, 1),
+            result.ReminderDate);
+
+        Assert.Equal(ReminderStatus.Pending, result.Status);
+        Assert.Equal(UserId, result.UserId);
     }
 
     [Fact]
     public async Task UpdateAsync_UnknownReminder_ReturnsNull()
     {
-        var service = new ReminderService(new FakeReminderRepository());
+        var service = new ReminderService(
+            new FakeReminderRepository());
 
-        var result = await service.UpdateAsync(new Reminder { Id = 999, UserId = 1 });
+        var result = await service.UpdateAsync(
+            999,
+            UserId,
+            new Reminder
+            {
+                ReminderDate = DateTime.UtcNow
+            });
 
         Assert.Null(result);
     }
@@ -84,10 +154,16 @@ public class ReminderServiceTests
     public async Task DeleteAsync_ExistingReminder_ReturnsTrueAndRemoves()
     {
         var repository = new FakeReminderRepository();
-        repository.Reminders.Add(new Reminder { Id = 1, UserId = 1 });
+
+        repository.Reminders.Add(new Reminder
+        {
+            Id = 1,
+            UserId = UserId
+        });
+
         var service = new ReminderService(repository);
 
-        var result = await service.DeleteAsync(1);
+        var result = await service.DeleteAsync(1, UserId);
 
         Assert.True(result);
         Assert.Empty(repository.Reminders);
@@ -96,9 +172,10 @@ public class ReminderServiceTests
     [Fact]
     public async Task DeleteAsync_UnknownReminder_ReturnsFalse()
     {
-        var service = new ReminderService(new FakeReminderRepository());
+        var service = new ReminderService(
+            new FakeReminderRepository());
 
-        var result = await service.DeleteAsync(999);
+        var result = await service.DeleteAsync(999, UserId);
 
         Assert.False(result);
     }
@@ -108,10 +185,26 @@ public class ReminderServiceTests
         public List<Reminder> Reminders { get; } = [];
 
         public Task<Reminder?> GetByIdAsync(int id) =>
-            Task.FromResult(Reminders.FirstOrDefault(r => r.Id == id));
+            Task.FromResult(
+                Reminders.FirstOrDefault(r => r.Id == id));
 
         public Task<IEnumerable<Reminder>> GetAllAsync() =>
-            Task.FromResult<IEnumerable<Reminder>>(Reminders);
+            Task.FromResult<IEnumerable<Reminder>>(
+                Reminders.ToList());
+
+        public Task<IEnumerable<Reminder>> GetByUserIdAsync(int userId) =>
+            Task.FromResult<IEnumerable<Reminder>>(
+                Reminders
+                    .Where(r => r.UserId == userId)
+                    .ToList());
+
+        public Task<Reminder?> GetByIdAndUserIdAsync(
+            int id,
+            int userId) =>
+            Task.FromResult(
+                Reminders.FirstOrDefault(r =>
+                    r.Id == id &&
+                    r.UserId == userId));
 
         public Task AddAsync(Reminder entity)
         {
@@ -121,11 +214,6 @@ public class ReminderServiceTests
 
         public void Update(Reminder entity)
         {
-            var index = Reminders.FindIndex(r => r.Id == entity.Id);
-            if (index >= 0)
-            {
-                Reminders[index] = entity;
-            }
         }
 
         public void Delete(Reminder entity) =>
@@ -134,7 +222,13 @@ public class ReminderServiceTests
         public Task SaveChangesAsync() =>
             Task.CompletedTask;
 
-        public Task<IEnumerable<Reminder>> GetPendingAsync() =>
-            Task.FromResult<IEnumerable<Reminder>>(Reminders.Where(r => r.Status == ReminderStatus.Pending));
+        public Task<IEnumerable<Reminder>> GetPendingAsync(int userId) =>
+            Task.FromResult<IEnumerable<Reminder>>(
+                Reminders
+                    .Where(r =>
+                        r.UserId == userId &&
+                        r.Status == ReminderStatus.Pending)
+                    .OrderBy(r => r.ReminderDate)
+                    .ToList());
     }
 }
