@@ -3,8 +3,6 @@ using My_Life_Admin.Options;
 
 namespace My_Life_Admin.Storage;
 
-// TODO(Azure Blob): only for local development. Replace with AzureBlobFileStorage before using file upload in Azure:
-// files on App Service's disk are not shared between instances and can be lost or read-only depending on deployment.
 public sealed class LocalFileStorage : IFileStorage
 {
     private const int BufferSize = 81920;

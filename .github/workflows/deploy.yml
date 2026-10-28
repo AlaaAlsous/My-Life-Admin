@@ -85,5 +85,10 @@ jobs:
                 "name": "Jwt__SigningKey",
                 "value": "${{ secrets.JWT_SIGNING_KEY }}",
                 "slotSetting": false
+              },
+              {
+                "name": "FileStorage__ConnectionString",
+                "value": "${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}",
+                "slotSetting": false
               }
             ]
