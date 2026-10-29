@@ -54,4 +54,30 @@ public class EmailServiceTests
             x => x.SendAsync(It.IsAny<MailMessage>()),
             Times.Once);
     }
+
+    [Fact]
+    public async Task SendReminderAsync_MissingFromEmail_ThrowsException()
+    {
+        // Arrange
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection()
+            .Build();
+
+        var emailSender = new Mock<IEmailSender>();
+
+        var service = new EmailService(
+            configuration,
+            emailSender.Object);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentNullException>(() =>
+            service.SendReminderAsync(
+                "recipient@example.com",
+                "Test subject",
+                "Test message"));
+
+        emailSender.Verify(
+            x => x.SendAsync(It.IsAny<MailMessage>()),
+            Times.Never);
+    }
 }
