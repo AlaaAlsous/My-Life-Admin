@@ -1,0 +1,28 @@
+<section>
+  <h1>Events</h1>
+
+  @if (isLoading) {
+  <p>Loading events...</p>
+  }
+
+  @if (errorMessage) {
+  <p>{{ errorMessage }}</p>
+  }
+
+  @if (!isLoading && events.length === 0) {
+  <p>No events found.</p>
+  }
+
+  @for (event of events; track event.id) {
+  <article>
+    <h2>{{ event.title }}</h2>
+
+    @if (event.description) {
+    <p>{{ event.description }}</p>
+    }
+
+    <p>Category: {{ event.category }}</p>
+    <p>Date: {{ event.eventDate }}</p>
+  </article>
+  }
+</section>
