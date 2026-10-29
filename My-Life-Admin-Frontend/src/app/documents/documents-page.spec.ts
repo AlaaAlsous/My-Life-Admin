@@ -134,9 +134,7 @@ describe('DocumentsPage', () => {
     const createObjectURL = vi.fn(() => 'blob:download');
     const revokeObjectURL = vi.fn();
     vi.stubGlobal('URL', { createObjectURL, revokeObjectURL });
-    const anchorClick = vi
-      .spyOn(HTMLAnchorElement.prototype, 'click')
-      .mockImplementation(() => {});
+    const anchorClick = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
 
     el.querySelector<HTMLButtonElement>('ul button')!.click();
     const downloadRequest = http.expectOne(`${documentsUrl}1/file`);
