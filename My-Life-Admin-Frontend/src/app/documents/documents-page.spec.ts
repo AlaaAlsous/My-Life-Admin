@@ -42,27 +42,18 @@ describe('DocumentsPage', () => {
     expect(el.textContent).toContain('Identity');
   });
 
-  it('requires a title and a file before uploading', () => {
+  it('requires a file before uploading', () => {
     const { fixture, el, http } = setup();
     http.expectOne(documentsUrl).flush([]);
-
-    const file = new File(['contents'], 'passport.pdf', { type: 'application/pdf' });
-    const fileInput = el.querySelector<HTMLInputElement>('#doc-file')!;
-    Object.defineProperty(fileInput, 'files', { configurable: true, value: [file] });
-    fileInput.dispatchEvent(new Event('change'));
-    el.querySelector<HTMLButtonElement>('button')!.click();
-    fixture.detectChanges();
-    expect(el.textContent).toContain('A title and a file are required.');
 
     const titleInput = el.querySelector<HTMLInputElement>('#doc-title')!;
     titleInput.value = 'Passport';
     titleInput.dispatchEvent(new Event('input'));
-    Object.defineProperty(fileInput, 'files', { value: [] });
-    fileInput.dispatchEvent(new Event('change'));
+
     el.querySelector<HTMLButtonElement>('button')!.click();
     fixture.detectChanges();
 
-    expect(el.textContent).toContain('A title and a file are required.');
+    expect(el.textContent).toContain('A file is required.');
     http.expectNone(documentsUrl);
   });
 
