@@ -28,9 +28,15 @@
       </div>
     }
 
+    @if (analysisNote(); as note) {
+      <div class="mt-4 rounded-control bg-white px-4 py-3 text-label text-text-muted ring-1 ring-border-soft">
+        {{ note }}
+      </div>
+    }
+
     <div class="mt-4 space-y-4">
       <div>
-        <label for="doc-title" class="block text-label font-medium text-plum">Title</label>
+        <label for="doc-title" class="block text-label font-medium text-plum">Title (optional)</label>
         <input
           id="doc-title"
           type="text"
@@ -77,25 +83,63 @@
 
       <div>
         <label for="doc-file" class="block text-label font-medium text-plum"
-          >File (PDF, JPG or PNG)</label
+          >File (PDF or image)</label
         >
         <input
           id="doc-file"
           type="file"
-          accept=".pdf,.jpg,.jpeg,.png"
+          accept=".pdf,.jpg,.jpeg,.png,.heic,.bmp,.tif,.tiff"
           class="mt-1 w-full text-label"
           (change)="onFileSelected($event)"
         />
       </div>
 
-      <button
-        type="button"
-        class="rounded-full bg-primary px-6 py-2.5 font-medium text-white shadow-soft transition hover:bg-primary-hover hover:shadow-lift disabled:opacity-50"
-        [disabled]="uploading()"
-        (click)="upload()"
-      >
-        {{ uploading() ? 'Uploading…' : 'Upload' }}
-      </button>
+      <div class="flex items-center gap-3">
+        <label
+          class="inline-flex cursor-pointer items-center rounded-full border border-border px-6 py-2.5 font-medium text-text-muted transition hover:bg-border-soft"
+        >
+          Take photo
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            class="sr-only"
+            (change)="onFileSelected($event)"
+          />
+        </label>
+        <span class="text-label text-text-muted">Opens the camera on mobile.</span>
+      </div>
+
+      <div class="flex gap-3">
+        <button
+          type="button"
+          class="rounded-full bg-primary px-6 py-2.5 font-medium text-white shadow-soft transition hover:bg-primary-hover hover:shadow-lift disabled:opacity-50"
+          [disabled]="uploading() || analyzing() || saving()"
+          (click)="submit()"
+        >
+          @if (uploading()) {
+            Uploading…
+          } @else if (analyzing()) {
+            Analyzing…
+          } @else if (saving()) {
+            Saving…
+          } @else if (reviewingId() !== null) {
+            Save details
+          } @else {
+            Upload
+          }
+        </button>
+
+        @if (reviewingId() !== null) {
+          <button
+            type="button"
+            class="rounded-full border border-border px-6 py-2.5 font-medium text-text-muted transition hover:bg-border-soft"
+            (click)="cancelReview()"
+          >
+            Cancel
+          </button>
+        }
+      </div>
     </div>
   </section>
 
