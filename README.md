@@ -31,3 +31,14 @@ Konfigurationsnycklar:
 - `Ai__SystemPrompt` (valfri, instruktion till modellen)
 - `Ai__MaxHistoryMessages` (valfri, antal tidigare meddelanden som skickas med, standard 20)
 - `Ai__MaxOutputTokens` (valfri, max längd på svaret, standard 800)
+
+Sätt värdena lokalt med user-secrets (hamnar inte i source control):
+
+```powershell
+cd My-Life-Admin-Backend
+dotnet user-secrets set "Ai:Endpoint" "https://mylife-admin-openai.openai.azure.com/"
+dotnet user-secrets set "Ai:ApiKey" "DIN_OPENAI_NYCKEL"
+dotnet user-secrets set "Ai:Deployment" "gpt-5.4-mini"
+dotnet user-secrets set "DocumentIntelligence:Endpoint" "https://mylife-admin-di.cognitiveservices.azure.com/"
+dotnet user-secrets set "DocumentIntelligence:ApiKey" "DIN_DOC_INTELLIGENCE_NYCKEL"
+```
