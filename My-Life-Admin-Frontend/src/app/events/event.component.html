@@ -23,6 +23,32 @@
 
     <p>Category: {{ event.category }}</p>
     <p>Date: {{ event.eventDate }}</p>
+
+    <div>
+      <label [for]="'reminder-' + event.id">
+        Reminder
+      </label>
+
+      <select [id]="'reminder-' + event.id"
+              [(ngModel)]="selectedReminder[event.id]">
+        <option [ngValue]="undefined">
+          No reminder
+        </option>
+
+        @for (option of reminderOptions; track $index) {
+        <option [ngValue]="$index">
+          {{ option.label }}
+        </option>
+        }
+      </select>
+
+      @if (selectedReminder[event.id] !== undefined) {
+      <button type="button"
+              (click)="createReminder(event)">
+        Add reminder
+      </button>
+      }
+    </div>
   </article>
   }
 </section>
