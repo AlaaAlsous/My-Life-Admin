@@ -82,4 +82,16 @@ describe('DocumentService', () => {
     expect(downloadRequest.request.responseType).toBe('blob');
     downloadRequest.flush(new Blob(['contents']));
   });
+
+  it('analyzes a document via the analysis endpoint', () => {
+    service.analyze(12).subscribe();
+    const analyzeRequest = http.expectOne(`${documentsUrl}12/analyze`);
+    expect(analyzeRequest.request.method).toBe('POST');
+    analyzeRequest.flush({
+      title: 'Passport',
+      category: 'ID',
+      expiryDate: '2030-01-01T00:00:00',
+      description: 'Travel document',
+    });
+  });
 });
