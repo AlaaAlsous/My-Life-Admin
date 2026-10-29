@@ -25,6 +25,8 @@ export class EventComponent implements OnInit {
     { label: '6 months before', months: 6, days: 0 },
   ];
 
+  successMessage = '';
+
   selectedReminder: Record<number, number> = {};
 
   ngOnInit(): void {
@@ -48,6 +50,9 @@ export class EventComponent implements OnInit {
   }
 
   createReminder(event: EventDto): void {
+    this.successMessage = '';
+    this.errorMessage = '';
+
     const optionIndex = this.selectedReminder[event.id];
 
     if (optionIndex === undefined) {
@@ -78,6 +83,7 @@ export class EventComponent implements OnInit {
       .subscribe({
         next: () => {
           delete this.selectedReminder[event.id];
+          this.successMessage = 'Reminder created successfully.';
         },
         error: () => {
           this.errorMessage = 'Could not create reminder.';
