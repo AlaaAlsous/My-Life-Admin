@@ -29,4 +29,3 @@ export interface DocumentAnalysisDto {
   expiryDate: string | null;
   description: string | null;
 }
-

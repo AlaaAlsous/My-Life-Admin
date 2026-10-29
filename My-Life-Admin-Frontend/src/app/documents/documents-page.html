@@ -29,14 +29,18 @@
     }
 
     @if (analysisNote(); as note) {
-      <div class="mt-4 rounded-control bg-white px-4 py-3 text-label text-text-muted ring-1 ring-border-soft">
+      <div
+        class="mt-4 rounded-control bg-white px-4 py-3 text-label text-text-muted ring-1 ring-border-soft"
+      >
         {{ note }}
       </div>
     }
 
     <div class="mt-4 space-y-4">
       <div>
-        <label for="doc-title" class="block text-label font-medium text-plum">Title (optional)</label>
+        <label for="doc-title" class="block text-label font-medium text-plum"
+          >Title (optional)</label
+        >
         <input
           id="doc-title"
           type="text"
