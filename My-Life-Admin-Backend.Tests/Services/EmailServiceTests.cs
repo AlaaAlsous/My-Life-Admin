@@ -80,4 +80,35 @@ public class EmailServiceTests
             x => x.SendAsync(It.IsAny<MailMessage>()),
             Times.Never);
     }
+
+    [Fact]
+    public async Task SendReminderAsync_InvalidFromEmail_ThrowsException()
+    {
+        // Arrange
+        var settings = new Dictionary<string, string?>
+        {
+            ["Email:FromEmail"] = "invalid-email"
+        };
+
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(settings)
+            .Build();
+
+        var emailSender = new Mock<IEmailSender>();
+
+        var service = new EmailService(
+            configuration,
+            emailSender.Object);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<FormatException>(() =>
+            service.SendReminderAsync(
+                "recipient@example.com",
+                "Test subject",
+                "Test message"));
+
+        emailSender.Verify(
+            x => x.SendAsync(It.IsAny<MailMessage>()),
+            Times.Never);
+    }
 }
