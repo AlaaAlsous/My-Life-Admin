@@ -22,3 +22,11 @@ export interface UpdateDocumentDto {
   category: string | null;
   expiryDate: string | null;
 }
+
+export interface DocumentAnalysisDto {
+  title: string | null;
+  category: string | null;
+  expiryDate: string | null;
+  description: string | null;
+}
+
