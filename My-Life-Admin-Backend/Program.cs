@@ -92,6 +92,21 @@ else
     builder.Services.AddSingleton<IAiChatClient, PlaceholderAiChatClient>();
 }
 
+builder.Services.Configure<DocumentIntelligenceOptions>(
+    builder.Configuration.GetSection(DocumentIntelligenceOptions.SectionName));
+var documentIntelligenceOptions =
+    builder.Configuration.GetSection(DocumentIntelligenceOptions.SectionName).Get<DocumentIntelligenceOptions>()
+    ?? new DocumentIntelligenceOptions();
+
+if (documentIntelligenceOptions.IsConfigured)
+{
+    builder.Services.AddSingleton<IDocumentAnalyzer, DocumentIntelligenceDocumentAnalyzer>();
+}
+else
+{
+    builder.Services.AddSingleton<IDocumentAnalyzer, PlaceholderDocumentAnalyzer>();
+}
+
 builder.Services
     .AddOptions<JwtOptions>()
     .Bind(builder.Configuration.GetSection(JwtOptions.SectionName))

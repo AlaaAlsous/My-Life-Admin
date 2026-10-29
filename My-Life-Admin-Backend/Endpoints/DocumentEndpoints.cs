@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
+using My_Life_Admin.Ai;
 using My_Life_Admin.Models;
 using My_Life_Admin.Services;
 
@@ -17,7 +18,10 @@ public static class DocumentEndpoints
     public const int MaxFileNameLength = 255;
 
     public static readonly IReadOnlySet<string> AllowedExtensions =
-        new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".pdf", ".jpg", ".jpeg", ".png" };
+        new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ".pdf", ".jpg", ".jpeg", ".png", ".heic", ".bmp", ".tif", ".tiff"
+        };
 
     private static readonly FileExtensionContentTypeProvider ContentTypes = new();
 
@@ -35,6 +39,7 @@ public static class DocumentEndpoints
 
         group.MapPut("/{id:int}", UpdateAsync);
         group.MapDelete("/{id:int}", DeleteAsync);
+        group.MapPost("/{id:int}/analyze", AnalyzeAsync);
 
         return app;
     }
@@ -191,6 +196,46 @@ public static class DocumentEndpoints
         return TypedResults.File(file.Content, contentType, file.Document.FileName);
     }
 
+    public static async Task<IResult> AnalyzeAsync(
+        int id,
+        ClaimsPrincipal user,
+        IDocumentService documentService,
+        IDocumentAnalyzer documentAnalyzer,
+        CancellationToken cancellationToken)
+    {
+        if (user.GetUserId() is not { } userId)
+        {
+            return TypedResults.Unauthorized();
+        }
+
+        var file = await documentService.OpenFileAsync(id, userId);
+
+        if (file == null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        if (!ContentTypes.TryGetContentType(file.Document.FileName, out var contentType))
+        {
+            contentType = "application/octet-stream";
+        }
+
+        try
+        {
+            await using var content = file.Content;
+            var result = await documentAnalyzer.AnalyzeAsync(
+                content, file.Document.FileName, contentType, cancellationToken);
+
+            return TypedResults.Ok(result);
+        }
+        catch (AiServiceException)
+        {
+            return TypedResults.Json(
+                new ErrorResponse("The AI service is unavailable right now. Please try again later."),
+                statusCode: StatusCodes.Status502BadGateway);
+        }
+    }
+
     private static DocumentResponse ToResponse(Document document) =>
         new(
             document.Id,
@@ -251,7 +296,7 @@ public static class DocumentEndpoints
 
         if (!AllowedExtensions.Contains(Path.GetExtension(fileName)))
         {
-            return "Only PDF, JPG and PNG files are allowed.";
+            return "Only PDF and image files are allowed.";
         }
 
         return null;

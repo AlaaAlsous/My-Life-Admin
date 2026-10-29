@@ -1,9 +1,10 @@
 using System.ClientModel;
-using Azure;
-using Azure.AI.OpenAI;
 using Microsoft.Extensions.Options;
 using My_Life_Admin.Options;
+using OpenAI;
 using OpenAI.Chat;
+
+#pragma warning disable OPENAI001
 
 namespace My_Life_Admin.Ai;
 
@@ -23,8 +24,8 @@ public sealed class AzureOpenAiChatClient : IAiChatClient
                 "Ai:Endpoint (an absolute URL), Ai:ApiKey and Ai:Deployment are required for Azure OpenAI.");
         }
 
-        var client = new AzureOpenAIClient(endpoint, new AzureKeyCredential(settings.ApiKey!));
-        _chatClient = client.GetChatClient(settings.Deployment);
+        var clientOptions = new OpenAIClientOptions { Endpoint = endpoint };
+        _chatClient = new ChatClient(settings.Deployment!, new ApiKeyCredential(settings.ApiKey!), clientOptions);
         _systemPrompt = settings.SystemPrompt;
         _maxOutputTokens = settings.MaxOutputTokens;
     }
