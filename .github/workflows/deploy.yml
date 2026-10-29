@@ -115,5 +115,30 @@ jobs:
                 "name": "Email__FromEmail",
                 "value": "${{ secrets.SMTP_FROM_EMAIL }}",
                 "slotSetting": false
+              },
+              {
+                "name": "Ai__Endpoint",
+                "value": "${{ secrets.AI_ENDPOINT }}",
+                "slotSetting": false
+              },
+              {
+                "name": "Ai__ApiKey",
+                "value": "${{ secrets.AI_API_KEY }}",
+                "slotSetting": false
+              },
+              {
+                "name": "Ai__Deployment",
+                "value": "${{ secrets.AI_DEPLOYMENT }}",
+                "slotSetting": false
+              },
+              {
+                "name": "DocumentIntelligence__Endpoint",
+                "value": "${{ secrets.DOCUMENT_INTELLIGENCE_ENDPOINT }}",
+                "slotSetting": false
+              },
+              {
+                "name": "DocumentIntelligence__ApiKey",
+                "value": "${{ secrets.DOCUMENT_INTELLIGENCE_KEY }}",
+                "slotSetting": false
               }
             ]
