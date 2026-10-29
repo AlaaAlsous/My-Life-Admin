@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { CreateDocumentDto, DocumentDto, UpdateDocumentDto } from '../models/document.dto';
+import { CreateDocumentDto, DocumentAnalysisDto, DocumentDto, UpdateDocumentDto } from '../models/document.dto';
 
 @Injectable({ providedIn: 'root' })
 export class DocumentService {
@@ -57,5 +57,9 @@ export class DocumentService {
 
   downloadFile(id: number): Observable<Blob> {
     return this.http.get(`${this.url}${id}/file`, { responseType: 'blob' });
+  }
+
+  analyze(id: number): Observable<DocumentAnalysisDto> {
+    return this.http.post<DocumentAnalysisDto>(`${this.url}${id}/analyze`, null);
   }
 }
