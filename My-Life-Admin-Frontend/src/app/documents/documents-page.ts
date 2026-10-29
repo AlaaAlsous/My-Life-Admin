@@ -75,11 +75,11 @@ export class DocumentsPage {
     this.uploadError.set(null);
     this.analysisNote.set(null);
 
-    const fallbackTitle = this.title().trim() || this.fileNameWithoutExtension(selectedFile.name);
+    const title = this.title().trim() || this.fileNameWithoutExtension(selectedFile.name);
 
     this.documentService
       .create({
-        title: fallbackTitle,
+        title,
         category: this.category().trim() || null,
         description: this.description().trim() || null,
         expiryDate: this.expiryDate() || null,

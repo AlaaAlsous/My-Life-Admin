@@ -46,10 +46,6 @@ describe('DocumentsPage', () => {
     const { fixture, el, http } = setup();
     http.expectOne(documentsUrl).flush([]);
 
-    const titleInput = el.querySelector<HTMLInputElement>('#doc-title')!;
-    titleInput.value = 'Passport';
-    titleInput.dispatchEvent(new Event('input'));
-
     el.querySelector<HTMLButtonElement>('button')!.click();
     fixture.detectChanges();
 
