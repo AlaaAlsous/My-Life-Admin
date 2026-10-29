@@ -1,18 +1,31 @@
 import { Component, OnInit, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { EventDto } from '../models/event.dto';
 import { EventService } from './event.service';
+import { ReminderService } from './reminder.service';
 
 @Component({
   selector: 'app-event',
   standalone: true,
+  imports: [FormsModule],
   templateUrl: './event.component.html',
 })
 export class EventComponent implements OnInit {
   private readonly eventService = inject(EventService);
+  private readonly reminderService = inject(ReminderService);
 
   events: EventDto[] = [];
   isLoading = false;
   errorMessage = '';
+
+  reminderOptions = [
+    { label: '1 week before', months: 0, days: 7 },
+    { label: '1 month before', months: 1, days: 0 },
+    { label: '3 months before', months: 3, days: 0 },
+    { label: '6 months before', months: 6, days: 0 },
+  ];
+
+  selectedReminder: Record<number, number> = {};
 
   ngOnInit(): void {
     this.loadEvents();
@@ -32,5 +45,43 @@ export class EventComponent implements OnInit {
         this.isLoading = false;
       },
     });
+  }
+
+  createReminder(event: EventDto): void {
+    const optionIndex = this.selectedReminder[event.id];
+
+    if (optionIndex === undefined) {
+      return;
+    }
+
+    const option = this.reminderOptions[optionIndex];
+    const reminderDate = new Date(event.eventDate);
+
+    if (option.months > 0) {
+      reminderDate.setMonth(
+        reminderDate.getMonth() - option.months,
+      );
+    }
+
+    if (option.days > 0) {
+      reminderDate.setDate(
+        reminderDate.getDate() - option.days,
+      );
+    }
+
+    this.reminderService
+      .create({
+        eventId: event.id,
+        documentId: null,
+        reminderDate: reminderDate.toISOString(),
+      })
+      .subscribe({
+        next: () => {
+          delete this.selectedReminder[event.id];
+        },
+        error: () => {
+          this.errorMessage = 'Could not create reminder.';
+        },
+      });
   }
 }
