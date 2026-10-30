@@ -163,6 +163,26 @@ public class EventRepositoryTests : IDisposable
         Assert.Equal("Passport expires", loaded.Title);
     }
 
+    [Fact]
+    public async Task GetByDocumentIdAsync_ReturnsOnlyThisUsersEventsForTheDocument()
+    {
+        var document = new Document { UserId = _userId, Title = "Passport", FileName = "p.pdf" };
+        var otherDocument = new Document { UserId = _userId, Title = "Other", FileName = "o.pdf" };
+        _db.Documents.AddRange(document, otherDocument);
+        await _db.SaveChangesAsync();
+
+        var linked = Event("Linked", new DateTime(2026, 10, 10));
+        linked.DocumentId = document.Id;
+        var unrelated = Event("Unrelated", new DateTime(2026, 10, 11));
+        unrelated.DocumentId = otherDocument.Id;
+        await Seed(linked, unrelated, Event("No document", new DateTime(2026, 10, 12)));
+
+        var result = await _repository.GetByDocumentIdAsync(document.Id, _userId);
+
+        Assert.Equal(["Linked"], result.Select(e => e.Title));
+        Assert.Empty(await _repository.GetByDocumentIdAsync(document.Id, _userId + 1));
+    }
+
     private Event Event(string title, DateTime date) =>
         new()
         {
