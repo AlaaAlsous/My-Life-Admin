@@ -57,6 +57,8 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
+builder.Services.AddScoped<IDocumentEventSynchronizer, DocumentEventSynchronizer>();
+builder.Services.AddScoped<DocumentEventBackfill>();
 builder.Services.AddHostedService<ReminderBackgroundService>();
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 builder.Services.AddScoped<IEmailService, EmailService>();
@@ -146,6 +148,19 @@ if (app.Environment.IsDevelopment())
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     db.Database.Migrate();
+}
+
+// Creates events for documents uploaded before events were generated from expiry dates.
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        await scope.ServiceProvider.GetRequiredService<DocumentEventBackfill>().RunAsync();
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex, "Could not create events for existing documents.");
+    }
 }
 
 app.UseCors();

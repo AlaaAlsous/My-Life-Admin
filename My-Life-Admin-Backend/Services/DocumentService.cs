@@ -8,11 +8,16 @@ public class DocumentService : IDocumentService
 {
     private readonly IDocumentRepository _documentRepository;
     private readonly IFileStorage _fileStorage;
+    private readonly IDocumentEventSynchronizer _eventSynchronizer;
 
-    public DocumentService(IDocumentRepository documentRepository, IFileStorage fileStorage)
+    public DocumentService(
+        IDocumentRepository documentRepository,
+        IFileStorage fileStorage,
+        IDocumentEventSynchronizer eventSynchronizer)
     {
         _documentRepository = documentRepository;
         _fileStorage = fileStorage;
+        _eventSynchronizer = eventSynchronizer;
     }
 
     public async Task<Document?> GetByIdAsync(int id, int userId)
@@ -43,6 +48,7 @@ public class DocumentService : IDocumentService
         try
         {
             await _documentRepository.AddAsync(document);
+            await _eventSynchronizer.SyncAsync(document);
             await _documentRepository.SaveChangesAsync();
         }
         catch
@@ -69,6 +75,7 @@ public class DocumentService : IDocumentService
         document.ExpiryDate = changes.ExpiryDate;
 
         _documentRepository.Update(document);
+        await _eventSynchronizer.SyncAsync(document);
         await _documentRepository.SaveChangesAsync();
 
         return document;
@@ -83,6 +90,7 @@ public class DocumentService : IDocumentService
             return false;
         }
 
+        await _eventSynchronizer.RemoveAsync(document);
         _documentRepository.Delete(document);
         await _documentRepository.SaveChangesAsync();
         await _fileStorage.DeleteAsync(document.FilePath);

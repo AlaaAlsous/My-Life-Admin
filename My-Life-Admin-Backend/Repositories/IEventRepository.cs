@@ -8,6 +8,8 @@ public interface IEventRepository : IRepository<Event>
 
     Task<Event?> GetByIdAndUserIdAsync(int id, int userId);
 
+    Task<IReadOnlyList<Event>> GetByDocumentIdAsync(int documentId, int userId);
+
     Task<IEnumerable<Event>> GetEventsBetweenAsync(
         int userId,
         DateTime start,

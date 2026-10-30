@@ -29,6 +29,14 @@ public class EventRepository : Repository<Event>, IEventRepository
             .FirstOrDefaultAsync(e => e.Id == id && e.UserId == userId);
     }
 
+    public async Task<IReadOnlyList<Event>> GetByDocumentIdAsync(int documentId, int userId)
+    {
+        return await _db.Events
+            .Where(e => e.DocumentId == documentId && e.UserId == userId)
+            .OrderBy(e => e.Id)
+            .ToListAsync();
+    }
+
     public async Task<IEnumerable<Event>> GetEventsBetweenAsync(
         int userId,
         DateTime start,

@@ -12,11 +12,15 @@ public class DocumentServiceTests
 
     private readonly Mock<IDocumentRepository> _repositoryMock = new();
     private readonly Mock<IFileStorage> _fileStorageMock = new();
+    private readonly Mock<IDocumentEventSynchronizer> _synchronizerMock = new();
     private readonly DocumentService _service;
 
     public DocumentServiceTests()
     {
-        _service = new DocumentService(_repositoryMock.Object, _fileStorageMock.Object);
+        _service = new DocumentService(
+            _repositoryMock.Object,
+            _fileStorageMock.Object,
+            _synchronizerMock.Object);
     }
 
     [Fact]
@@ -117,6 +121,30 @@ public class DocumentServiceTests
     }
 
     [Fact]
+    public async Task CreateAsync_SyncsEventBeforeSaving()
+    {
+        var document = new Document { UserId = UserId, Title = "Passport", FileName = "passport.pdf" };
+        using var content = new MemoryStream([1]);
+        var calls = new List<string>();
+
+        _fileStorageMock
+            .Setup(s => s.SaveAsync(content, ".pdf", It.IsAny<CancellationToken>()))
+            .ReturnsAsync("stored-key.pdf");
+        _synchronizerMock
+            .Setup(s => s.SyncAsync(document))
+            .Callback(() => calls.Add("sync"))
+            .Returns(Task.CompletedTask);
+        _repositoryMock
+            .Setup(r => r.SaveChangesAsync())
+            .Callback(() => calls.Add("save"))
+            .Returns(Task.CompletedTask);
+
+        await _service.CreateAsync(document, content);
+
+        Assert.Equal(["sync", "save"], calls);
+    }
+
+    [Fact]
     public async Task CreateAsync_DeletesStoredFile_WhenSavingDocumentFails()
     {
         // Arrange
@@ -181,6 +209,29 @@ public class DocumentServiceTests
     }
 
     [Fact]
+    public async Task UpdateAsync_SyncsEventBeforeSaving()
+    {
+        var document = Passport();
+        var calls = new List<string>();
+
+        _repositoryMock
+            .Setup(r => r.GetByIdForUserAsync(1, UserId))
+            .ReturnsAsync(document);
+        _synchronizerMock
+            .Setup(s => s.SyncAsync(document))
+            .Callback(() => calls.Add("sync"))
+            .Returns(Task.CompletedTask);
+        _repositoryMock
+            .Setup(r => r.SaveChangesAsync())
+            .Callback(() => calls.Add("save"))
+            .Returns(Task.CompletedTask);
+
+        await _service.UpdateAsync(1, UserId, new Document { Title = "New", ExpiryDate = new DateTime(2030, 5, 5) });
+
+        Assert.Equal(["sync", "save"], calls);
+    }
+
+    [Fact]
     public async Task UpdateAsync_ReturnsNull_WhenUserDoesNotOwnDocument()
     {
         // Arrange
@@ -226,6 +277,29 @@ public class DocumentServiceTests
         _fileStorageMock.Verify(
             s => s.DeleteAsync("stored-key.pdf", It.IsAny<CancellationToken>()),
             Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_RemovesLinkedEventsBeforeSaving()
+    {
+        var document = Passport();
+        var calls = new List<string>();
+
+        _repositoryMock
+            .Setup(r => r.GetByIdForUserAsync(1, UserId))
+            .ReturnsAsync(document);
+        _synchronizerMock
+            .Setup(s => s.RemoveAsync(document))
+            .Callback(() => calls.Add("remove"))
+            .Returns(Task.CompletedTask);
+        _repositoryMock
+            .Setup(r => r.SaveChangesAsync())
+            .Callback(() => calls.Add("save"))
+            .Returns(Task.CompletedTask);
+
+        await _service.DeleteAsync(1, UserId);
+
+        Assert.Equal(["remove", "save"], calls);
     }
 
     [Fact]
