@@ -9,6 +9,10 @@
   <p>{{ errorMessage }}</p>
   }
 
+  @if (successMessage) {
+  <p>{{ successMessage }}</p>
+  }
+
   @if (!isLoading && events.length === 0) {
   <p>No events found.</p>
   }
@@ -24,6 +28,27 @@
     <p>Category: {{ event.category }}</p>
     <p>Date: {{ event.eventDate }}</p>
 
+    @if (getReminderForEvent(event.id); as reminder) {
+    <div>
+      <h3>Reminder</h3>
+
+      <p>
+        Reminder date:
+        {{ reminder.reminderDate }}
+      </p>
+
+      <p>
+        Status:
+        @if (reminder.status === ReminderStatus.Pending) {
+        Pending
+        } @else if (reminder.status === ReminderStatus.Sent) {
+        Sent
+        } @else {
+        Failed
+        }
+      </p>
+    </div>
+    } @else {
     <div>
       <label [for]="'reminder-' + event.id">
         Reminder
@@ -49,6 +74,7 @@
       </button>
       }
     </div>
+    }
   </article>
   }
 </section>
