@@ -63,7 +63,7 @@ public class DocumentEventSynchronizer(IEventRepository eventRepository) : IDocu
         }
     }
 
-    private static string TitleFor(Document document)
+    internal static string TitleFor(Document document)
     {
         var name = string.IsNullOrWhiteSpace(document.Title) ? document.FileName : document.Title;
         return $"{name} expires";
