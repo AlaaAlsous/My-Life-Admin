@@ -2,11 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import {
-  CreateEventDto,
-  EventDto,
-  UpdateEventDto,
-} from '../models/event.dto';
+import { CreateEventDto, EventDto, UpdateEventDto } from '../models/event.dto';
 
 @Injectable({ providedIn: 'root' })
 export class EventService {

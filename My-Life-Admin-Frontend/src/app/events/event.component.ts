@@ -67,9 +67,7 @@ export class EventComponent implements OnInit {
   }
 
   getReminderForEvent(eventId: number): ReminderDto | undefined {
-    return this.reminders.find(
-      (reminder) => reminder.eventId === eventId,
-    );
+    return this.reminders.find((reminder) => reminder.eventId === eventId);
   }
 
   createReminder(event: EventDto): void {
@@ -86,15 +84,11 @@ export class EventComponent implements OnInit {
     const reminderDate = new Date(event.eventDate);
 
     if (option.months > 0) {
-      reminderDate.setMonth(
-        reminderDate.getMonth() - option.months,
-      );
+      reminderDate.setMonth(reminderDate.getMonth() - option.months);
     }
 
     if (option.days > 0) {
-      reminderDate.setDate(
-        reminderDate.getDate() - option.days,
-      );
+      reminderDate.setDate(reminderDate.getDate() - option.days);
     }
 
     this.reminderService
@@ -121,9 +115,7 @@ export class EventComponent implements OnInit {
 
     this.reminderService.delete(reminderId).subscribe({
       next: () => {
-        this.reminders = this.reminders.filter(
-          (reminder) => reminder.id !== reminderId,
-        );
+        this.reminders = this.reminders.filter((reminder) => reminder.id !== reminderId);
 
         this.successMessage = 'Reminder deleted successfully.';
       },
@@ -147,15 +139,11 @@ export class EventComponent implements OnInit {
     const reminderDate = new Date(event.eventDate);
 
     if (option.months > 0) {
-      reminderDate.setMonth(
-        reminderDate.getMonth() - option.months,
-      );
+      reminderDate.setMonth(reminderDate.getMonth() - option.months);
     }
 
     if (option.days > 0) {
-      reminderDate.setDate(
-        reminderDate.getDate() - option.days,
-      );
+      reminderDate.setDate(reminderDate.getDate() - option.days);
     }
 
     this.reminderService
@@ -167,9 +155,7 @@ export class EventComponent implements OnInit {
       .subscribe({
         next: (updatedReminder) => {
           this.reminders = this.reminders.map((existingReminder) =>
-            existingReminder.id === updatedReminder.id
-              ? updatedReminder
-              : existingReminder,
+            existingReminder.id === updatedReminder.id ? updatedReminder : existingReminder,
           );
 
           delete this.selectedEditReminder[event.id];

@@ -2,109 +2,89 @@
   <h1>Events</h1>
 
   @if (isLoading) {
-  <p>Loading events...</p>
+    <p>Loading events...</p>
   }
 
   @if (errorMessage) {
-  <p>{{ errorMessage }}</p>
+    <p>{{ errorMessage }}</p>
   }
 
   @if (successMessage) {
-  <p>{{ successMessage }}</p>
+    <p>{{ successMessage }}</p>
   }
 
   @if (!isLoading && events.length === 0) {
-  <p>No events found.</p>
+    <p>No events found.</p>
   }
 
   @for (event of events; track event.id) {
-  <article>
-    <h2>{{ event.title }}</h2>
+    <article>
+      <h2>{{ event.title }}</h2>
 
-    @if (event.description) {
-    <p>{{ event.description }}</p>
-    }
-
-    <p>Category: {{ event.category }}</p>
-    <p>Date: {{ event.eventDate }}</p>
-
-    @if (getReminderForEvent(event.id); as reminder) {
-    <div>
-      <h3>Reminder</h3>
-
-      <p>
-        Reminder date:
-        {{ reminder.reminderDate }}
-      </p>
-
-      <p>
-        Status:
-        @if (reminder.status === ReminderStatus.Pending) {
-        Pending
-        } @else if (reminder.status === ReminderStatus.Sent) {
-        Sent
-        } @else {
-        Failed
-        }
-      </p>
-
-      <label [for]="'edit-reminder-' + event.id">
-        Change reminder
-      </label>
-
-      <select [id]="'edit-reminder-' + event.id"
-              [(ngModel)]="selectedEditReminder[event.id]">
-        <option [ngValue]="undefined">
-          Select new reminder
-        </option>
-
-        @for (option of reminderOptions; track $index) {
-        <option [ngValue]="$index">
-          {{ option.label }}
-        </option>
-        }
-      </select>
-
-      @if (selectedEditReminder[event.id] !== undefined) {
-      <button type="button"
-              (click)="updateReminder(event, reminder)">
-        Update reminder
-      </button>
+      @if (event.description) {
+        <p>{{ event.description }}</p>
       }
 
-      <button type="button"
-              (click)="deleteReminder(reminder.id)">
-        Delete reminder
-      </button>
+      <p>Category: {{ event.category }}</p>
+      <p>Date: {{ event.eventDate }}</p>
 
-    </div>
-    } @else {
-    <div>
-      <label [for]="'reminder-' + event.id">
-        Reminder
-      </label>
+      @if (getReminderForEvent(event.id); as reminder) {
+        <div>
+          <h3>Reminder</h3>
 
-      <select [id]="'reminder-' + event.id"
-              [(ngModel)]="selectedReminder[event.id]">
-        <option [ngValue]="undefined">
-          No reminder
-        </option>
+          <p>
+            Reminder date:
+            {{ reminder.reminderDate }}
+          </p>
 
-        @for (option of reminderOptions; track $index) {
-        <option [ngValue]="$index">
-          {{ option.label }}
-        </option>
-        }
-      </select>
+          <p>
+            Status:
+            @if (reminder.status === ReminderStatus.Pending) {
+              Pending
+            } @else if (reminder.status === ReminderStatus.Sent) {
+              Sent
+            } @else {
+              Failed
+            }
+          </p>
 
-      @if (selectedReminder[event.id] !== undefined) {
-      <button type="button"
-              (click)="createReminder(event)">
-        Add reminder
-      </button>
+          <label [for]="'edit-reminder-' + event.id"> Change reminder </label>
+
+          <select [id]="'edit-reminder-' + event.id" [(ngModel)]="selectedEditReminder[event.id]">
+            <option [ngValue]="undefined">Select new reminder</option>
+
+            @for (option of reminderOptions; track $index) {
+              <option [ngValue]="$index">
+                {{ option.label }}
+              </option>
+            }
+          </select>
+
+          @if (selectedEditReminder[event.id] !== undefined) {
+            <button type="button" (click)="updateReminder(event, reminder)">Update reminder</button>
+          }
+
+          <button type="button" (click)="deleteReminder(reminder.id)">Delete reminder</button>
+        </div>
+      } @else {
+        <div>
+          <label [for]="'reminder-' + event.id"> Reminder </label>
+
+          <select [id]="'reminder-' + event.id" [(ngModel)]="selectedReminder[event.id]">
+            <option [ngValue]="undefined">No reminder</option>
+
+            @for (option of reminderOptions; track $index) {
+              <option [ngValue]="$index">
+                {{ option.label }}
+              </option>
+            }
+          </select>
+
+          @if (selectedReminder[event.id] !== undefined) {
+            <button type="button" (click)="createReminder(event)">Add reminder</button>
+          }
+        </div>
       }
-    </div>
-    }
-  </article>
+    </article>
   }
 </section>
