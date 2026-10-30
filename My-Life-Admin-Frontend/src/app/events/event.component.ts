@@ -113,4 +113,22 @@ export class EventComponent implements OnInit {
         },
       });
   }
+
+  deleteReminder(reminderId: number): void {
+    this.successMessage = '';
+    this.errorMessage = '';
+
+    this.reminderService.delete(reminderId).subscribe({
+      next: () => {
+        this.reminders = this.reminders.filter(
+          (reminder) => reminder.id !== reminderId,
+        );
+
+        this.successMessage = 'Reminder deleted successfully.';
+      },
+      error: () => {
+        this.errorMessage = 'Could not delete reminder.';
+      },
+    });
+  }
 }
