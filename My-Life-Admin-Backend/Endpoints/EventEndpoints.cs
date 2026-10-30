@@ -38,10 +38,15 @@ public static class EventEndpoints
 
         if (from.HasValue && to.HasValue)
         {
-            events = await eventService.GetBetweenAsync(
-                userId,
-                from.Value,
-                to.Value);
+            var start = EventDates.ToUtc(from.Value);
+            var end = EventDates.ToUtc(to.Value);
+
+            if (end < start)
+            {
+                return TypedResults.BadRequest("'to' must not be before 'from'.");
+            }
+
+            events = await eventService.GetBetweenAsync(userId, start, end);
         }
         else
         {
