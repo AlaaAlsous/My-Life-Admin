@@ -13,3 +13,15 @@ export interface ReminderDto {
   sentAt: string | null;
   status: ReminderStatus;
 }
+
+export interface CreateReminderDto {
+  eventId: number | null;
+  documentId: number | null;
+  reminderDate: string;
+}
+
+export interface UpdateReminderDto {
+  eventId: number | null;
+  documentId: number | null;
+  reminderDate: string;
+}

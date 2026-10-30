@@ -9,12 +9,17 @@ export class EventService {
   private readonly http = inject(HttpClient);
   private readonly url = `${environment.apiUrl}/api/events/`;
 
-  getAll(): Observable<EventDto[]> {
-    return this.http.get<EventDto[]>(this.url);
-  }
+  getAll(from?: string, to?: string): Observable<EventDto[]> {
+    let params = new HttpParams();
 
-  getBetween(from: string, to: string): Observable<EventDto[]> {
-    const params = new HttpParams().set('from', from).set('to', to);
+    if (from) {
+      params = params.set('from', from);
+    }
+
+    if (to) {
+      params = params.set('to', to);
+    }
+
     return this.http.get<EventDto[]>(this.url, { params });
   }
 
