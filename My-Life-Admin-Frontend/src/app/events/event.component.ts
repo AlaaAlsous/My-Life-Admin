@@ -32,6 +32,7 @@ export class EventComponent implements OnInit {
   ];
 
   selectedReminder: Record<number, number> = {};
+  selectedEditReminder: Record<number, number> = {};
 
   ngOnInit(): void {
     this.loadEvents();
@@ -130,5 +131,53 @@ export class EventComponent implements OnInit {
         this.errorMessage = 'Could not delete reminder.';
       },
     });
+  }
+
+  updateReminder(event: EventDto, reminder: ReminderDto): void {
+    this.successMessage = '';
+    this.errorMessage = '';
+
+    const optionIndex = this.selectedEditReminder[event.id];
+
+    if (optionIndex === undefined) {
+      return;
+    }
+
+    const option = this.reminderOptions[optionIndex];
+    const reminderDate = new Date(event.eventDate);
+
+    if (option.months > 0) {
+      reminderDate.setMonth(
+        reminderDate.getMonth() - option.months,
+      );
+    }
+
+    if (option.days > 0) {
+      reminderDate.setDate(
+        reminderDate.getDate() - option.days,
+      );
+    }
+
+    this.reminderService
+      .update(reminder.id, {
+        eventId: event.id,
+        documentId: reminder.documentId,
+        reminderDate: reminderDate.toISOString(),
+      })
+      .subscribe({
+        next: (updatedReminder) => {
+          this.reminders = this.reminders.map((existingReminder) =>
+            existingReminder.id === updatedReminder.id
+              ? updatedReminder
+              : existingReminder,
+          );
+
+          delete this.selectedEditReminder[event.id];
+          this.successMessage = 'Reminder updated successfully.';
+        },
+        error: () => {
+          this.errorMessage = 'Could not update reminder.';
+        },
+      });
   }
 }

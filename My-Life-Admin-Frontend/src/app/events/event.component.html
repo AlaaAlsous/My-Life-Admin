@@ -48,6 +48,30 @@
         }
       </p>
 
+      <label [for]="'edit-reminder-' + event.id">
+        Change reminder
+      </label>
+
+      <select [id]="'edit-reminder-' + event.id"
+              [(ngModel)]="selectedEditReminder[event.id]">
+        <option [ngValue]="undefined">
+          Select new reminder
+        </option>
+
+        @for (option of reminderOptions; track $index) {
+        <option [ngValue]="$index">
+          {{ option.label }}
+        </option>
+        }
+      </select>
+
+      @if (selectedEditReminder[event.id] !== undefined) {
+      <button type="button"
+              (click)="updateReminder(event, reminder)">
+        Update reminder
+      </button>
+      }
+
       <button type="button"
               (click)="deleteReminder(reminder.id)">
         Delete reminder
