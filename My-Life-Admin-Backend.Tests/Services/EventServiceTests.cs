@@ -245,6 +245,10 @@ public class EventServiceTests
                 Events.FirstOrDefault(e =>
                     e.Id == id && e.UserId == userId));
 
+        public Task<IReadOnlyList<Event>> GetByDocumentIdAsync(int documentId, int userId) =>
+            Task.FromResult<IReadOnlyList<Event>>(
+                Events.Where(e => e.DocumentId == documentId && e.UserId == userId).ToList());
+
         public Task AddAsync(Event entity)
         {
             Events.Add(entity);
