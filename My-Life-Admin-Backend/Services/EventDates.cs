@@ -16,6 +16,15 @@ public static class EventDates
         };
     }
 
+    // The database stores UTC without a kind; a range bound as Local or Unspecified
+    // would otherwise be shifted by the server's timezone.
+    public static DateTime ToUtc(DateTime value)
+    {
+        return value.Kind == DateTimeKind.Unspecified
+            ? DateTime.SpecifyKind(value, DateTimeKind.Utc)
+            : value.ToUniversalTime();
+    }
+
     // The database returns DateTime values without a kind; they are always UTC.
     public static DateTime AsUtc(DateTime value)
     {
