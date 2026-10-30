@@ -152,7 +152,7 @@ public static class EventEndpoints
             Title = eventItem.Title,
             Description = eventItem.Description,
             Category = eventItem.Category,
-            EventDate = eventItem.EventDate,
+            EventDate = EventDates.AsUtc(eventItem.EventDate),
             CreatedAt = eventItem.CreatedAt
         };
     }
