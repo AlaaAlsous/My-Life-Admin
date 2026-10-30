@@ -1,78 +1,124 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { EventDto } from '../models/event.dto';
 import { ReminderDto, ReminderStatus } from '../models/reminder.dto';
+import { ErrorState } from '../shared/states/error-state';
+import { LoadingState } from '../shared/states/loading-state';
+import { buildMonthGrid, CalendarDay } from './calendar.utils';
+import { EventCalendar } from './event-calendar';
 import { EventService } from './event.service';
 import { ReminderService } from './reminder.service';
 
 @Component({
   selector: 'app-event',
   standalone: true,
-  imports: [FormsModule],
+  imports: [DatePipe, FormsModule, RouterLink, ErrorState, LoadingState, EventCalendar],
   templateUrl: './event.component.html',
 })
-export class EventComponent implements OnInit {
+export class EventComponent implements OnInit, OnDestroy {
   private readonly eventService = inject(EventService);
   private readonly reminderService = inject(ReminderService);
+  private eventsRequest?: Subscription;
 
-  events: EventDto[] = [];
-  reminders: ReminderDto[] = [];
+  protected readonly month = signal(this.startOfMonth(new Date()));
+  protected readonly events = signal<EventDto[]>([]);
+  protected readonly reminders = signal<ReminderDto[]>([]);
+  protected readonly isLoading = signal(false);
+  protected readonly errorMessage = signal('');
+  protected readonly successMessage = signal('');
+  protected readonly selectedDate = signal<Date | null>(null);
+  protected readonly selectedEvents = signal<EventDto[] | null>(null);
 
-  isLoading = false;
-  errorMessage = '';
-  successMessage = '';
+  protected readonly ReminderStatus = ReminderStatus;
 
-  readonly ReminderStatus = ReminderStatus;
-
-  reminderOptions = [
+  protected readonly reminderOptions = [
     { label: '1 week before', months: 0, days: 7 },
     { label: '1 month before', months: 1, days: 0 },
     { label: '3 months before', months: 3, days: 0 },
     { label: '6 months before', months: 6, days: 0 },
   ];
 
-  selectedReminder: Record<number, number> = {};
-  selectedEditReminder: Record<number, number> = {};
+  protected selectedReminder: Record<number, number | undefined> = {};
+  protected selectedEditReminder: Record<number, number | undefined> = {};
 
   ngOnInit(): void {
     this.loadEvents();
     this.loadReminders();
   }
 
-  loadEvents(): void {
-    this.isLoading = true;
-    this.errorMessage = '';
+  ngOnDestroy(): void {
+    this.eventsRequest?.unsubscribe();
+  }
 
-    this.eventService.getAll().subscribe({
+  protected loadEvents(): void {
+    this.isLoading.set(true);
+    this.errorMessage.set('');
+    this.eventsRequest?.unsubscribe();
+
+    // The visible grid includes days from the neighbouring months.
+    const grid = buildMonthGrid(this.month(), []);
+    const from = grid[0].date;
+    const lastDay = grid[grid.length - 1].date;
+    const to = new Date(
+      lastDay.getFullYear(),
+      lastDay.getMonth(),
+      lastDay.getDate(),
+      23,
+      59,
+      59,
+      999,
+    );
+
+    this.eventsRequest = this.eventService.getAll(from.toISOString(), to.toISOString()).subscribe({
       next: (events) => {
-        this.events = events;
-        this.isLoading = false;
+        this.events.set(events);
+        this.isLoading.set(false);
       },
       error: () => {
-        this.errorMessage = 'Could not load events.';
-        this.isLoading = false;
+        this.errorMessage.set('Could not load events.');
+        this.isLoading.set(false);
       },
     });
   }
 
-  loadReminders(): void {
+  protected loadReminders(): void {
     this.reminderService.getAll().subscribe({
-      next: (reminders) => {
-        this.reminders = reminders;
-      },
-      error: () => {
-        this.errorMessage = 'Could not load reminders.';
-      },
+      next: (reminders) => this.reminders.set(reminders),
+      error: () => this.errorMessage.set('Could not load reminders.'),
     });
   }
 
-  getReminderForEvent(eventId: number): ReminderDto | undefined {
-    return this.reminders.find((reminder) => reminder.eventId === eventId);
+  protected onMonthChange(month: Date): void {
+    this.month.set(this.startOfMonth(month));
+    this.clearSelection();
+    this.loadEvents();
   }
 
-  createReminder(event: EventDto): void {
-    this.successMessage = '';
-    this.errorMessage = '';
+  protected onEventSelected(event: EventDto): void {
+    this.selectedDate.set(null);
+    this.selectedEvents.set([event]);
+  }
+
+  protected onDaySelected(day: CalendarDay): void {
+    this.selectedDate.set(day.date);
+    this.selectedEvents.set(day.events);
+  }
+
+  protected clearSelection(): void {
+    this.selectedDate.set(null);
+    this.selectedEvents.set(null);
+  }
+
+  protected getReminderForEvent(eventId: number): ReminderDto | undefined {
+    return this.reminders().find((reminder) => reminder.eventId === eventId);
+  }
+
+  protected createReminder(event: EventDto): void {
+    this.successMessage.set('');
+    this.errorMessage.set('');
 
     const optionIndex = this.selectedReminder[event.id];
 
@@ -80,54 +126,40 @@ export class EventComponent implements OnInit {
       return;
     }
 
-    const option = this.reminderOptions[optionIndex];
-    const reminderDate = new Date(event.eventDate);
-
-    if (option.months > 0) {
-      reminderDate.setMonth(reminderDate.getMonth() - option.months);
-    }
-
-    if (option.days > 0) {
-      reminderDate.setDate(reminderDate.getDate() - option.days);
-    }
-
     this.reminderService
       .create({
         eventId: event.id,
         documentId: null,
-        reminderDate: reminderDate.toISOString(),
+        reminderDate: this.reminderDateFor(event, optionIndex),
       })
       .subscribe({
         next: (reminder) => {
-          this.reminders.push(reminder);
+          this.reminders.update((reminders) => [...reminders, reminder]);
           delete this.selectedReminder[event.id];
-          this.successMessage = 'Reminder created successfully.';
+          this.successMessage.set('Reminder created successfully.');
         },
-        error: () => {
-          this.errorMessage = 'Could not create reminder.';
-        },
+        error: () => this.errorMessage.set('Could not create reminder.'),
       });
   }
 
-  deleteReminder(reminderId: number): void {
-    this.successMessage = '';
-    this.errorMessage = '';
+  protected deleteReminder(reminderId: number): void {
+    this.successMessage.set('');
+    this.errorMessage.set('');
 
     this.reminderService.delete(reminderId).subscribe({
       next: () => {
-        this.reminders = this.reminders.filter((reminder) => reminder.id !== reminderId);
-
-        this.successMessage = 'Reminder deleted successfully.';
+        this.reminders.update((reminders) =>
+          reminders.filter((reminder) => reminder.id !== reminderId),
+        );
+        this.successMessage.set('Reminder deleted successfully.');
       },
-      error: () => {
-        this.errorMessage = 'Could not delete reminder.';
-      },
+      error: () => this.errorMessage.set('Could not delete reminder.'),
     });
   }
 
-  updateReminder(event: EventDto, reminder: ReminderDto): void {
-    this.successMessage = '';
-    this.errorMessage = '';
+  protected updateReminder(event: EventDto, reminder: ReminderDto): void {
+    this.successMessage.set('');
+    this.errorMessage.set('');
 
     const optionIndex = this.selectedEditReminder[event.id];
 
@@ -135,6 +167,27 @@ export class EventComponent implements OnInit {
       return;
     }
 
+    this.reminderService
+      .update(reminder.id, {
+        eventId: event.id,
+        documentId: reminder.documentId,
+        reminderDate: this.reminderDateFor(event, optionIndex),
+      })
+      .subscribe({
+        next: (updatedReminder) => {
+          this.reminders.update((reminders) =>
+            reminders.map((existing) =>
+              existing.id === updatedReminder.id ? updatedReminder : existing,
+            ),
+          );
+          delete this.selectedEditReminder[event.id];
+          this.successMessage.set('Reminder updated successfully.');
+        },
+        error: () => this.errorMessage.set('Could not update reminder.'),
+      });
+  }
+
+  private reminderDateFor(event: EventDto, optionIndex: number): string {
     const option = this.reminderOptions[optionIndex];
     const reminderDate = new Date(event.eventDate);
 
@@ -146,24 +199,10 @@ export class EventComponent implements OnInit {
       reminderDate.setDate(reminderDate.getDate() - option.days);
     }
 
-    this.reminderService
-      .update(reminder.id, {
-        eventId: event.id,
-        documentId: reminder.documentId,
-        reminderDate: reminderDate.toISOString(),
-      })
-      .subscribe({
-        next: (updatedReminder) => {
-          this.reminders = this.reminders.map((existingReminder) =>
-            existingReminder.id === updatedReminder.id ? updatedReminder : existingReminder,
-          );
+    return reminderDate.toISOString();
+  }
 
-          delete this.selectedEditReminder[event.id];
-          this.successMessage = 'Reminder updated successfully.';
-        },
-        error: () => {
-          this.errorMessage = 'Could not update reminder.';
-        },
-      });
+  private startOfMonth(date: Date): Date {
+    return new Date(date.getFullYear(), date.getMonth(), 1);
   }
 }
