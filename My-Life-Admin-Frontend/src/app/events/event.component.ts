@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { EventDto } from '../models/event.dto';
+import { ReminderDto, ReminderStatus } from '../models/reminder.dto';
 import { EventService } from './event.service';
 import { ReminderService } from './reminder.service';
 
@@ -15,8 +16,13 @@ export class EventComponent implements OnInit {
   private readonly reminderService = inject(ReminderService);
 
   events: EventDto[] = [];
+  reminders: ReminderDto[] = [];
+
   isLoading = false;
   errorMessage = '';
+  successMessage = '';
+
+  readonly ReminderStatus = ReminderStatus;
 
   reminderOptions = [
     { label: '1 week before', months: 0, days: 7 },
@@ -25,12 +31,11 @@ export class EventComponent implements OnInit {
     { label: '6 months before', months: 6, days: 0 },
   ];
 
-  successMessage = '';
-
   selectedReminder: Record<number, number> = {};
 
   ngOnInit(): void {
     this.loadEvents();
+    this.loadReminders();
   }
 
   loadEvents(): void {
@@ -47,6 +52,23 @@ export class EventComponent implements OnInit {
         this.isLoading = false;
       },
     });
+  }
+
+  loadReminders(): void {
+    this.reminderService.getAll().subscribe({
+      next: (reminders) => {
+        this.reminders = reminders;
+      },
+      error: () => {
+        this.errorMessage = 'Could not load reminders.';
+      },
+    });
+  }
+
+  getReminderForEvent(eventId: number): ReminderDto | undefined {
+    return this.reminders.find(
+      (reminder) => reminder.eventId === eventId,
+    );
   }
 
   createReminder(event: EventDto): void {
@@ -81,7 +103,8 @@ export class EventComponent implements OnInit {
         reminderDate: reminderDate.toISOString(),
       })
       .subscribe({
-        next: () => {
+        next: (reminder) => {
+          this.reminders.push(reminder);
           delete this.selectedReminder[event.id];
           this.successMessage = 'Reminder created successfully.';
         },
