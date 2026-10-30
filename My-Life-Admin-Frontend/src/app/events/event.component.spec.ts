@@ -96,4 +96,61 @@ describe('EventComponent', () => {
 
     http.expectOne((r) => r.url === eventsUrl && r.params.has('from')).flush([]);
   });
+
+  it('requests a range that covers the whole visible grid', () => {
+    const { http } = setup();
+
+    const request = http.expectOne((r) => r.url === eventsUrl && r.params.has('from'));
+    const from = new Date(request.request.params.get('from')!);
+    const to = new Date(request.request.params.get('to')!);
+    const now = new Date();
+    const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+    expect(from.getTime()).toBeLessThanOrEqual(firstOfMonth.getTime());
+    expect(to.getTime()).toBeGreaterThanOrEqual(lastOfMonth.getTime());
+    request.flush([]);
+    http.expectOne(remindersUrl).flush([]);
+  });
+
+  it('ignores a late response from the previous month', async () => {
+    const { fixture, http, el } = setup();
+    const first = http.expectOne((r) => r.url === eventsUrl && r.params.has('from'));
+    http.expectOne(remindersUrl).flush([]);
+
+    (el.querySelector('[aria-label="Next month"]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    const second = http.expectOne((r) => r.url === eventsUrl && r.params.has('from'));
+    expect(first.cancelled).toBe(true);
+
+    second.flush([]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(el.textContent).not.toContain('Passport expires');
+  });
+
+  it('shows the error state again after a month change and recovers on retry', async () => {
+    const { fixture, http, el } = setup();
+    http
+      .expectOne((r) => r.url === eventsUrl && r.params.has('from'))
+      .flush('boom', { status: 500, statusText: 'Server Error' });
+    http.expectOne(remindersUrl).flush([]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const retry = Array.from(el.querySelectorAll('[role="alert"] button')).find(
+      (button) => button.textContent?.trim() === 'Try again',
+    ) as HTMLButtonElement;
+    retry.click();
+    fixture.detectChanges();
+
+    http.expectOne((r) => r.url === eventsUrl && r.params.has('from')).flush([event]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(el.querySelector('[role="alert"]')).toBeNull();
+    expect(el.textContent).toContain('Passport expires');
+  });
 });
