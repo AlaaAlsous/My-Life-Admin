@@ -42,6 +42,23 @@ public class EventDatesTests
     }
 
     [Fact]
+    public void ToUtc_Unspecified_IsTreatedAsUtcWithoutShifting()
+    {
+        var result = EventDates.ToUtc(new DateTime(2026, 10, 1, 8, 0, 0, DateTimeKind.Unspecified));
+
+        Assert.Equal(new DateTime(2026, 10, 1, 8, 0, 0), result);
+        Assert.Equal(DateTimeKind.Utc, result.Kind);
+    }
+
+    [Fact]
+    public void ToUtc_Local_IsConvertedToUtc()
+    {
+        var local = new DateTime(2026, 10, 1, 8, 0, 0, DateTimeKind.Local);
+
+        Assert.Equal(local.ToUniversalTime(), EventDates.ToUtc(local));
+    }
+
+    [Fact]
     public void AsUtc_MarksValueAsUtcWithoutShiftingIt()
     {
         var result = EventDates.AsUtc(new DateTime(2026, 12, 1, 12, 0, 0, DateTimeKind.Unspecified));
