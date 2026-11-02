@@ -148,4 +148,77 @@ public class AzureBlobFileStorageTests
             new byte[] { 1, 2, 3 },
             copy.ToArray());
     }
+
+    [Fact]
+    public async Task OpenReadAsync_UnknownKey_ReturnsNull()
+    {
+        var blobClient = new Mock<BlobClient>();
+        var containerClient = new Mock<BlobContainerClient>();
+        var serviceClient = new Mock<BlobServiceClient>();
+
+        containerClient
+            .Setup(c => c.GetBlobClient("missing.pdf"))
+            .Returns(blobClient.Object);
+
+        serviceClient
+            .Setup(s => s.GetBlobContainerClient("documents"))
+            .Returns(containerClient.Object);
+
+        blobClient
+            .Setup(b => b.ExistsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Azure.Response.FromValue(
+                false,
+                Mock.Of<Azure.Response>()));
+
+        var options = Options.Create(
+            new FileStorageOptions
+            {
+                ConnectionString = "UseDevelopmentStorage=true",
+                ContainerName = "documents"
+            });
+
+        var storage = new AzureBlobFileStorage(
+            options,
+            serviceClient.Object);
+
+        var stream = await storage.OpenReadAsync("missing.pdf");
+
+        Assert.Null(stream);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_RemovesBlob()
+    {
+        var blobClient = new Mock<BlobClient>();
+        var containerClient = new Mock<BlobContainerClient>();
+        var serviceClient = new Mock<BlobServiceClient>();
+
+        containerClient
+            .Setup(c => c.GetBlobClient("test.pdf"))
+            .Returns(blobClient.Object);
+
+        serviceClient
+            .Setup(s => s.GetBlobContainerClient("documents"))
+            .Returns(containerClient.Object);
+
+        var options = Options.Create(
+            new FileStorageOptions
+            {
+                ConnectionString = "UseDevelopmentStorage=true",
+                ContainerName = "documents"
+            });
+
+        var storage = new AzureBlobFileStorage(
+            options,
+            serviceClient.Object);
+
+        await storage.DeleteAsync("test.pdf");
+
+        blobClient.Verify(
+            b => b.DeleteIfExistsAsync(
+                It.IsAny<Azure.Storage.Blobs.Models.DeleteSnapshotsOption>(),
+                It.IsAny<Azure.Storage.Blobs.Models.BlobRequestConditions>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
 }
