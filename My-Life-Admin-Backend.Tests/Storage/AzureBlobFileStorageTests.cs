@@ -221,4 +221,41 @@ public class AzureBlobFileStorageTests
                 It.IsAny<CancellationToken>()),
             Times.Once);
     }
+
+    [Fact]
+    public async Task SaveAsync_TwoFiles_GetDifferentKeys()
+    {
+        var blobClient = new Mock<BlobClient>();
+        var containerClient = new Mock<BlobContainerClient>();
+        var serviceClient = new Mock<BlobServiceClient>();
+
+        containerClient
+            .Setup(c => c.GetBlobClient(It.IsAny<string>()))
+            .Returns(blobClient.Object);
+
+        serviceClient
+            .Setup(s => s.GetBlobContainerClient("documents"))
+            .Returns(containerClient.Object);
+
+        var options = Options.Create(
+            new FileStorageOptions
+            {
+                ConnectionString = "UseDevelopmentStorage=true",
+                ContainerName = "documents"
+            });
+
+        var storage = new AzureBlobFileStorage(
+            options,
+            serviceClient.Object);
+
+        var first = await storage.SaveAsync(
+            new MemoryStream([1]),
+            ".pdf");
+
+        var second = await storage.SaveAsync(
+            new MemoryStream([2]),
+            ".pdf");
+
+        Assert.NotEqual(first, second);
+    }
 }
