@@ -8,7 +8,7 @@ public sealed class AzureBlobFileStorage : IFileStorage
 {
     private readonly BlobContainerClient _container;
 
-    public AzureBlobFileStorage(IOptions<FileStorageOptions> options)
+    public AzureBlobFileStorage(IOptions<FileStorageOptions> options, BlobServiceClient blobServiceClient)
     {
         var connectionString = options.Value.ConnectionString;
         var containerName = options.Value.ContainerName;
@@ -25,7 +25,7 @@ public sealed class AzureBlobFileStorage : IFileStorage
                 "FileStorage:ContainerName is required for Azure Blob Storage.");
         }
 
-        _container = new BlobServiceClient(connectionString).GetBlobContainerClient(containerName);
+        _container = blobServiceClient.GetBlobContainerClient(containerName);
     }
 
     public async Task<string> SaveAsync(Stream content, string extension, CancellationToken cancellationToken = default)

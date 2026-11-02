@@ -1,9 +1,11 @@
+using Azure.Storage.Blobs;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Options;
 using My_Life_Admin.Ai;
 using My_Life_Admin.Data;
 using My_Life_Admin.Endpoints;
@@ -63,7 +65,8 @@ builder.Services.AddHostedService<ReminderBackgroundService>();
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 
-builder.Services.Configure<FileStorageOptions>(builder.Configuration.GetSection(FileStorageOptions.SectionName));
+builder.Services.Configure<FileStorageOptions>(
+    builder.Configuration.GetSection(FileStorageOptions.SectionName));
 
 if (builder.Environment.IsDevelopment())
 {
@@ -71,8 +74,18 @@ if (builder.Environment.IsDevelopment())
 }
 else
 {
+    builder.Services.AddSingleton(sp =>
+    {
+        var options = sp
+            .GetRequiredService<IOptions<FileStorageOptions>>()
+            .Value;
+
+        return new BlobServiceClient(options.ConnectionString);
+    });
+
     builder.Services.AddSingleton<IFileStorage, AzureBlobFileStorage>();
 }
+
 builder.Services.AddScoped<IUserSettingsRepository, UserSettingsRepository>();
 builder.Services.AddScoped<IUserSettingsService, UserSettingsService>();
 
