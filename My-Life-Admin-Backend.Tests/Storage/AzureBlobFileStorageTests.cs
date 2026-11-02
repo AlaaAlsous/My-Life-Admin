@@ -258,4 +258,33 @@ public class AzureBlobFileStorageTests
 
         Assert.NotEqual(first, second);
     }
+
+    [Fact]
+    public async Task DeleteAsync_UnknownKey_DoesNotThrow()
+    {
+        var blobClient = new Mock<BlobClient>();
+        var containerClient = new Mock<BlobContainerClient>();
+        var serviceClient = new Mock<BlobServiceClient>();
+
+        containerClient
+            .Setup(c => c.GetBlobClient("missing.pdf"))
+            .Returns(blobClient.Object);
+
+        serviceClient
+            .Setup(s => s.GetBlobContainerClient("documents"))
+            .Returns(containerClient.Object);
+
+        var options = Options.Create(
+            new FileStorageOptions
+            {
+                ConnectionString = "UseDevelopmentStorage=true",
+                ContainerName = "documents"
+            });
+
+        var storage = new AzureBlobFileStorage(
+            options,
+            serviceClient.Object);
+
+        await storage.DeleteAsync("missing.pdf");
+    }
 }
