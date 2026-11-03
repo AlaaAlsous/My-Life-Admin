@@ -191,6 +191,7 @@ app.MapDashboardEndpoints();
 app.MapDocumentEndpoints();
 app.MapReminderEndpoints();
 app.MapChatEndpoints();
+app.MapUserSettingsEndpoints();
 
 app.MapFallbackToFile("index.html").AllowAnonymous();
 
