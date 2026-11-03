@@ -9,6 +9,7 @@ namespace MyLife_Admin.Tests.Services;
 public class ChatServiceTests
 {
     private readonly FakeChatMessageRepository _repository = new();
+    private readonly FakeDocumentRepository _documentRepository = new();
     private readonly FakeAiChatClient _aiClient = new();
     private readonly AiOptions _aiOptions = new() { MaxHistoryMessages = 20 };
     private readonly ChatService _service;
@@ -18,7 +19,8 @@ public class ChatServiceTests
         _service = new ChatService(
             _repository,
             _aiClient,
-            Microsoft.Extensions.Options.Options.Create(_aiOptions));
+            Microsoft.Extensions.Options.Options.Create(_aiOptions),
+            _documentRepository);
     }
 
     [Fact]
@@ -168,6 +170,39 @@ public class ChatServiceTests
     }
 
     [Fact]
+    public async Task SendAsync_WithDocumentId_PrependsSystemContext()
+    {
+        _documentRepository.Documents.Add(new Document
+        {
+            Id = 7,
+            UserId = 1,
+            Title = "Passport",
+            FileName = "passport.pdf",
+            Category = "Identity",
+            Description = "Travel document",
+            ExpiryDate = new DateTime(2030, 1, 1)
+        });
+
+        await _service.SendAsync(1, "When does this expire?", documentId: 7);
+
+        Assert.NotNull(_aiClient.LastConversation);
+        var first = _aiClient.LastConversation[0];
+        Assert.Equal(ChatRole.System, first.Role);
+        Assert.Contains("Passport", first.Content);
+        Assert.Contains("2030-01-01", first.Content);
+        Assert.Equal("When does this expire?", _aiClient.LastConversation[^1].Content);
+    }
+
+    [Fact]
+    public async Task SendAsync_WithUnknownDocumentId_DoesNotAddSystemContext()
+    {
+        await _service.SendAsync(1, "Hello", documentId: 999);
+
+        Assert.NotNull(_aiClient.LastConversation);
+        Assert.DoesNotContain(_aiClient.LastConversation, m => m.Role == ChatRole.System);
+    }
+
+    [Fact]
     public async Task SendAsync_LongReply_IsTruncatedToMaxContentLength()
     {
         _aiClient.Reply = new string('a', ChatService.MaxContentLength + 100);
@@ -189,6 +224,41 @@ public class ChatServiceTests
             LastConversation = conversation;
             return Error is null ? Task.FromResult(Reply) : Task.FromException<string>(Error);
         }
+    }
+
+    private sealed class FakeDocumentRepository : IDocumentRepository
+    {
+        public List<Document> Documents { get; } = [];
+
+        public Task<Document?> GetByIdForUserAsync(int id, int userId) =>
+            Task.FromResult(Documents.FirstOrDefault(d => d.Id == id && d.UserId == userId));
+
+        public Task<IEnumerable<Document>> GetAllForUserAsync(int userId) =>
+            Task.FromResult(Documents.Where(d => d.UserId == userId).AsEnumerable());
+
+        public Task<IEnumerable<Document>> SearchAsync(int userId, string query) =>
+            Task.FromResult(Documents.Where(d => d.UserId == userId).AsEnumerable());
+
+        public Task<IEnumerable<Document>> GetExpiringWithinAsync(int userId, int days) =>
+            Task.FromResult(Documents.Where(d => d.UserId == userId).AsEnumerable());
+
+        public Task<Document?> GetByIdAsync(int id) =>
+            Task.FromResult(Documents.FirstOrDefault(d => d.Id == id));
+
+        public Task<IEnumerable<Document>> GetAllAsync() =>
+            Task.FromResult(Documents.AsEnumerable());
+
+        public Task AddAsync(Document entity)
+        {
+            Documents.Add(entity);
+            return Task.CompletedTask;
+        }
+
+        public void Update(Document entity) { }
+
+        public void Delete(Document entity) => Documents.Remove(entity);
+
+        public Task SaveChangesAsync() => Task.CompletedTask;
     }
 
     private sealed class FakeChatMessageRepository : IChatMessageRepository
