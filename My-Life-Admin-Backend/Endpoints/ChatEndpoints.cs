@@ -63,11 +63,17 @@ public static class ChatEndpoints
     public static async Task<IResult> GetHistoryAsync(
         ClaimsPrincipal user,
         IChatService chatService,
-        int count = ChatService.DefaultHistoryCount)
+        int count = ChatService.DefaultHistoryCount,
+        int? documentId = null)
     {
         if (user.GetUserId() is not { } userId)
         {
             return TypedResults.Unauthorized();
+        }
+
+        if (documentId is not { } docId)
+        {
+            return TypedResults.BadRequest(new ErrorResponse("Document id is required."));
         }
 
         if (count < 1)
@@ -75,7 +81,7 @@ public static class ChatEndpoints
             return TypedResults.BadRequest(new ErrorResponse("Count must be at least 1."));
         }
 
-        var history = await chatService.GetHistoryAsync(userId, count);
+        var history = await chatService.GetHistoryAsync(userId, count, docId);
 
         return TypedResults.Ok(history.Select(ToDto).ToList());
     }

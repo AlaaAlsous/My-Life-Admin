@@ -13,7 +13,7 @@ public class ChatMessageRepository : Repository<ChatMessage>, IChatMessageReposi
         _db = db;
     }
 
-    public async Task<IReadOnlyList<ChatMessage>> GetHistoryAsync(int userId, int count)
+    public async Task<IReadOnlyList<ChatMessage>> GetHistoryAsync(int userId, int count, int documentId)
     {
         if (count <= 0)
         {
@@ -21,7 +21,7 @@ public class ChatMessageRepository : Repository<ChatMessage>, IChatMessageReposi
         }
 
         var latest = await _db.ChatMessages
-            .Where(m => m.UserId == userId)
+            .Where(m => m.UserId == userId && m.DocumentId == documentId)
             .OrderByDescending(m => m.CreatedAt)
             .ThenByDescending(m => m.Id)
             .Take(count)
