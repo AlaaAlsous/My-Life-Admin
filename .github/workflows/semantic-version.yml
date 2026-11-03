@@ -1,0 +1,36 @@
+name: Semantic Version
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+
+permissions:
+  contents: write
+
+jobs:
+  version:
+    if: github.event.pull_request.merged == true
+    name: Create version tag
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get latest version
+        id: version
+        shell: bash
+        run: |
+          LATEST_TAG=$(git tag --list "v*" --sort=-v:refname | head -n 1)
+
+          if [ -z "$LATEST_TAG" ]; then
+            LATEST_TAG="v0.0.0"
+          fi
+
+          echo "Latest version: $LATEST_TAG"
+          echo "latest=$LATEST_TAG" >> "$GITHUB_OUTPUT"
