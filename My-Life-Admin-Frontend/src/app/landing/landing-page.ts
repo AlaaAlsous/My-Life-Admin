@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { AuthTokenService } from '../auth/auth-token.service';
 import { LoginModal } from '../login/login-modal';
 import { RegisterModal } from '../register/register-modal';
 
@@ -38,7 +39,9 @@ export class LandingPage {
   ];
 
   private readonly router = inject(Router);
+  private readonly authTokenService = inject(AuthTokenService);
 
+  protected readonly isLoggedIn = this.authTokenService.isLoggedIn;
   protected readonly showLogin = signal(false);
   protected readonly showRegister = signal(false);
 

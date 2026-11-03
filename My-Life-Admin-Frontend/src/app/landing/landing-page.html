@@ -24,22 +24,24 @@
     Keep your documents, receipts, personal details and important dates together, so you spend less
     time searching and more time living.
   </p>
-  <div class="mt-10 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
-    <button
-      type="button"
-      class="rounded-full bg-primary px-8 py-3.5 font-semibold text-white shadow-lift transition hover:-translate-y-0.5 hover:bg-primary-hover motion-reduce:transition-none motion-reduce:hover:translate-y-0"
-      (click)="showLogin.set(true)"
-    >
-      Get Started
-    </button>
-    <button
-      type="button"
-      class="rounded-full bg-white px-8 py-3.5 font-semibold text-primary shadow-soft ring-1 ring-border-soft transition hover:bg-surface-muted hover:ring-rose"
-      (click)="showLogin.set(true)"
-    >
-      Log In
-    </button>
-  </div>
+  @if (!isLoggedIn()) {
+    <div class="mt-10 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
+      <button
+        type="button"
+        class="rounded-full bg-primary px-8 py-3.5 font-semibold text-white shadow-lift transition hover:-translate-y-0.5 hover:bg-primary-hover motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+        (click)="showLogin.set(true)"
+      >
+        Get Started
+      </button>
+      <button
+        type="button"
+        class="rounded-full bg-white px-8 py-3.5 font-semibold text-primary shadow-soft ring-1 ring-border-soft transition hover:bg-surface-muted hover:ring-rose"
+        (click)="showLogin.set(true)"
+      >
+        Log In
+      </button>
+    </div>
+  }
 </section>
 
 <section id="features" aria-labelledby="features-heading" class="scroll-mt-20 pb-6 pt-16 sm:pt-24">
@@ -78,22 +80,26 @@
   </ul>
 </section>
 
-<section
-  aria-labelledby="cta-heading"
-  class="mt-16 rounded-4xl bg-linear-to-br from-primary to-plum px-6 py-14 text-center text-white shadow-card sm:px-12"
->
-  <h2 id="cta-heading" class="text-3xl sm:text-4xl">Ready to bring order to your everyday life?</h2>
-  <p class="mx-auto mt-4 max-w-xl text-lg text-blush">
-    Start organizing the things that matter, all in one calm and tidy place.
-  </p>
-  <button
-    type="button"
-    class="mt-8 rounded-full bg-white px-8 py-3.5 font-semibold text-primary shadow-lift transition hover:-translate-y-0.5 hover:bg-blush motion-reduce:transition-none motion-reduce:hover:translate-y-0"
-    (click)="showLogin.set(true)"
+@if (!isLoggedIn()) {
+  <section
+    aria-labelledby="cta-heading"
+    class="mt-16 rounded-4xl bg-linear-to-br from-primary to-plum px-6 py-14 text-center text-white shadow-card sm:px-12"
   >
-    Get Started
-  </button>
-</section>
+    <h2 id="cta-heading" class="text-3xl sm:text-4xl">
+      Ready to bring order to your everyday life?
+    </h2>
+    <p class="mx-auto mt-4 max-w-xl text-lg text-blush">
+      Start organizing the things that matter, all in one calm and tidy place.
+    </p>
+    <button
+      type="button"
+      class="mt-8 rounded-full bg-white px-8 py-3.5 font-semibold text-primary shadow-lift transition hover:-translate-y-0.5 hover:bg-blush motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+      (click)="showLogin.set(true)"
+    >
+      Get Started
+    </button>
+  </section>
+}
 
 @if (showLogin()) {
   <app-login-modal
