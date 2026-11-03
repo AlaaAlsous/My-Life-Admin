@@ -1,0 +1,98 @@
+name: Semantic Version
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+
+permissions:
+  contents: write
+
+jobs:
+  version:
+    if: github.event.pull_request.merged == true
+    name: Create version tag
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get latest version
+        id: version
+        shell: bash
+        run: |
+          LATEST_TAG=$(git tag --list "v*" --sort=-v:refname | head -n 1)
+
+          if [ -z "$LATEST_TAG" ]; then
+            LATEST_TAG="v0.0.0"
+          fi
+
+          echo "Latest version: $LATEST_TAG"
+          echo "latest=$LATEST_TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Determine version type
+        id: type
+        shell: bash
+        run: |
+          LABELS='${{ toJson(github.event.pull_request.labels.*.name) }}'
+
+          if echo "$LABELS" | grep -q '"major"'; then
+            VERSION_TYPE="major"
+          elif echo "$LABELS" | grep -q '"minor"'; then
+            VERSION_TYPE="minor"
+          else
+            VERSION_TYPE="patch"
+          fi
+
+          echo "Version type: $VERSION_TYPE"
+          echo "type=$VERSION_TYPE" >> "$GITHUB_OUTPUT"
+
+      - name: Calculate next version
+        id: next
+        shell: bash
+        run: |
+          VERSION="${{ steps.version.outputs.latest }}"
+
+          if [ "$VERSION" = "v0.0.0" ]; then
+            NEXT_VERSION="v1.0.0"
+          else
+            VERSION="${VERSION#v}"
+
+            IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+
+            case "${{ steps.type.outputs.type }}" in
+              major)
+                MAJOR=$((MAJOR + 1))
+                MINOR=0
+                PATCH=0
+                ;;
+              minor)
+                MINOR=$((MINOR + 1))
+                PATCH=0
+                ;;
+              patch)
+                PATCH=$((PATCH + 1))
+                ;;
+            esac
+
+            NEXT_VERSION="v$MAJOR.$MINOR.$PATCH"
+          fi
+
+          echo "Next version: $NEXT_VERSION"
+          echo "version=$NEXT_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Create and push tag
+        shell: bash
+        run: |
+          VERSION="${{ steps.next.outputs.version }}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git tag "$VERSION"
+          git push origin "$VERSION"
