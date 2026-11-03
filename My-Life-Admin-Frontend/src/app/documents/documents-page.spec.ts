@@ -1,5 +1,6 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { DocumentsPage } from './documents-page';
 import { ConfirmationService } from '../shared/confirmation/confirmation.service';
@@ -9,7 +10,7 @@ describe('DocumentsPage', () => {
 
   function setup() {
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     });
     const fixture = TestBed.createComponent(DocumentsPage);
     const http = TestBed.inject(HttpTestingController);

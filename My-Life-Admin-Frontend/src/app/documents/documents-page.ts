@@ -1,5 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { DocumentAnalysisDto, DocumentDto } from '../models/document.dto';
 import { EmptyState } from '../shared/states/empty-state';
 import { ErrorState } from '../shared/states/error-state';
@@ -9,7 +10,7 @@ import { ConfirmationService } from '../shared/confirmation/confirmation.service
 
 @Component({
   selector: 'app-documents-page',
-  imports: [DatePipe, EmptyState, ErrorState, LoadingState],
+  imports: [DatePipe, RouterLink, EmptyState, ErrorState, LoadingState],
   templateUrl: './documents-page.html',
 })
 export class DocumentsPage {

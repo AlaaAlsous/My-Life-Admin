@@ -1,6 +1,7 @@
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthTokenService } from '../auth/auth-token.service';
+import { ChatWidget } from '../chat/chat-widget';
 import { LoginModal } from '../login/login-modal';
 import { RegisterModal } from '../register/register-modal';
 
@@ -11,7 +12,7 @@ export interface NavLink {
 
 @Component({
   selector: 'app-layout',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, LoginModal, RegisterModal],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, LoginModal, RegisterModal, ChatWidget],
   templateUrl: './app-layout.html',
 })
 export class AppLayout {

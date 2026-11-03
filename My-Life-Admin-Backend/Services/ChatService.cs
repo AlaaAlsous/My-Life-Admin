@@ -9,7 +9,8 @@ namespace My_Life_Admin.Services;
 public class ChatService(
     IChatMessageRepository repository,
     IAiChatClient aiClient,
-    IOptions<AiOptions> aiOptions) : IChatService
+    IOptions<AiOptions> aiOptions,
+    IDocumentRepository documentRepository) : IChatService
 {
     public const int DefaultHistoryCount = 50;
     public const int MaxHistoryCount = 200;
@@ -30,37 +31,106 @@ public class ChatService(
         return message;
     }
 
-    public Task<IReadOnlyList<ChatMessage>> GetHistoryAsync(int userId, int count = DefaultHistoryCount)
+    public Task<IReadOnlyList<ChatMessage>> GetHistoryAsync(int userId, int count, int documentId)
     {
-        return repository.GetHistoryAsync(userId, Math.Min(count, MaxHistoryCount));
+        return repository.GetHistoryAsync(userId, Math.Min(count, MaxHistoryCount), documentId);
     }
 
-    public async Task<ChatExchange> SendAsync(int userId, string content, CancellationToken cancellationToken = default)
+    public async Task<ChatExchange> SendAsync(
+        int userId,
+        string content,
+        int? documentId = null,
+        CancellationToken cancellationToken = default)
     {
         var userMessage = new ChatMessage
         {
             UserId = userId,
             Role = ChatRole.User,
             Content = ValidateContent(content),
+            DocumentId = documentId,
             CreatedAt = DateTime.UtcNow
         };
 
-        var history = await repository.GetHistoryAsync(userId, Math.Max(0, aiOptions.Value.MaxHistoryMessages));
-        var replyText = await aiClient.GetReplyAsync([.. history, userMessage], cancellationToken);
+        var conversation = new List<ChatMessage>();
+
+        if (documentId is { } docId)
+        {
+            var document = await documentRepository.GetByIdForUserAsync(docId, userId);
+
+            if (document is not null)
+            {
+                conversation.Add(new ChatMessage
+                {
+                    UserId = userId,
+                    Role = ChatRole.System,
+                    Content = BuildDocumentContext(document),
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
+            var history = await repository.GetHistoryAsync(
+                userId, Math.Max(0, aiOptions.Value.MaxHistoryMessages), docId);
+            conversation.AddRange(history);
+        }
+
+        conversation.Add(userMessage);
+
+        var replyText = await aiClient.GetReplyAsync(conversation, cancellationToken);
 
         var reply = new ChatMessage
         {
             UserId = userId,
             Role = ChatRole.Assistant,
             Content = Truncate(replyText.Trim(), MaxContentLength),
+            DocumentId = documentId,
             CreatedAt = DateTime.UtcNow
         };
 
-        await repository.AddAsync(userMessage);
-        await repository.AddAsync(reply);
-        await repository.SaveChangesAsync();
+        if (documentId is not null)
+        {
+            await repository.AddAsync(userMessage);
+            await repository.AddAsync(reply);
+            await repository.SaveChangesAsync();
+        }
 
         return new ChatExchange(userMessage, reply);
+    }
+
+    private static string BuildDocumentContext(Document document)
+    {
+        var parts = new List<string>
+        {
+            "You are answering questions about a document the user has open."
+        };
+
+        if (!string.IsNullOrWhiteSpace(document.Title))
+        {
+            parts.Add($"Title: {document.Title.Trim()}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(document.FileName))
+        {
+            parts.Add($"File name: {document.FileName.Trim()}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(document.Category))
+        {
+            parts.Add($"Category: {document.Category.Trim()}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(document.Description))
+        {
+            parts.Add($"Description: {document.Description.Trim()}");
+        }
+
+        if (document.ExpiryDate is { } expiry)
+        {
+            parts.Add($"Expiry date: {expiry:yyyy-MM-dd}");
+        }
+
+        parts.Add("Use the details above when relevant, and say so when the document does not contain the answer.");
+
+        return string.Join('\n', parts);
     }
 
     private static string ValidateContent(string content)

@@ -9,6 +9,7 @@ namespace MyLife_Admin.Tests.Services;
 public class ChatServiceTests
 {
     private readonly FakeChatMessageRepository _repository = new();
+    private readonly FakeDocumentRepository _documentRepository = new();
     private readonly FakeAiChatClient _aiClient = new();
     private readonly AiOptions _aiOptions = new() { MaxHistoryMessages = 20 };
     private readonly ChatService _service;
@@ -18,7 +19,8 @@ public class ChatServiceTests
         _service = new ChatService(
             _repository,
             _aiClient,
-            Microsoft.Extensions.Options.Options.Create(_aiOptions));
+            Microsoft.Extensions.Options.Options.Create(_aiOptions),
+            _documentRepository);
     }
 
     [Fact]
@@ -78,56 +80,68 @@ public class ChatServiceTests
     }
 
     [Fact]
-    public async Task GetHistoryAsync_DefaultCount_UsesDefaultHistoryCount()
-    {
-        await _service.GetHistoryAsync(1);
-
-        Assert.Equal((1, ChatService.DefaultHistoryCount), _repository.LastHistoryRequest);
-    }
-
-    [Fact]
     public async Task GetHistoryAsync_CountAboveMax_IsCapped()
     {
-        await _service.GetHistoryAsync(1, 10_000);
+        await _service.GetHistoryAsync(1, 10_000, 7);
 
-        Assert.Equal((1, ChatService.MaxHistoryCount), _repository.LastHistoryRequest);
+        Assert.Equal((1, ChatService.MaxHistoryCount, 7), _repository.LastHistoryRequest);
     }
 
     [Fact]
-    public async Task GetHistoryAsync_ReturnsRepositoryResult()
+    public async Task GetHistoryAsync_ReturnsDocumentMessages()
     {
-        await _service.AddMessageAsync(1, ChatRole.User, "one");
-        await _service.AddMessageAsync(1, ChatRole.Assistant, "two");
-        await _service.AddMessageAsync(2, ChatRole.User, "other user");
+        _repository.Messages.AddRange(
+        [
+            new ChatMessage { UserId = 1, Role = ChatRole.User, Content = "one", DocumentId = 7 },
+            new ChatMessage { UserId = 1, Role = ChatRole.Assistant, Content = "two", DocumentId = 7 },
+            new ChatMessage { UserId = 2, Role = ChatRole.User, Content = "other user", DocumentId = 7 },
+            new ChatMessage { UserId = 1, Role = ChatRole.User, Content = "other document", DocumentId = 8 },
+        ]);
 
-        var history = await _service.GetHistoryAsync(1, 10);
+        var history = await _service.GetHistoryAsync(1, 10, 7);
 
         Assert.Equal(["one", "two"], history.Select(m => m.Content));
     }
 
     [Fact]
-    public async Task SendAsync_SavesUserMessageAndReplyInOneSave()
+    public async Task SendAsync_WithDocumentId_SavesUserMessageAndReply()
     {
         _aiClient.Reply = "Your passport expires in March.";
 
-        var exchange = await _service.SendAsync(1, "When does my passport expire?");
+        var exchange = await _service.SendAsync(1, "When does my passport expire?", documentId: 7);
 
         Assert.Equal(ChatRole.User, exchange.UserMessage.Role);
         Assert.Equal("When does my passport expire?", exchange.UserMessage.Content);
+        Assert.Equal(7, exchange.UserMessage.DocumentId);
         Assert.Equal(ChatRole.Assistant, exchange.Reply.Role);
         Assert.Equal("Your passport expires in March.", exchange.Reply.Content);
+        Assert.Equal(7, exchange.Reply.DocumentId);
         Assert.Equal([exchange.UserMessage, exchange.Reply], _repository.Messages);
         Assert.Equal(1, _repository.SaveCount);
     }
 
     [Fact]
+    public async Task SendAsync_WithoutDocumentId_DoesNotSave()
+    {
+        var exchange = await _service.SendAsync(1, "General question");
+
+        Assert.Equal("General question", exchange.UserMessage.Content);
+        Assert.Empty(_repository.Messages);
+        Assert.Equal(0, _repository.SaveCount);
+    }
+
+    [Fact]
     public async Task SendAsync_SendsHistoryFollowedByNewMessageToAi()
     {
-        await _service.AddMessageAsync(1, ChatRole.User, "Hi");
-        await _service.AddMessageAsync(1, ChatRole.Assistant, "Hello!");
-        await _service.AddMessageAsync(2, ChatRole.User, "other user");
+        _repository.Messages.AddRange(
+        [
+            new ChatMessage { UserId = 1, Role = ChatRole.User, Content = "Hi", DocumentId = 7 },
+            new ChatMessage { UserId = 1, Role = ChatRole.Assistant, Content = "Hello!", DocumentId = 7 },
+            new ChatMessage { UserId = 2, Role = ChatRole.User, Content = "other user", DocumentId = 7 },
+            new ChatMessage { UserId = 1, Role = ChatRole.User, Content = "other document", DocumentId = 8 },
+        ]);
 
-        await _service.SendAsync(1, "  What can you do?  ");
+        await _service.SendAsync(1, "  What can you do?  ", documentId: 7);
 
         Assert.NotNull(_aiClient.LastConversation);
         Assert.Equal(
@@ -140,9 +154,9 @@ public class ChatServiceTests
     {
         _aiOptions.MaxHistoryMessages = 5;
 
-        await _service.SendAsync(1, "Hello");
+        await _service.SendAsync(1, "Hello", documentId: 7);
 
-        Assert.Equal((1, 5), _repository.LastHistoryRequest);
+        Assert.Equal((1, 5, 7), _repository.LastHistoryRequest);
     }
 
     [Fact]
@@ -165,6 +179,39 @@ public class ChatServiceTests
 
         Assert.Null(_aiClient.LastConversation);
         Assert.Empty(_repository.Messages);
+    }
+
+    [Fact]
+    public async Task SendAsync_WithDocumentId_PrependsSystemContext()
+    {
+        _documentRepository.Documents.Add(new Document
+        {
+            Id = 7,
+            UserId = 1,
+            Title = "Passport",
+            FileName = "passport.pdf",
+            Category = "Identity",
+            Description = "Travel document",
+            ExpiryDate = new DateTime(2030, 1, 1)
+        });
+
+        await _service.SendAsync(1, "When does this expire?", documentId: 7);
+
+        Assert.NotNull(_aiClient.LastConversation);
+        var first = _aiClient.LastConversation[0];
+        Assert.Equal(ChatRole.System, first.Role);
+        Assert.Contains("Passport", first.Content);
+        Assert.Contains("2030-01-01", first.Content);
+        Assert.Equal("When does this expire?", _aiClient.LastConversation[^1].Content);
+    }
+
+    [Fact]
+    public async Task SendAsync_WithUnknownDocumentId_DoesNotAddSystemContext()
+    {
+        await _service.SendAsync(1, "Hello", documentId: 999);
+
+        Assert.NotNull(_aiClient.LastConversation);
+        Assert.DoesNotContain(_aiClient.LastConversation, m => m.Role == ChatRole.System);
     }
 
     [Fact]
@@ -191,17 +238,52 @@ public class ChatServiceTests
         }
     }
 
+    private sealed class FakeDocumentRepository : IDocumentRepository
+    {
+        public List<Document> Documents { get; } = [];
+
+        public Task<Document?> GetByIdForUserAsync(int id, int userId) =>
+            Task.FromResult(Documents.FirstOrDefault(d => d.Id == id && d.UserId == userId));
+
+        public Task<IEnumerable<Document>> GetAllForUserAsync(int userId) =>
+            Task.FromResult(Documents.Where(d => d.UserId == userId).AsEnumerable());
+
+        public Task<IEnumerable<Document>> SearchAsync(int userId, string query) =>
+            Task.FromResult(Documents.Where(d => d.UserId == userId).AsEnumerable());
+
+        public Task<IEnumerable<Document>> GetExpiringWithinAsync(int userId, int days) =>
+            Task.FromResult(Documents.Where(d => d.UserId == userId).AsEnumerable());
+
+        public Task<Document?> GetByIdAsync(int id) =>
+            Task.FromResult(Documents.FirstOrDefault(d => d.Id == id));
+
+        public Task<IEnumerable<Document>> GetAllAsync() =>
+            Task.FromResult(Documents.AsEnumerable());
+
+        public Task AddAsync(Document entity)
+        {
+            Documents.Add(entity);
+            return Task.CompletedTask;
+        }
+
+        public void Update(Document entity) { }
+
+        public void Delete(Document entity) => Documents.Remove(entity);
+
+        public Task SaveChangesAsync() => Task.CompletedTask;
+    }
+
     private sealed class FakeChatMessageRepository : IChatMessageRepository
     {
         public List<ChatMessage> Messages { get; } = [];
         public int SaveCount { get; private set; }
-        public (int UserId, int Count)? LastHistoryRequest { get; private set; }
+        public (int UserId, int Count, int DocumentId)? LastHistoryRequest { get; private set; }
 
-        public Task<IReadOnlyList<ChatMessage>> GetHistoryAsync(int userId, int count)
+        public Task<IReadOnlyList<ChatMessage>> GetHistoryAsync(int userId, int count, int documentId)
         {
-            LastHistoryRequest = (userId, count);
+            LastHistoryRequest = (userId, count, documentId);
             IReadOnlyList<ChatMessage> result = Messages
-                .Where(m => m.UserId == userId)
+                .Where(m => m.UserId == userId && m.DocumentId == documentId)
                 .TakeLast(count)
                 .ToList();
             return Task.FromResult(result);

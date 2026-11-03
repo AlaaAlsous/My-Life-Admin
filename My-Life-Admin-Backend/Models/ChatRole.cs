@@ -3,5 +3,6 @@ namespace My_Life_Admin.Models;
 public enum ChatRole
 {
     User,
-    Assistant
+    Assistant,
+    System
 }

@@ -98,6 +98,7 @@ public class ApplicationDbContext : DbContext
             c.Property(x => x.Content).IsRequired().HasMaxLength(4000);
             c.Property(x => x.Role).HasConversion<string>().HasMaxLength(20);
             c.HasIndex(x => new { x.UserId, x.CreatedAt });
+            c.HasIndex(x => x.DocumentId);
             c.HasOne(x => x.User)
                 .WithMany(u => u.ChatMessages)
                 .HasForeignKey(x => x.UserId)

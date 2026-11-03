@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using My_Life_Admin.Ai;
 using My_Life_Admin.Models;
 using My_Life_Admin.Options;
@@ -50,7 +51,9 @@ public class AiChatClientTests
     [Fact]
     public void AzureOpenAiChatClient_CanBeCreatedFromValidSettings()
     {
-        var client = new AzureOpenAiChatClient(Microsoft.Extensions.Options.Options.Create(Configured()));
+        var client = new AzureOpenAiChatClient(
+            Microsoft.Extensions.Options.Options.Create(Configured()),
+            NullLogger<AzureOpenAiChatClient>.Instance);
 
         Assert.NotNull(client);
     }
@@ -62,14 +65,18 @@ public class AiChatClientTests
         options.Endpoint = "not-a-url";
 
         Assert.Throws<InvalidOperationException>(
-            () => new AzureOpenAiChatClient(Microsoft.Extensions.Options.Options.Create(options)));
+            () => new AzureOpenAiChatClient(
+                Microsoft.Extensions.Options.Options.Create(options),
+                NullLogger<AzureOpenAiChatClient>.Instance));
     }
 
     [Fact]
     public void AzureOpenAiChatClient_MissingSettings_Throws()
     {
         Assert.Throws<InvalidOperationException>(
-            () => new AzureOpenAiChatClient(Microsoft.Extensions.Options.Options.Create(new AiOptions())));
+            () => new AzureOpenAiChatClient(
+                Microsoft.Extensions.Options.Options.Create(new AiOptions()),
+                NullLogger<AzureOpenAiChatClient>.Instance));
     }
 
     private static AiOptions Configured() => new()
