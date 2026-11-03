@@ -8,7 +8,7 @@ const FOCUSABLE = 'button:not([disabled])';
   template: `
     @if (service.state(); as state) {
       <div
-        class="fixed inset-0 z-[60] flex items-end justify-center bg-plum/60 p-4 backdrop-blur-sm sm:items-center"
+        class="fixed inset-0 z-60 flex items-end justify-center bg-plum/60 p-4 backdrop-blur-sm sm:items-center"
         role="presentation"
         (click)="service.cancel()"
         (keydown.escape)="service.cancel()"
