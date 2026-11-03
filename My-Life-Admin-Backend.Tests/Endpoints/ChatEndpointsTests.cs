@@ -94,13 +94,13 @@ public class ChatEndpointsTests
     public async Task GetHistory_ReturnsMessagesAsDtosInOrder()
     {
         _serviceMock
-            .Setup(s => s.GetHistoryAsync(UserId, 10))
+            .Setup(s => s.GetHistoryAsync(UserId, 10, 7))
             .ReturnsAsync([
                 Message(1, ChatRole.User, "Hi", DateTime.UtcNow),
                 Message(2, ChatRole.Assistant, "Hello!", DateTime.UtcNow)
             ]);
 
-        var result = await ChatEndpoints.GetHistoryAsync(_user, _serviceMock.Object, count: 10);
+        var result = await ChatEndpoints.GetHistoryAsync(_user, _serviceMock.Object, count: 10, documentId: 7);
 
         var ok = Assert.IsType<Ok<List<ChatMessageDto>>>(result);
         Assert.Equal([("user", "Hi"), ("assistant", "Hello!")], ok.Value!.Select(m => (m.Role, m.Content)));
@@ -110,13 +110,22 @@ public class ChatEndpointsTests
     public async Task GetHistory_DefaultCount_UsesDefaultHistoryCount()
     {
         _serviceMock
-            .Setup(s => s.GetHistoryAsync(UserId, ChatService.DefaultHistoryCount))
+            .Setup(s => s.GetHistoryAsync(UserId, ChatService.DefaultHistoryCount, 7))
             .ReturnsAsync([]);
 
-        var result = await ChatEndpoints.GetHistoryAsync(_user, _serviceMock.Object);
+        var result = await ChatEndpoints.GetHistoryAsync(_user, _serviceMock.Object, documentId: 7);
 
         Assert.IsType<Ok<List<ChatMessageDto>>>(result);
-        _serviceMock.Verify(s => s.GetHistoryAsync(UserId, ChatService.DefaultHistoryCount), Times.Once);
+        _serviceMock.Verify(s => s.GetHistoryAsync(UserId, ChatService.DefaultHistoryCount, 7), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetHistory_WithoutDocumentId_ReturnsBadRequest()
+    {
+        var result = await ChatEndpoints.GetHistoryAsync(_user, _serviceMock.Object);
+
+        Assert.IsType<BadRequest<ErrorResponse>>(result);
+        _serviceMock.VerifyNoOtherCalls();
     }
 
     [Theory]
@@ -124,7 +133,7 @@ public class ChatEndpointsTests
     [InlineData(-5)]
     public async Task GetHistory_CountBelowOne_ReturnsBadRequest(int count)
     {
-        var result = await ChatEndpoints.GetHistoryAsync(_user, _serviceMock.Object, count);
+        var result = await ChatEndpoints.GetHistoryAsync(_user, _serviceMock.Object, count, documentId: 7);
 
         Assert.IsType<BadRequest<ErrorResponse>>(result);
         _serviceMock.VerifyNoOtherCalls();
