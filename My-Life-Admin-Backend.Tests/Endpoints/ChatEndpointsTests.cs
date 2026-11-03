@@ -26,7 +26,7 @@ public class ChatEndpointsTests
     {
         var createdAt = new DateTime(2026, 10, 28, 12, 0, 0);
         _serviceMock
-            .Setup(s => s.SendAsync(UserId, "Hello", It.IsAny<CancellationToken>()))
+            .Setup(s => s.SendAsync(UserId, "Hello", It.IsAny<int?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ChatExchange(
                 Message(1, ChatRole.User, "Hello", createdAt),
                 Message(2, ChatRole.Assistant, "Hi!", createdAt)));
@@ -67,7 +67,7 @@ public class ChatEndpointsTests
     public async Task Send_AiUnavailable_Returns502()
     {
         _serviceMock
-            .Setup(s => s.SendAsync(UserId, "Hello", It.IsAny<CancellationToken>()))
+            .Setup(s => s.SendAsync(UserId, "Hello", It.IsAny<int?>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new AiServiceException("down"));
 
         var result = await ChatEndpoints.SendAsync(
