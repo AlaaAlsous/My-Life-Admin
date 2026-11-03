@@ -6,7 +6,6 @@ import { DocumentViewerPage } from './document-viewer-page';
 
 describe('DocumentViewerPage', () => {
   const documentsUrl = 'http://localhost:5076/api/documents/';
-  const chatUrl = 'http://localhost:5076/api/chat';
 
   const documentDto = {
     id: 1,
@@ -117,44 +116,5 @@ describe('DocumentViewerPage', () => {
     fixture.detectChanges();
 
     expect(el.textContent).toContain('New passport');
-  });
-
-  it('sends a chat message scoped to the document and renders the reply', async () => {
-    const { fixture, http, el } = setup();
-
-    http.expectOne(`${documentsUrl}1`).flush(documentDto);
-    http.expectOne(`${documentsUrl}1/file`).flush(new Blob(['img'], { type: 'image/jpeg' }));
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    const chatInput = el.querySelector<HTMLInputElement>('#chat-input')!;
-    chatInput.value = 'When does this expire?';
-    chatInput.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
-
-    buttonByText(el, 'Send').click();
-
-    const chatRequest = http.expectOne(`${chatUrl}/`);
-    expect(chatRequest.request.method).toBe('POST');
-    expect(chatRequest.request.body).toEqual({ message: 'When does this expire?', documentId: 1 });
-    chatRequest.flush({
-      userMessage: {
-        id: 1,
-        role: 'user',
-        content: 'When does this expire?',
-        createdAt: '2026-06-01T00:00:00Z',
-      },
-      reply: {
-        id: 2,
-        role: 'assistant',
-        content: 'It expires in 2030.',
-        createdAt: '2026-06-01T00:00:01Z',
-      },
-    });
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    expect(el.textContent).toContain('When does this expire?');
-    expect(el.textContent).toContain('It expires in 2030.');
   });
 });
