@@ -85,3 +85,14 @@ jobs:
 
           echo "Next version: $NEXT_VERSION"
           echo "version=$NEXT_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Create and push tag
+        shell: bash
+        run: |
+          VERSION="${{ steps.next.outputs.version }}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git tag "$VERSION"
+          git push origin "$VERSION"
