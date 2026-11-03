@@ -8,6 +8,7 @@ import { ReminderDto, ReminderStatus } from '../models/reminder.dto';
 import { ErrorState } from '../shared/states/error-state';
 import { LoadingState } from '../shared/states/loading-state';
 import { buildMonthGrid, CalendarDay } from './calendar.utils';
+import { ConfirmationService } from '../shared/confirmation/confirmation.service';
 import { EventCalendar } from './event-calendar';
 import { EventService } from './event.service';
 import { ReminderService } from './reminder.service';
@@ -21,6 +22,7 @@ import { ReminderService } from './reminder.service';
 export class EventComponent implements OnInit, OnDestroy {
   private readonly eventService = inject(EventService);
   private readonly reminderService = inject(ReminderService);
+  private readonly confirmation = inject(ConfirmationService);
   private eventsRequest?: Subscription;
 
   protected readonly month = signal(this.startOfMonth(new Date()));
@@ -143,6 +145,17 @@ export class EventComponent implements OnInit, OnDestroy {
   }
 
   protected deleteReminder(reminderId: number): void {
+    void this.confirmation.confirm({
+      title: 'Delete reminder?',
+      description: 'This reminder will be permanently deleted. This cannot be undone.',
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      destructive: true,
+      onConfirm: () => this.performDeleteReminder(reminderId),
+    });
+  }
+
+  private performDeleteReminder(reminderId: number): void {
     this.successMessage.set('');
     this.errorMessage.set('');
 
