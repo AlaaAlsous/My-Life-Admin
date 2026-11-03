@@ -34,3 +34,20 @@ jobs:
 
           echo "Latest version: $LATEST_TAG"
           echo "latest=$LATEST_TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Determine version type
+        id: type
+        shell: bash
+        run: |
+          LABELS='${{ toJson(github.event.pull_request.labels.*.name) }}'
+
+          if echo "$LABELS" | grep -q '"major"'; then
+            VERSION_TYPE="major"
+          elif echo "$LABELS" | grep -q '"minor"'; then
+            VERSION_TYPE="minor"
+          else
+            VERSION_TYPE="patch"
+          fi
+
+          echo "Version type: $VERSION_TYPE"
+          echo "type=$VERSION_TYPE" >> "$GITHUB_OUTPUT"
