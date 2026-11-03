@@ -6,5 +6,9 @@ public interface IChatService
 {
     Task<ChatMessage> AddMessageAsync(int userId, ChatRole role, string content);
     Task<IReadOnlyList<ChatMessage>> GetHistoryAsync(int userId, int count = ChatService.DefaultHistoryCount);
-    Task<ChatExchange> SendAsync(int userId, string content, CancellationToken cancellationToken = default);
+    Task<ChatExchange> SendAsync(
+        int userId,
+        string content,
+        int? documentId = null,
+        CancellationToken cancellationToken = default);
 }
