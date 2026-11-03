@@ -44,7 +44,7 @@ public static class ChatEndpoints
 
         try
         {
-            var exchange = await chatService.SendAsync(userId, dto.Message, cancellationToken);
+            var exchange = await chatService.SendAsync(userId, dto.Message, dto.DocumentId, cancellationToken);
 
             return TypedResults.Ok(new ChatReplyDto
             {
