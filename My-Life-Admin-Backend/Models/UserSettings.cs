@@ -6,5 +6,9 @@ public class UserSettings
 
     public int UserId { get; set; }
 
+    public bool DarkMode { get; set; }
+
+    public bool EmailNotifications { get; set; } = true;
+
     public User User { get; set; } = null!;
 }

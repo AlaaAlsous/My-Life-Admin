@@ -39,6 +39,102 @@ public class UserSettingsServiceTests
     }
 
     [Fact]
+    public async Task GetOrDefaultAsync_ReturnsDefaults_WhenSettingsDoNotExist()
+    {
+        // Arrange
+        var repositoryMock = new Mock<IUserSettingsRepository>();
+
+        repositoryMock
+            .Setup(r => r.GetByUserIdAsync(1))
+            .ReturnsAsync((UserSettings?)null);
+
+        var service = new UserSettingsService(repositoryMock.Object);
+
+        // Act
+        var result = await service.GetOrDefaultAsync(1);
+
+        // Assert
+        Assert.Equal(1, result.UserId);
+        Assert.False(result.DarkMode);
+        Assert.True(result.EmailNotifications);
+
+        repositoryMock.Verify(
+            r => r.AddAsync(It.IsAny<UserSettings>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task SaveAsync_CreatesSettings_WhenSettingsDoNotExist()
+    {
+        // Arrange
+        var repositoryMock = new Mock<IUserSettingsRepository>();
+
+        repositoryMock
+            .Setup(r => r.GetByUserIdAsync(1))
+            .ReturnsAsync((UserSettings?)null);
+
+        var service = new UserSettingsService(repositoryMock.Object);
+
+        // Act
+        var result = await service.SaveAsync(
+            1,
+            new UserSettings { DarkMode = true, EmailNotifications = false });
+
+        // Assert
+        Assert.Equal(1, result.UserId);
+        Assert.True(result.DarkMode);
+        Assert.False(result.EmailNotifications);
+
+        repositoryMock.Verify(
+            r => r.AddAsync(result),
+            Times.Once);
+
+        repositoryMock.Verify(
+            r => r.SaveChangesAsync(),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task SaveAsync_UpdatesExistingSettings_WhenSettingsExist()
+    {
+        // Arrange
+        var existing = new UserSettings
+        {
+            Id = 5,
+            UserId = 1,
+            DarkMode = false,
+            EmailNotifications = true
+        };
+
+        var repositoryMock = new Mock<IUserSettingsRepository>();
+
+        repositoryMock
+            .Setup(r => r.GetByUserIdAsync(1))
+            .ReturnsAsync(existing);
+
+        var service = new UserSettingsService(repositoryMock.Object);
+
+        // Act
+        var result = await service.SaveAsync(
+            1,
+            new UserSettings { DarkMode = true, EmailNotifications = false });
+
+        // Assert
+        Assert.Same(existing, result);
+        Assert.Equal(5, result.Id);
+        Assert.True(result.DarkMode);
+        Assert.False(result.EmailNotifications);
+
+        repositoryMock.Verify(
+            r => r.AddAsync(It.IsAny<UserSettings>()),
+            Times.Never);
+
+        repositoryMock.Verify(
+            r => r.SaveChangesAsync(),
+            Times.Once);
+    }
+
+    [Fact]
     public async Task UpdateAsync_UpdatesSettingsAndSavesChanges()
     {
         // Arrange
