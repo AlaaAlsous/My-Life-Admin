@@ -1,0 +1,278 @@
+<div class="space-y-6">
+  <a
+    routerLink="/documents"
+    class="inline-flex items-center gap-2 text-label font-medium text-text-muted hover:text-primary"
+  >
+    &larr; Back to documents
+  </a>
+
+  @if (loading()) {
+    <div class="rounded-card bg-white p-7 shadow-soft ring-1 ring-border-soft">
+      <app-loading-state label="Loading document…" [lineCount]="6" />
+    </div>
+  } @else if (failed()) {
+    <div class="rounded-card bg-white p-7 shadow-soft ring-1 ring-border-soft">
+      <app-error-state
+        message="We could not load this document."
+        retryLabel="Try again"
+        (retry)="load()"
+      />
+    </div>
+  } @else if (document(); as document) {
+    <div class="grid gap-6 lg:grid-cols-2">
+      <section
+        aria-label="Document preview and details"
+        class="rounded-card bg-white p-7 shadow-soft ring-1 ring-border-soft"
+      >
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div class="min-w-0">
+            <h1 class="text-title text-plum">{{ document.title }}</h1>
+            <p class="mt-1 text-label text-text-muted">{{ document.fileName }}</p>
+          </div>
+
+          <div class="flex shrink-0 gap-2">
+            @if (!editing()) {
+              <button
+                type="button"
+                class="rounded-full bg-primary px-4 py-2 text-label font-medium text-white hover:bg-primary-hover"
+                (click)="startEditing()"
+              >
+                Edit
+              </button>
+            }
+            <button
+              type="button"
+              class="rounded-full border border-error px-4 py-2 text-label font-medium text-error hover:bg-surface-error"
+              (click)="deleteDocument()"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+        <div class="mt-6">
+          <h2 class="text-label font-semibold uppercase tracking-widest text-rose">Preview</h2>
+
+          @if (previewLoading()) {
+            <div class="mt-3">
+              <app-loading-state label="Loading preview…" [lineCount]="3" />
+            </div>
+          } @else if (previewUrl()) {
+            <div
+              class="mt-3 flex max-h-[28rem] items-center justify-center overflow-hidden rounded-control border border-border-soft bg-surface-muted"
+            >
+              @if (isPdf()) {
+                <iframe
+                  [src]="previewSrc()"
+                  title="Document preview"
+                  class="h-[28rem] w-full"
+                ></iframe>
+              } @else {
+                <img
+                  [src]="previewSrc()"
+                  alt="Document preview"
+                  class="max-h-[28rem] w-full object-contain"
+                />
+              }
+            </div>
+
+            <div class="mt-3 flex flex-wrap gap-2">
+              @if (isPdf()) {
+                <button
+                  type="button"
+                  class="rounded-full bg-primary px-4 py-2 text-label font-medium text-white hover:bg-primary-hover"
+                  (click)="openFile()"
+                >
+                  Open in new tab
+                </button>
+              }
+              <button
+                type="button"
+                class="rounded-full border border-border px-4 py-2 text-label font-medium text-text-muted hover:bg-border-soft"
+                (click)="download()"
+              >
+                Download
+              </button>
+            </div>
+          } @else {
+            <p class="mt-3 text-label text-text-muted">
+              No preview available. Use Download to open the file.
+            </p>
+          }
+        </div>
+        <div class="mt-6">
+          <h2 class="text-label font-semibold uppercase tracking-widest text-rose">Details</h2>
+
+          @if (editing()) {
+            @if (saveError(); as error) {
+              <div class="mt-3">
+                <app-error-state [message]="error" />
+              </div>
+            }
+
+            <div class="mt-3 space-y-4">
+              <div>
+                <label for="viewer-title" class="block text-label font-medium text-plum"
+                  >Title</label
+                >
+                <input
+                  id="viewer-title"
+                  type="text"
+                  class="mt-1 w-full rounded-control border border-border bg-white px-3 py-2"
+                  [value]="title()"
+                  (input)="title.set($any($event.target).value)"
+                />
+              </div>
+
+              <div>
+                <label for="viewer-category" class="block text-label font-medium text-plum"
+                  >Category</label
+                >
+                <input
+                  id="viewer-category"
+                  type="text"
+                  class="mt-1 w-full rounded-control border border-border bg-white px-3 py-2"
+                  [value]="category()"
+                  (input)="category.set($any($event.target).value)"
+                />
+              </div>
+
+              <div>
+                <label for="viewer-description" class="block text-label font-medium text-plum"
+                  >Description</label
+                >
+                <textarea
+                  id="viewer-description"
+                  rows="3"
+                  class="mt-1 w-full rounded-control border border-border bg-white px-3 py-2"
+                  [value]="description()"
+                  (input)="description.set($any($event.target).value)"
+                ></textarea>
+              </div>
+
+              <div>
+                <label for="viewer-expiry" class="block text-label font-medium text-plum"
+                  >Expiry date</label
+                >
+                <input
+                  id="viewer-expiry"
+                  type="date"
+                  class="mt-1 w-full rounded-control border border-border bg-white px-3 py-2"
+                  [value]="expiryDate()"
+                  (input)="expiryDate.set($any($event.target).value)"
+                />
+              </div>
+
+              <div class="flex gap-3">
+                <button
+                  type="button"
+                  class="rounded-full bg-primary px-6 py-2.5 font-medium text-white hover:bg-primary-hover disabled:opacity-50"
+                  [disabled]="saving()"
+                  (click)="save()"
+                >
+                  @if (saving()) {
+                    Saving…
+                  } @else {
+                    Save
+                  }
+                </button>
+                <button
+                  type="button"
+                  class="rounded-full border border-border px-6 py-2.5 font-medium text-text-muted hover:bg-border-soft"
+                  (click)="cancelEditing()"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          } @else {
+            <dl class="mt-3 space-y-3 text-label">
+              <div>
+                <dt class="font-semibold text-plum">Category</dt>
+                <dd class="text-text-muted">{{ document.category ?? '—' }}</dd>
+              </div>
+              <div>
+                <dt class="font-semibold text-plum">Description</dt>
+                <dd class="text-text-muted">{{ document.description ?? '—' }}</dd>
+              </div>
+              <div>
+                <dt class="font-semibold text-plum">Expiry date</dt>
+                <dd class="text-text-muted">
+                  {{ document.expiryDate ? (document.expiryDate | date: 'mediumDate') : '—' }}
+                </dd>
+              </div>
+              <div>
+                <dt class="font-semibold text-plum">Uploaded</dt>
+                <dd class="text-text-muted">{{ document.uploadedAt | date: 'mediumDate' }}</dd>
+              </div>
+            </dl>
+          }
+        </div>
+      </section>
+      <section
+        aria-label="Ask the AI about this document"
+        class="flex flex-col rounded-card bg-white p-7 shadow-soft ring-1 ring-border-soft"
+      >
+        <h2 class="text-title text-plum">Ask the AI</h2>
+        <p class="mt-1 text-label text-text-muted">Ask questions about this document.</p>
+
+        @if (chatError(); as error) {
+          <div class="mt-3">
+            <app-error-state [message]="error" />
+          </div>
+        }
+
+        <div class="mt-4 flex-1 space-y-3">
+          @if (messages().length === 0) {
+            <p class="text-label text-text-muted">
+              No questions yet. Ask the AI about {{ document.title }}.
+            </p>
+          }
+          @for (message of messages(); track message.id) {
+            <div
+              class="max-w-[85%] rounded-control px-4 py-2 text-label"
+              [class.self-start]="message.role === 'assistant'"
+              [class.bg-surface-muted]="message.role === 'assistant'"
+              [class.text-text]="message.role === 'assistant'"
+              [class.self-end]="message.role === 'user'"
+              [class.bg-primary]="message.role === 'user'"
+              [class.text-white]="message.role === 'user'"
+            >
+              @if (message.role === 'assistant') {
+                <div
+                  class="space-y-2 [&_a]:underline"
+                  [innerHTML]="renderMarkdown(message.content)"
+                ></div>
+              } @else {
+                {{ message.content }}
+              }
+            </div>
+          }
+        </div>
+
+        <div class="mt-4 flex gap-2">
+          <input
+            id="chat-input"
+            type="text"
+            class="w-full rounded-control border border-border bg-white px-3 py-2"
+            placeholder="Ask about this document…"
+            [value]="chatInput()"
+            (input)="chatInput.set($any($event.target).value)"
+            (keydown.enter)="sendMessage()"
+          />
+          <button
+            type="button"
+            class="shrink-0 rounded-full bg-primary px-5 py-2 font-medium text-white hover:bg-primary-hover disabled:opacity-50"
+            [disabled]="sending() || !chatInput().trim()"
+            (click)="sendMessage()"
+          >
+            @if (sending()) {
+              Sending…
+            } @else {
+              Send
+            }
+          </button>
+        </div>
+      </section>
+    </div>
+  }
+</div>
