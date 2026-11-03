@@ -1,13 +1,19 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { AuthTokenService } from '../auth/auth-token.service';
 import { LandingPage } from './landing-page';
 
 describe('LandingPage', () => {
-  beforeEach(() => localStorage.clear());
+  beforeEach(async () => {
+    localStorage.clear();
+    await TestBed.configureTestingModule({
+      imports: [LandingPage],
+      providers: [provideRouter([])],
+    }).compileComponents();
+  });
   afterEach(() => localStorage.clear());
 
   it('renders the hero with headline and both calls to action', async () => {
-    await TestBed.configureTestingModule({ imports: [LandingPage] }).compileComponents();
     const fixture = TestBed.createComponent(LandingPage);
     await fixture.whenStable();
     const el: HTMLElement = fixture.nativeElement;
@@ -18,7 +24,6 @@ describe('LandingPage', () => {
   });
 
   it('hides sign-up calls to action and the promotional section when logged in', async () => {
-    await TestBed.configureTestingModule({ imports: [LandingPage] }).compileComponents();
     TestBed.inject(AuthTokenService).setToken('jwt-token');
     const fixture = TestBed.createComponent(LandingPage);
     await fixture.whenStable();
@@ -34,7 +39,6 @@ describe('LandingPage', () => {
   });
 
   it('presents the five feature cards', async () => {
-    await TestBed.configureTestingModule({ imports: [LandingPage] }).compileComponents();
     const fixture = TestBed.createComponent(LandingPage);
     await fixture.whenStable();
     const titles = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('li h3')).map(
@@ -50,8 +54,28 @@ describe('LandingPage', () => {
     ]);
   });
 
+  it('links feature cards to their pages only when logged in', async () => {
+    const fixture = TestBed.createComponent(LandingPage);
+    await fixture.whenStable();
+    const el: HTMLElement = fixture.nativeElement;
+
+    expect(el.querySelectorAll('li a[href]').length).toBe(0);
+
+    TestBed.inject(AuthTokenService).setToken('jwt-token');
+    fixture.detectChanges();
+
+    const links = Array.from(el.querySelectorAll('li a'));
+    expect(links.map((link) => link.getAttribute('href'))).toEqual([
+      '/documents',
+      '/documents',
+      '/dashboard',
+      '/events',
+      '/dashboard',
+    ]);
+    expect(links.every((link) => link.querySelector('svg'))).toBe(true);
+  });
+
   it('opens the login modal from a call to action', async () => {
-    await TestBed.configureTestingModule({ imports: [LandingPage] }).compileComponents();
     const fixture = TestBed.createComponent(LandingPage);
     await fixture.whenStable();
     const el: HTMLElement = fixture.nativeElement;
