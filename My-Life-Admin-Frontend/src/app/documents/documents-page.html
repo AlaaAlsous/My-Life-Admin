@@ -191,9 +191,15 @@
               </p>
             </div>
             <div class="flex shrink-0 gap-2">
+              <a
+                [routerLink]="['/documents', document.id]"
+                class="rounded-full bg-primary px-4 py-2 text-label font-medium text-white hover:bg-primary-hover"
+              >
+                View
+              </a>
               <button
                 type="button"
-                class="rounded-full bg-primary px-4 py-2 text-label font-medium text-white hover:bg-primary-hover"
+                class="rounded-full border border-border px-4 py-2 text-label font-medium text-text-muted hover:bg-border-soft"
                 (click)="download(document)"
               >
                 Download
