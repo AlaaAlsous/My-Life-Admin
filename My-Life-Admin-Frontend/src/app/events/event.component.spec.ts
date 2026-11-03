@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { EventDto } from '../models/event.dto';
 import { EventComponent } from './event.component';
+import { ConfirmationService } from '../shared/confirmation/confirmation.service';
 
 describe('EventComponent', () => {
   const eventsUrl = 'http://localhost:5076/api/events/';
@@ -83,6 +84,58 @@ describe('EventComponent', () => {
     expect(details?.textContent).toContain('Identity');
     expect(details?.textContent).toContain('Renew in time');
     expect(details?.querySelector('a')?.getAttribute('href')).toBe('/documents');
+  });
+
+  async function openReminder(setupResult: ReturnType<typeof setup>) {
+    const { fixture, http, el } = setupResult;
+    http.expectOne((r) => r.url === eventsUrl && r.params.has('from')).flush([event]);
+    http.expectOne(remindersUrl).flush([
+      {
+        id: 5,
+        userId: 1,
+        eventId: 1,
+        documentId: null,
+        reminderDate: '2026-12-01T00:00:00Z',
+        sentAt: null,
+        status: 0,
+      },
+    ]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    (el.querySelector('app-event-calendar li button') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    const button = Array.from(el.querySelectorAll('button')).find((b) =>
+      b.textContent?.includes('Delete reminder'),
+    ) as HTMLButtonElement;
+    return button;
+  }
+
+  it('does not delete a reminder when the confirmation is cancelled', async () => {
+    const s = setup();
+    const button = await openReminder(s);
+    const confirmation = TestBed.inject(ConfirmationService);
+
+    button.click();
+    expect(confirmation.state()?.title).toBe('Delete reminder?');
+    confirmation.cancel();
+
+    s.http.expectNone(`${remindersUrl}5`);
+  });
+
+  it('deletes a reminder only after the user confirms', async () => {
+    const s = setup();
+    const button = await openReminder(s);
+    const confirmation = TestBed.inject(ConfirmationService);
+
+    button.click();
+    s.http.expectNone(`${remindersUrl}5`);
+    confirmation.accept();
+
+    const request = s.http.expectOne(`${remindersUrl}5`);
+    expect(request.request.method).toBe('DELETE');
+    request.flush(null);
+    s.fixture.detectChanges();
+    expect(s.el.textContent).toContain('Reminder deleted successfully.');
   });
 
   it('reloads events for the new range when the month changes', async () => {

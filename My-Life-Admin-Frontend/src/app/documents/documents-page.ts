@@ -6,6 +6,7 @@ import { EmptyState } from '../shared/states/empty-state';
 import { ErrorState } from '../shared/states/error-state';
 import { LoadingState } from '../shared/states/loading-state';
 import { DocumentService } from './document.service';
+import { ConfirmationService } from '../shared/confirmation/confirmation.service';
 
 @Component({
   selector: 'app-documents-page',
@@ -14,6 +15,7 @@ import { DocumentService } from './document.service';
 })
 export class DocumentsPage {
   private readonly documentService = inject(DocumentService);
+  private readonly confirmation = inject(ConfirmationService);
 
   protected readonly loading = signal(true);
   protected readonly failed = signal(false);
@@ -150,7 +152,19 @@ export class DocumentsPage {
   }
 
   protected deleteDocument(id: number): void {
-    this.documentService.delete(id).subscribe(() => this.load());
+    const document = this.documents().find((d) => d.id === id);
+    void this.confirmation.confirm({
+      title: 'Delete document?',
+      description: document
+        ? `"${document.title}" will be permanently deleted. This cannot be undone.`
+        : 'This document will be permanently deleted. This cannot be undone.',
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      destructive: true,
+      onConfirm: () => {
+        this.documentService.delete(id).subscribe(() => this.load());
+      },
+    });
   }
 
   private analyze(id: number): void {

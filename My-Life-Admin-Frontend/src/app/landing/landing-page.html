@@ -24,22 +24,24 @@
     Keep your documents, receipts, personal details and important dates together, so you spend less
     time searching and more time living.
   </p>
-  <div class="mt-10 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
-    <button
-      type="button"
-      class="rounded-full bg-primary px-8 py-3.5 font-semibold text-white shadow-lift transition hover:-translate-y-0.5 hover:bg-primary-hover motion-reduce:transition-none motion-reduce:hover:translate-y-0"
-      (click)="showLogin.set(true)"
-    >
-      Get Started
-    </button>
-    <button
-      type="button"
-      class="rounded-full bg-white px-8 py-3.5 font-semibold text-primary shadow-soft ring-1 ring-border-soft transition hover:bg-surface-muted hover:ring-rose"
-      (click)="showLogin.set(true)"
-    >
-      Log In
-    </button>
-  </div>
+  @if (!isLoggedIn()) {
+    <div class="mt-10 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
+      <button
+        type="button"
+        class="rounded-full bg-primary px-8 py-3.5 font-semibold text-white shadow-lift transition hover:-translate-y-0.5 hover:bg-primary-hover motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+        (click)="showLogin.set(true)"
+      >
+        Get Started
+      </button>
+      <button
+        type="button"
+        class="rounded-full bg-white px-8 py-3.5 font-semibold text-primary shadow-soft ring-1 ring-border-soft transition hover:bg-surface-muted hover:ring-rose"
+        (click)="showLogin.set(true)"
+      >
+        Log In
+      </button>
+    </div>
+  }
 </section>
 
 <section id="features" aria-labelledby="features-heading" class="scroll-mt-20 pb-6 pt-16 sm:pt-24">
@@ -55,45 +57,56 @@
       <li
         class="group w-full rounded-card bg-white p-7 shadow-soft ring-1 ring-border-soft transition duration-200 hover:-translate-y-1 hover:shadow-lift sm:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)] motion-reduce:transition-none motion-reduce:hover:translate-y-0"
       >
-        <span
-          aria-hidden="true"
-          class="flex h-12 w-12 items-center justify-center rounded-control bg-linear-to-br from-blush to-mauve text-primary transition group-hover:from-rose group-hover:to-rose group-hover:text-white"
+        <a
+          [routerLink]="isLoggedIn() ? feature.route : null"
+          [attr.tabindex]="isLoggedIn() ? 0 : null"
+          [style.cursor]="isLoggedIn() ? 'pointer' : 'default'"
+          class="block h-full rounded-control focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
         >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.6"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="h-6 w-6"
+          <span
+            aria-hidden="true"
+            class="flex h-12 w-12 items-center justify-center rounded-control bg-linear-to-br from-blush to-mauve text-primary transition group-hover:from-rose group-hover:to-rose group-hover:text-white"
           >
-            <path [attr.d]="feature.icon" />
-          </svg>
-        </span>
-        <h3 class="mt-5 text-plum">{{ feature.title }}</h3>
-        <p class="mt-2 text-text-muted">{{ feature.description }}</p>
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="h-6 w-6"
+            >
+              <path [attr.d]="feature.icon" />
+            </svg>
+          </span>
+          <h3 class="mt-5 text-plum">{{ feature.title }}</h3>
+          <p class="mt-2 text-text-muted">{{ feature.description }}</p>
+        </a>
       </li>
     }
   </ul>
 </section>
 
-<section
-  aria-labelledby="cta-heading"
-  class="mt-16 rounded-4xl bg-linear-to-br from-primary to-plum px-6 py-14 text-center text-white shadow-card sm:px-12"
->
-  <h2 id="cta-heading" class="text-3xl sm:text-4xl">Ready to bring order to your everyday life?</h2>
-  <p class="mx-auto mt-4 max-w-xl text-lg text-blush">
-    Start organizing the things that matter, all in one calm and tidy place.
-  </p>
-  <button
-    type="button"
-    class="mt-8 rounded-full bg-white px-8 py-3.5 font-semibold text-primary shadow-lift transition hover:-translate-y-0.5 hover:bg-blush motion-reduce:transition-none motion-reduce:hover:translate-y-0"
-    (click)="showLogin.set(true)"
+@if (!isLoggedIn()) {
+  <section
+    aria-labelledby="cta-heading"
+    class="mt-16 rounded-4xl bg-linear-to-br from-primary to-plum px-6 py-14 text-center text-white shadow-card sm:px-12"
   >
-    Get Started
-  </button>
-</section>
+    <h2 id="cta-heading" class="text-3xl sm:text-4xl">
+      Ready to bring order to your everyday life?
+    </h2>
+    <p class="mx-auto mt-4 max-w-xl text-lg text-blush">
+      Start organizing the things that matter, all in one calm and tidy place.
+    </p>
+    <button
+      type="button"
+      class="mt-8 rounded-full bg-white px-8 py-3.5 font-semibold text-primary shadow-lift transition hover:-translate-y-0.5 hover:bg-blush motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+      (click)="showLogin.set(true)"
+    >
+      Get Started
+    </button>
+  </section>
+}
 
 @if (showLogin()) {
   <app-login-modal
