@@ -1,0 +1,60 @@
+name: Code Quality
+
+on:
+  push:
+    branches:
+      - release
+  pull_request:
+    branches:
+      - release
+
+jobs:
+  frontend-quality:
+    name: Frontend Code Quality
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: My-Life-Admin-Frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: My-Life-Admin-Frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Check CSS styling
+        run: npm run build
+
+  backend-quality:
+    name: Backend Code Quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore dependencies
+        run: dotnet restore My-Life-Admin-Backend/MyLife-Admin.csproj
+
+      - name: Check formatting
+        run: dotnet format My-Life-Admin-Backend/MyLife-Admin.csproj --verify-no-changes --no-restore
+
+      - name: Build with warnings as errors
+        run: dotnet build My-Life-Admin-Backend/MyLife-Admin.csproj --no-restore --warnaserror

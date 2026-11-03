@@ -1,0 +1,144 @@
+name: Deploy to Azure
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+env:
+  DOTNET_VERSION: "10.0.x"
+  NODE_VERSION: "24"
+  APP_NAME: "mylife-admin-app"
+
+jobs:
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Apply EF Core migrations (Production)
+        env:
+          ConnectionStrings__SqlServerConnection: ${{ secrets.AZURE_SQL_CONNECTION_STRING }}
+        run: |
+          dotnet tool install --global dotnet-ef --version 10.0.13
+          dotnet restore My-Life-Admin-Backend/MyLife-Admin.csproj
+          dotnet ef database update --project My-Life-Admin-Backend/MyLife-Admin.csproj
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: My-Life-Admin-Frontend/package-lock.json
+
+      - name: Build frontend
+        run: |
+          cd My-Life-Admin-Frontend
+          npm ci
+          npm run build
+
+      - name: Publish backend
+        run: dotnet publish My-Life-Admin-Backend/MyLife-Admin.csproj -c Release -o ${{ runner.temp }}/publish
+
+      - name: Copy frontend into wwwroot
+        run: |
+          mkdir -p ${{ runner.temp }}/publish/wwwroot
+          cp -r My-Life-Admin-Frontend/dist/mylife-admin/browser/* ${{ runner.temp }}/publish/wwwroot/
+
+      - name: Package
+        run: |
+          cd ${{ runner.temp }}/publish
+          zip -r ${{ runner.temp }}/app.zip .
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.APP_NAME }}
+          package: ${{ runner.temp }}/app.zip
+
+      - name: Configure app settings from secrets
+        uses: azure/appservice-settings@v1
+        with:
+          app-name: ${{ env.APP_NAME }}
+          app-settings-json: |
+            [
+              {
+                "name": "ConnectionStrings__SqlServerConnection",
+                "value": "${{ secrets.AZURE_SQL_CONNECTION_STRING }}",
+                "slotSetting": false
+              },
+              {
+                "name": "Jwt__SigningKey",
+                "value": "${{ secrets.JWT_SIGNING_KEY }}",
+                "slotSetting": false
+              },
+              {
+                "name": "FileStorage__ConnectionString",
+                "value": "${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}",
+                "slotSetting": false
+              },
+              {
+                "name": "Email__SmtpHost",
+                "value": "${{ secrets.SMTP_HOST }}",
+                "slotSetting": false
+              },
+              {
+                "name": "Email__SmtpPort",
+                "value": "${{ secrets.SMTP_PORT }}",
+                "slotSetting": false
+              },
+              {
+                "name": "Email__Username",
+                "value": "${{ secrets.SMTP_USERNAME }}",
+                "slotSetting": false
+              },
+              {
+                "name": "Email__Password",
+                "value": "${{ secrets.SMTP_PASSWORD }}",
+                "slotSetting": false
+              },
+              {
+                "name": "Email__FromEmail",
+                "value": "${{ secrets.SMTP_FROM_EMAIL }}",
+                "slotSetting": false
+              },
+              {
+                "name": "Ai__Endpoint",
+                "value": "${{ secrets.AI_ENDPOINT }}",
+                "slotSetting": false
+              },
+              {
+                "name": "Ai__ApiKey",
+                "value": "${{ secrets.AI_API_KEY }}",
+                "slotSetting": false
+              },
+              {
+                "name": "Ai__Deployment",
+                "value": "${{ secrets.AI_DEPLOYMENT }}",
+                "slotSetting": false
+              },
+              {
+                "name": "DocumentIntelligence__Endpoint",
+                "value": "${{ secrets.DOCUMENT_INTELLIGENCE_ENDPOINT }}",
+                "slotSetting": false
+              },
+              {
+                "name": "DocumentIntelligence__ApiKey",
+                "value": "${{ secrets.DOCUMENT_INTELLIGENCE_KEY }}",
+                "slotSetting": false
+              }
+            ]
