@@ -13,8 +13,14 @@ export class ChatService {
     return this.http.post<ChatReplyDto>(`${this.url}/`, message);
   }
 
-  getHistory(count?: number): Observable<ChatMessageDto[]> {
-    const params = count === undefined ? new HttpParams() : new HttpParams().set('count', count);
+  getHistory(count?: number, documentId?: number): Observable<ChatMessageDto[]> {
+    let params = new HttpParams();
+    if (count !== undefined) {
+      params = params.set('count', count);
+    }
+    if (documentId !== undefined) {
+      params = params.set('documentId', documentId);
+    }
     return this.http.get<ChatMessageDto[]>(`${this.url}/history`, { params });
   }
 }

@@ -2,9 +2,6 @@ import { DatePipe } from '@angular/common';
 import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { marked } from 'marked';
-import { ChatService } from '../chat/chat.service';
-import { ChatMessageDto } from '../models/chat.dto';
 import { DocumentDto } from '../models/document.dto';
 import { ErrorState } from '../shared/states/error-state';
 import { LoadingState } from '../shared/states/loading-state';
@@ -19,7 +16,6 @@ export class DocumentViewerPage implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly documentService = inject(DocumentService);
-  private readonly chatService = inject(ChatService);
   private readonly sanitizer = inject(DomSanitizer);
 
   protected readonly loading = signal(true);
@@ -36,11 +32,6 @@ export class DocumentViewerPage implements OnInit, OnDestroy {
   protected readonly category = signal('');
   protected readonly description = signal('');
   protected readonly expiryDate = signal('');
-
-  protected readonly messages = signal<ChatMessageDto[]>([]);
-  protected readonly chatInput = signal('');
-  protected readonly sending = signal(false);
-  protected readonly chatError = signal<string | null>(null);
 
   protected readonly isPdf = computed(
     () => this.document()?.fileName.toLowerCase().endsWith('.pdf') ?? false,
@@ -172,34 +163,6 @@ export class DocumentViewerPage implements OnInit, OnDestroy {
     this.documentService.downloadFile(id).subscribe({
       next: (blob) => this.saveBlob(blob, document.fileName),
     });
-  }
-
-  protected sendMessage(): void {
-    const id = this.documentId();
-    const text = this.chatInput().trim();
-
-    if (id === null || !text || this.sending()) {
-      return;
-    }
-
-    this.sending.set(true);
-    this.chatError.set(null);
-
-    this.chatService.sendMessage({ message: text, documentId: id }).subscribe({
-      next: (reply) => {
-        this.messages.update((current) => [...current, reply.userMessage, reply.reply]);
-        this.chatInput.set('');
-        this.sending.set(false);
-      },
-      error: () => {
-        this.sending.set(false);
-        this.chatError.set('The AI assistant is unavailable right now. Please try again later.');
-      },
-    });
-  }
-
-  protected renderMarkdown(text: string): string {
-    return marked.parse(text, { async: false }) as string;
   }
 
   private loadPreview(id: number): void {

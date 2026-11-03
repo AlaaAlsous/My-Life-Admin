@@ -118,6 +118,10 @@
   </footer>
 </div>
 
+@if (isLoggedIn()) {
+  <app-chat-widget />
+}
+
 @if (showLogin()) {
   <app-login-modal
     (closed)="showLogin.set(false)"
