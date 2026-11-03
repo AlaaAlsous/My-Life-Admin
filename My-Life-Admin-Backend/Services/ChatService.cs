@@ -31,9 +31,9 @@ public class ChatService(
         return message;
     }
 
-    public Task<IReadOnlyList<ChatMessage>> GetHistoryAsync(int userId, int count = DefaultHistoryCount)
+    public Task<IReadOnlyList<ChatMessage>> GetHistoryAsync(int userId, int count, int documentId)
     {
-        return repository.GetHistoryAsync(userId, Math.Min(count, MaxHistoryCount));
+        return repository.GetHistoryAsync(userId, Math.Min(count, MaxHistoryCount), documentId);
     }
 
     public async Task<ChatExchange> SendAsync(
@@ -47,10 +47,9 @@ public class ChatService(
             UserId = userId,
             Role = ChatRole.User,
             Content = ValidateContent(content),
+            DocumentId = documentId,
             CreatedAt = DateTime.UtcNow
         };
-
-        var history = await repository.GetHistoryAsync(userId, Math.Max(0, aiOptions.Value.MaxHistoryMessages));
 
         var conversation = new List<ChatMessage>();
 
@@ -68,9 +67,12 @@ public class ChatService(
                     CreatedAt = DateTime.UtcNow
                 });
             }
+
+            var history = await repository.GetHistoryAsync(
+                userId, Math.Max(0, aiOptions.Value.MaxHistoryMessages), docId);
+            conversation.AddRange(history);
         }
 
-        conversation.AddRange(history);
         conversation.Add(userMessage);
 
         var replyText = await aiClient.GetReplyAsync(conversation, cancellationToken);
@@ -80,12 +82,16 @@ public class ChatService(
             UserId = userId,
             Role = ChatRole.Assistant,
             Content = Truncate(replyText.Trim(), MaxContentLength),
+            DocumentId = documentId,
             CreatedAt = DateTime.UtcNow
         };
 
-        await repository.AddAsync(userMessage);
-        await repository.AddAsync(reply);
-        await repository.SaveChangesAsync();
+        if (documentId is not null)
+        {
+            await repository.AddAsync(userMessage);
+            await repository.AddAsync(reply);
+            await repository.SaveChangesAsync();
+        }
 
         return new ChatExchange(userMessage, reply);
     }

@@ -5,7 +5,7 @@ namespace My_Life_Admin.Services;
 public interface IChatService
 {
     Task<ChatMessage> AddMessageAsync(int userId, ChatRole role, string content);
-    Task<IReadOnlyList<ChatMessage>> GetHistoryAsync(int userId, int count = ChatService.DefaultHistoryCount);
+    Task<IReadOnlyList<ChatMessage>> GetHistoryAsync(int userId, int count, int documentId);
     Task<ChatExchange> SendAsync(
         int userId,
         string content,
