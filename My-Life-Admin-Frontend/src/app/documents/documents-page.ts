@@ -1,6 +1,7 @@
 import { DatePipe } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { AuthTokenService } from '../auth/auth-token.service';
 import { DocumentAnalysisDto, DocumentDto } from '../models/document.dto';
 import { EmptyState } from '../shared/states/empty-state';
 import { ErrorState } from '../shared/states/error-state';
@@ -16,6 +17,7 @@ import { ConfirmationService } from '../shared/confirmation/confirmation.service
 export class DocumentsPage {
   private readonly documentService = inject(DocumentService);
   private readonly confirmation = inject(ConfirmationService);
+  private readonly authTokenService = inject(AuthTokenService);
 
   protected readonly loading = signal(true);
   protected readonly failed = signal(false);
@@ -74,7 +76,16 @@ export class DocumentsPage {
   protected readonly reviewingId = signal<number | null>(null);
 
   constructor() {
-    this.load();
+    effect(() => {
+      if (this.authTokenService.isLoggedIn()) {
+        untracked(() => this.load());
+      } else {
+        untracked(() => {
+          this.documents.set([]);
+          this.loading.set(false);
+        });
+      }
+    });
   }
 
   protected load(): void {
