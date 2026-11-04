@@ -81,6 +81,22 @@ public class DocumentService : IDocumentService
         return document;
     }
 
+    public async Task<Document?> SaveExtractedTextAsync(int id, int userId, string text)
+    {
+        var document = await _documentRepository.GetByIdForUserAsync(id, userId);
+
+        if (document == null)
+        {
+            return null;
+        }
+
+        document.ExtractedText = string.IsNullOrWhiteSpace(text) ? null : text.Trim();
+        _documentRepository.Update(document);
+        await _documentRepository.SaveChangesAsync();
+
+        return document;
+    }
+
     public async Task<bool> DeleteAsync(int id, int userId)
     {
         var document = await _documentRepository.GetByIdForUserAsync(id, userId);

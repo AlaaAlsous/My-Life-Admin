@@ -1,5 +1,6 @@
 export interface SendChatMessageDto {
   message: string;
+  documentId?: number;
 }
 
 export interface ChatMessageDto {

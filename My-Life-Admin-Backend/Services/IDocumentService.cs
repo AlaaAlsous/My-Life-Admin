@@ -16,6 +16,8 @@ public interface IDocumentService
 
     Task<Document?> UpdateAsync(int id, int userId, Document changes);
 
+    Task<Document?> SaveExtractedTextAsync(int id, int userId, string text);
+
     Task<bool> DeleteAsync(int id, int userId);
 
     Task<DocumentFile?> OpenFileAsync(int id, int userId);

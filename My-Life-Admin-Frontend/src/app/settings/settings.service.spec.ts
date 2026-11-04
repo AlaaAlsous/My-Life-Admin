@@ -22,7 +22,7 @@ describe('SettingsService', () => {
   });
 
   it('gets the current settings', () => {
-    const settings = { id: 3, userId: 7 };
+    const settings = { id: 3, userId: 7, darkMode: false, emailNotifications: true };
 
     service.getSettings().subscribe((result) => {
       expect(result).toEqual(settings);
@@ -33,14 +33,16 @@ describe('SettingsService', () => {
     request.flush(settings);
   });
 
-  it('updates settings', () => {
-    const settings = { id: 3, userId: 7 };
+  it('updates settings and returns the saved settings', () => {
+    const settings = { id: 3, userId: 7, darkMode: true, emailNotifications: false };
 
-    service.updateSettings(settings).subscribe();
+    service.updateSettings(settings).subscribe((result) => {
+      expect(result).toEqual(settings);
+    });
 
     const request = http.expectOne(settingsUrl);
     expect(request.request.method).toBe('PUT');
     expect(request.request.body).toEqual(settings);
-    request.flush(null);
+    request.flush(settings);
   });
 });
