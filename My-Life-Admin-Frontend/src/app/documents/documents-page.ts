@@ -1,5 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { DocumentAnalysisDto, DocumentDto } from '../models/document.dto';
 import { EmptyState } from '../shared/states/empty-state';
 import { ErrorState } from '../shared/states/error-state';
