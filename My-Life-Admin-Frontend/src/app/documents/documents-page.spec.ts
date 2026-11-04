@@ -3,22 +3,38 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { DocumentsPage } from './documents-page';
+import { AuthTokenService } from '../auth/auth-token.service';
 import { ConfirmationService } from '../shared/confirmation/confirmation.service';
 
 describe('DocumentsPage', () => {
   const documentsUrl = 'http://localhost:5076/api/documents/';
 
-  function setup() {
+  it('loads documents when the user logs in after the page is created', () => {
+    const { fixture, http, tokenService } = setup(false);
+    http.expectNone(documentsUrl);
+
+    tokenService.setToken('test-token');
+    fixture.detectChanges();
+
+    http.expectOne(documentsUrl).flush([]);
+  });
+
+  function setup(loggedIn = true) {
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     });
+    const tokenService = TestBed.inject(AuthTokenService);
+    if (loggedIn) {
+      tokenService.setToken('test-token');
+    }
     const fixture = TestBed.createComponent(DocumentsPage);
     const http = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
-    return { fixture, http, el: fixture.nativeElement as HTMLElement };
+    return { fixture, http, tokenService, el: fixture.nativeElement as HTMLElement };
   }
 
   afterEach(() => {
+    localStorage.clear();
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
