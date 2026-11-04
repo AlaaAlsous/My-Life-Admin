@@ -168,6 +168,23 @@
              (input)="searchQuery.set($any($event.target).value)" />
     </div>
 
+    <div class="mt-4">
+      <label for="category-filter" class="block text-label font-medium text-plum">
+        Filter by category
+      </label>
+
+      <select id="category-filter"
+              class="mt-1 w-full rounded-control border border-border bg-white px-3 py-2"
+              [value]="selectedCategory()"
+              (change)="selectedCategory.set($any($event.target).value)">
+        <option value="">All categories</option>
+
+        @for (category of categories(); track category) {
+        <option [value]="category">{{ category }}</option>
+        }
+      </select>
+    </div>
+
     @if (loading()) {
     <div class="mt-4">
       <app-loading-state label="Loading documents…" [lineCount]="5" />

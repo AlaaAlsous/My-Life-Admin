@@ -22,11 +22,26 @@ export class DocumentsPage {
 
   protected readonly filteredDocuments = computed(() => {
     const query = this.searchQuery().trim().toLowerCase();
+    const category = this.selectedCategory();
 
-    return this.documents().filter((document) =>
-      document.title.toLowerCase().includes(query),
-    );
+    return this.documents().filter(document => {
+      const matchesSearch = document.title.toLowerCase().includes(query);
+      const matchesCategory =
+        !category || document.category === category;
+
+      return matchesSearch && matchesCategory;
+    });
   });
+
+  protected readonly selectedCategory = signal('');
+
+  protected readonly categories = computed(() =>
+    [...new Set(
+      this.documents()
+        .map(document => document.category)
+        .filter((category): category is string => !!category)
+    )].sort()
+  );
 
   protected readonly title = signal('');
   protected readonly category = signal('');
