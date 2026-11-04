@@ -48,6 +48,8 @@ public sealed class DocumentIntelligenceDocumentAnalyzer : IDocumentAnalyzer
     }
     """;
 
+    private const int MaxExtractedTextLength = 4000;
+
     public DocumentIntelligenceDocumentAnalyzer(
         IOptions<DocumentIntelligenceOptions> diOptions,
         IOptions<AiOptions> aiOptions)
@@ -98,19 +100,22 @@ public sealed class DocumentIntelligenceDocumentAnalyzer : IDocumentAnalyzer
             return Empty();
         }
 
+        DocumentAnalysisResult result;
+
         if (_responsesClient != null)
         {
             var extracted = await TryExtractWithAiAsync(text, cancellationToken);
-            if (extracted != null)
-            {
-                return extracted;
-            }
+            result = extracted ?? HeuristicExtraction(text, fileName);
+        }
+        else
+        {
+            result = HeuristicExtraction(text, fileName);
         }
 
-        return HeuristicExtraction(text, fileName);
+        return result with { ExtractedText = Truncate(text, MaxExtractedTextLength) };
     }
 
-    private static DocumentAnalysisResult Empty() => new(null, null, null, null);
+    private static DocumentAnalysisResult Empty() => new(null, null, null, null, null);
 
     private async Task<string?> ExtractTextAsync(byte[] bytes, CancellationToken cancellationToken)
     {
@@ -192,7 +197,8 @@ public sealed class DocumentIntelligenceDocumentAnalyzer : IDocumentAnalyzer
             NullIfEmpty(dto.Title),
             NullIfEmpty(dto.Category),
             ParseDate(dto.ExpiryDate),
-            NullIfEmpty(dto.Description));
+            NullIfEmpty(dto.Description),
+            null);
 
     private static string? NullIfEmpty(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value.Trim();
@@ -249,7 +255,7 @@ public sealed class DocumentIntelligenceDocumentAnalyzer : IDocumentAnalyzer
 
         var description = text.Length > 1000 ? text[..1000] : text;
 
-        return new DocumentAnalysisResult(title, null, FindExpiryDate(text), description);
+        return new DocumentAnalysisResult(title, null, FindExpiryDate(text), description, null);
     }
 
     private static DateTime? FindExpiryDate(string text)
