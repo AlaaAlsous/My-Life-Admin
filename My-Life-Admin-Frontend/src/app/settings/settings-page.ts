@@ -61,7 +61,6 @@ export class SettingsPage {
 
     this.saving.set(true);
     this.saveError.set(null);
-    this.saved.set(false);
 
     this.settingsService
       .updateSettings({
@@ -77,6 +76,7 @@ export class SettingsPage {
         },
         error: () => {
           this.saving.set(false);
+          this.saved.set(false);
           this.saveError.set('Could not save your settings. Please try again.');
         },
       });
