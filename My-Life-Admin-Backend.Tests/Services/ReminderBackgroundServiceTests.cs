@@ -131,4 +131,113 @@ public class ReminderBackgroundServiceTests
                 It.IsAny<int>()),
             Times.Never);
     }
+
+    [Fact]
+    public async Task ProcessRemindersAsync_EmailNotificationsOff_SkipsEmailAndMarksReminderAsSkipped()
+    {
+        const int userId = 1;
+
+        var reminder = CreateReminder(userId);
+        reminder.User.Settings = new UserSettings
+        {
+            UserId = userId,
+            EmailNotifications = false
+        };
+
+        var reminderServiceMock = new Mock<IReminderService>();
+
+        reminderServiceMock
+            .Setup(s => s.GetAllPendingAsync())
+            .ReturnsAsync(new List<Reminder> { reminder });
+
+        var emailServiceMock = new Mock<IEmailService>();
+
+        await RunAsync(reminderServiceMock, emailServiceMock);
+
+        emailServiceMock.Verify(
+            e => e.SendReminderAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>()),
+            Times.Never);
+
+        reminderServiceMock.Verify(
+            s => s.MarkAsSkippedAsync(10, userId),
+            Times.Once);
+
+        reminderServiceMock.Verify(
+            s => s.MarkAsSentAsync(
+                It.IsAny<int>(),
+                It.IsAny<int>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task ProcessRemindersAsync_NoSavedSettings_SendsEmail()
+    {
+        const int userId = 1;
+
+        var reminder = CreateReminder(userId);
+        reminder.User.Settings = null;
+
+        var reminderServiceMock = new Mock<IReminderService>();
+
+        reminderServiceMock
+            .Setup(s => s.GetAllPendingAsync())
+            .ReturnsAsync(new List<Reminder> { reminder });
+
+        var emailServiceMock = new Mock<IEmailService>();
+
+        await RunAsync(reminderServiceMock, emailServiceMock);
+
+        emailServiceMock.Verify(
+            e => e.SendReminderAsync(
+                "test@example.com",
+                "Reminder",
+                "You have a reminder."),
+            Times.Once);
+
+        reminderServiceMock.Verify(
+            s => s.MarkAsSentAsync(10, userId),
+            Times.Once);
+
+        reminderServiceMock.Verify(
+            s => s.MarkAsSkippedAsync(
+                It.IsAny<int>(),
+                It.IsAny<int>()),
+            Times.Never);
+    }
+
+    private static Reminder CreateReminder(int userId) => new()
+    {
+        Id = 10,
+        UserId = userId,
+        ReminderDate = DateTime.UtcNow.AddMinutes(-5),
+        Status = ReminderStatus.Pending,
+        User = new User
+        {
+            Id = userId,
+            Name = "Test User",
+            Email = "test@example.com",
+            PasswordHash = "hash"
+        }
+    };
+
+    private static async Task RunAsync(
+        Mock<IReminderService> reminderServiceMock,
+        Mock<IEmailService> emailServiceMock)
+    {
+        var services = new ServiceCollection();
+
+        services.AddScoped(_ => reminderServiceMock.Object);
+        services.AddScoped(_ => emailServiceMock.Object);
+
+        using var provider = services.BuildServiceProvider();
+
+        var backgroundService = new ReminderBackgroundService(
+            provider.GetRequiredService<IServiceScopeFactory>(),
+            new Mock<ILogger<ReminderBackgroundService>>().Object);
+
+        await backgroundService.ProcessRemindersAsync();
+    }
 }
