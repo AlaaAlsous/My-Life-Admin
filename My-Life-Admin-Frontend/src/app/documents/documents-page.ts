@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { DocumentAnalysisDto, DocumentDto } from '../models/document.dto';
 import { EmptyState } from '../shared/states/empty-state';
 import { ErrorState } from '../shared/states/error-state';
@@ -17,6 +17,16 @@ export class DocumentsPage {
   protected readonly loading = signal(true);
   protected readonly failed = signal(false);
   protected readonly documents = signal<DocumentDto[]>([]);
+
+  protected readonly searchQuery = signal('');
+
+  protected readonly filteredDocuments = computed(() => {
+    const query = this.searchQuery().trim().toLowerCase();
+
+    return this.documents().filter((document) =>
+      document.title.toLowerCase().includes(query),
+    );
+  });
 
   protected readonly title = signal('');
   protected readonly category = signal('');
