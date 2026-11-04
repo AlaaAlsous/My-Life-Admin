@@ -50,6 +50,7 @@ public class ReminderRepository : Repository<Reminder>, IReminderRepository
 
         return await _db.Reminders
             .Include(r => r.User)
+                .ThenInclude(u => u.Settings)
             .Include(r => r.Event)
             .Include(r => r.Document)
             .Where(r =>
