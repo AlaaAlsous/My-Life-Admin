@@ -151,8 +151,10 @@
     </div>
   </section>
 
-  <section aria-labelledby="list-heading"
-           class="rounded-card bg-white p-7 shadow-soft ring-1 ring-border-soft lg:col-span-2">
+  <section
+    aria-labelledby="list-heading"
+    class="rounded-card bg-white p-7 shadow-soft ring-1 ring-border-soft lg:col-span-2"
+  >
     <h2 id="list-heading" class="text-title text-plum">Your files</h2>
 
     <div class="mt-4">
@@ -160,12 +162,14 @@
         Search documents
       </label>
 
-      <input id="document-search"
-             type="search"
-             placeholder="Search by title..."
-             class="mt-1 w-full rounded-control border border-border bg-white px-3 py-2"
-             [value]="searchQuery()"
-             (input)="searchQuery.set($any($event.target).value)" />
+      <input
+        id="document-search"
+        type="search"
+        placeholder="Search by title..."
+        class="mt-1 w-full rounded-control border border-border bg-white px-3 py-2"
+        [value]="searchQuery()"
+        (input)="searchQuery.set($any($event.target).value)"
+      />
     </div>
 
     <div class="mt-4">
@@ -173,67 +177,89 @@
         Filter by category
       </label>
 
-      <select id="category-filter"
-              class="mt-1 w-full rounded-control border border-border bg-white px-3 py-2"
-              [value]="selectedCategory()"
-              (change)="selectedCategory.set($any($event.target).value)">
+      <select
+        id="category-filter"
+        class="mt-1 w-full rounded-control border border-border bg-white px-3 py-2"
+        [value]="selectedCategory()"
+        (change)="selectedCategory.set($any($event.target).value)"
+      >
         <option value="">All categories</option>
 
         @for (category of categories(); track category) {
-        <option [value]="category">{{ category }}</option>
+          <option [value]="category">{{ category }}</option>
         }
       </select>
     </div>
 
     @if (loading()) {
-    <div class="mt-4">
-      <app-loading-state label="Loading documents…" [lineCount]="5" />
-    </div>
+      <div class="mt-4">
+        <app-loading-state label="Loading documents…" [lineCount]="5" />
+      </div>
     } @else if (failed()) {
-    <div class="mt-4">
-      <app-error-state message="We could not load your documents."
-                       retryLabel="Try again"
-                       (retry)="load()" />
-    </div>
+      <div class="mt-4">
+        <app-error-state
+          message="We could not load your documents."
+          retryLabel="Try again"
+          (retry)="load()"
+        />
+      </div>
     } @else if (documents().length === 0) {
-    <div class="mt-4">
-      <app-empty-state title="No documents yet"
-                       message="Upload your first document using the form." />
-    </div>
+      <div class="mt-4">
+        <app-empty-state
+          title="No documents yet"
+          message="Upload your first document using the form."
+        />
+      </div>
     } @else if (filteredDocuments().length === 0) {
-    <div class="mt-4">
-      <app-empty-state title="No matching documents"
-                       message="Try searching for a different title." />
-    </div>
+      <div class="mt-4">
+        <app-empty-state
+          title="No matching documents"
+          message="Try searching for a different title."
+        />
+      </div>
     } @else {
-    <ul class="mt-4 divide-y divide-border-soft">
-      @for (document of filteredDocuments(); track document.id) {
-      <li class="flex flex-wrap items-center justify-between gap-3 py-4">
-        <div class="min-w-0">
-          <p class="font-medium text-plum">{{ document.title }}</p>
-          <p class="text-label text-text-muted">
-            {{ document.fileName }}
-            @if (document.category) {
-            · {{ document.category }}
-            }
-            · Added {{ document.uploadedAt | date: 'mediumDate' }}
-          </p>
-        </div>
-        <div class="flex shrink-0 gap-2">
-          <button type="button"
-                  class="rounded-full bg-primary px-4 py-2 text-label font-medium text-white hover:bg-primary-hover"
-                  (click)="download(document)">
-            Download
-          </button>
-          <button type="button"
-                  class="rounded-full border border-error px-4 py-2 text-label font-medium text-error hover:bg-surface-error"
-                  (click)="deleteDocument(document.id)">
-            Delete
-          </button>
-        </div>
-      </li>
-      }
-    </ul>
+      <ul class="mt-4 divide-y divide-border-soft">
+        @for (document of filteredDocuments(); track document.id) {
+          <li class="flex flex-wrap items-center justify-between gap-3 py-4">
+            <div class="min-w-0">
+              <div class="flex flex-wrap items-center gap-2">
+                <p class="font-medium text-plum">{{ document.title }}</p>
+
+                @if (isExpiringSoon(document)) {
+                  <span
+                    class="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800"
+                  >
+                    Expiring soon
+                  </span>
+                }
+              </div>
+              <p class="text-label text-text-muted">
+                {{ document.fileName }}
+                @if (document.category) {
+                  · {{ document.category }}
+                }
+                · Added {{ document.uploadedAt | date: 'mediumDate' }}
+              </p>
+            </div>
+            <div class="flex shrink-0 gap-2">
+              <button
+                type="button"
+                class="rounded-full bg-primary px-4 py-2 text-label font-medium text-white hover:bg-primary-hover"
+                (click)="download(document)"
+              >
+                Download
+              </button>
+              <button
+                type="button"
+                class="rounded-full border border-error px-4 py-2 text-label font-medium text-error hover:bg-surface-error"
+                (click)="deleteDocument(document.id)"
+              >
+                Delete
+              </button>
+            </div>
+          </li>
+        }
+      </ul>
     }
   </section>
 </div>

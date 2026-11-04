@@ -24,10 +24,9 @@ export class DocumentsPage {
     const query = this.searchQuery().trim().toLowerCase();
     const category = this.selectedCategory();
 
-    return this.documents().filter(document => {
+    return this.documents().filter((document) => {
       const matchesSearch = document.title.toLowerCase().includes(query);
-      const matchesCategory =
-        !category || document.category === category;
+      const matchesCategory = !category || document.category === category;
 
       return matchesSearch && matchesCategory;
     });
@@ -36,12 +35,27 @@ export class DocumentsPage {
   protected readonly selectedCategory = signal('');
 
   protected readonly categories = computed(() =>
-    [...new Set(
-      this.documents()
-        .map(document => document.category)
-        .filter((category): category is string => !!category)
-    )].sort()
+    [
+      ...new Set(
+        this.documents()
+          .map((document) => document.category)
+          .filter((category): category is string => !!category),
+      ),
+    ].sort(),
   );
+
+  protected isExpiringSoon(document: DocumentDto): boolean {
+    if (!document.expiryDate) return false;
+
+    const today = new Date();
+    const expiryDate = new Date(document.expiryDate);
+
+    today.setHours(0, 0, 0, 0);
+
+    const daysUntilExpiry = (expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
+
+    return daysUntilExpiry >= 0 && daysUntilExpiry <= 30;
+  }
 
   protected readonly title = signal('');
   protected readonly category = signal('');
