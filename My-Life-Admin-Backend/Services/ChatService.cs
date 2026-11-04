@@ -128,6 +128,11 @@ public class ChatService(
             parts.Add($"Expiry date: {expiry:yyyy-MM-dd}");
         }
 
+        if (!string.IsNullOrWhiteSpace(document.ExtractedText))
+        {
+            parts.Add($"Document content:\n{Truncate(document.ExtractedText.Trim(), 12_000)}");
+        }
+
         parts.Add("Use the details above when relevant, and say so when the document does not contain the answer.");
 
         return string.Join('\n', parts);

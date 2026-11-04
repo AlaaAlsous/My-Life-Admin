@@ -8,6 +8,6 @@ public class PlaceholderDocumentAnalyzer : IDocumentAnalyzer
         string contentType,
         CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(new DocumentAnalysisResult(null, null, null, null));
+        return Task.FromResult(new DocumentAnalysisResult(null, null, null, null, null));
     }
 }

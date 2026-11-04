@@ -77,6 +77,10 @@ namespace MyLife_Admin.Migrations
                     b.Property<DateTime?>("ExpiryDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("ExtractedText")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
                     b.Property<string>("FileName")
                         .IsRequired()
                         .HasMaxLength(255)

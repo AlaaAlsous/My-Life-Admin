@@ -4,4 +4,5 @@ public record DocumentAnalysisResult(
     string? Title,
     string? Category,
     DateTime? ExpiryDate,
-    string? Description);
+    string? Description,
+    string? ExtractedText);

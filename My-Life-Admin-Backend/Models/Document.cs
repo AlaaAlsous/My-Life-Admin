@@ -12,6 +12,8 @@ public class Document
     public DateTime? ExpiryDate { get; set; }
     public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
 
+    public string? ExtractedText { get; set; }
+
     public User User { get; set; } = null!;
     public ICollection<Event> Events { get; set; } = new List<Event>();
     public ICollection<Reminder> Reminders { get; set; } = new List<Reminder>();
