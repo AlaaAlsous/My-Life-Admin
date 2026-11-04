@@ -1,0 +1,113 @@
+<div class="fixed bottom-5 right-5 z-50 flex flex-col items-end">
+  @if (open()) {
+    <div
+      class="mb-3 flex h-[28rem] w-[22rem] max-w-[calc(100vw-2.5rem)] flex-col overflow-hidden rounded-card bg-white shadow-lift ring-1 ring-border-soft"
+    >
+      <header class="flex items-center justify-between gap-2 bg-primary px-4 py-3 text-white">
+        <div>
+          <h2 class="text-label font-semibold">AI assistant</h2>
+          @if (documentId() !== null) {
+            <p class="text-xs text-white/80">Asking about this document</p>
+          }
+        </div>
+        <button
+          type="button"
+          class="rounded-full p-1.5 text-white hover:bg-white/15"
+          aria-label="Close chat"
+          (click)="open.set(false)"
+        >
+          ✕
+        </button>
+      </header>
+
+      <div class="flex-1 space-y-3 overflow-y-auto p-4">
+        @if (error(); as error) {
+          <p class="rounded-control bg-surface-error px-3 py-2 text-label text-error">
+            {{ error }}
+          </p>
+        }
+        @if (loadingHistory()) {
+          <p class="text-label text-text-muted">Loading…</p>
+        } @else if (messages().length === 0) {
+          <p class="text-label text-text-muted">
+            @if (documentId() !== null) {
+              Ask me anything about this document.
+            } @else {
+              Ask me about your documents, dates and reminders.
+            }
+          </p>
+        }
+        @for (message of messages(); track message.id) {
+          <div
+            class="max-w-[85%] rounded-control px-4 py-2 text-label"
+            [class.self-start]="message.role === 'assistant'"
+            [class.bg-surface-muted]="message.role === 'assistant'"
+            [class.text-text]="message.role === 'assistant'"
+            [class.self-end]="message.role === 'user'"
+            [class.bg-primary]="message.role === 'user'"
+            [class.text-white]="message.role === 'user'"
+          >
+            @if (message.role === 'assistant') {
+              <div
+                class="space-y-2 [&_a]:underline"
+                [innerHTML]="renderMarkdown(message.content)"
+              ></div>
+            } @else {
+              {{ message.content }}
+            }
+          </div>
+        }
+        @if (sending()) {
+          <p class="text-label text-text-muted">Thinking…</p>
+        }
+      </div>
+
+      <div class="flex gap-2 border-t border-border-soft p-3">
+        <input
+          id="chat-input"
+          type="text"
+          class="w-full rounded-control border border-border bg-white px-3 py-2"
+          placeholder="Type a message…"
+          [value]="input()"
+          (input)="input.set($any($event.target).value)"
+          (keydown.enter)="sendMessage()"
+        />
+        <button
+          type="button"
+          class="shrink-0 rounded-full bg-primary px-5 py-2 font-medium text-white hover:bg-primary-hover disabled:opacity-50"
+          [disabled]="sending() || !input().trim()"
+          (click)="sendMessage()"
+        >
+          Send
+        </button>
+      </div>
+    </div>
+  }
+
+  <button
+    type="button"
+    class="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-lift transition hover:bg-primary-hover"
+    [attr.aria-label]="open() ? 'Close AI chat' : 'Open AI chat'"
+    (click)="toggleOpen()"
+  >
+    @if (open()) {
+      ✕
+    } @else {
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke-width="1.5"
+        stroke="currentColor"
+        class="h-6 w-6"
+        aria-hidden="true"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z"
+        />
+      </svg>
+    }
+  </button>
+</div>

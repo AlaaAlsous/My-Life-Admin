@@ -60,6 +60,7 @@ public class ApplicationDbContext : DbContext
             d.Property(x => x.Category).HasMaxLength(100);
             d.Property(x => x.Description).HasMaxLength(1000);
             d.Property(x => x.FilePath).HasMaxLength(500);
+            d.Property(x => x.ExtractedText).HasMaxLength(4000);
         });
 
         modelBuilder.Entity<Event>(e =>
@@ -98,6 +99,7 @@ public class ApplicationDbContext : DbContext
             c.Property(x => x.Content).IsRequired().HasMaxLength(4000);
             c.Property(x => x.Role).HasConversion<string>().HasMaxLength(20);
             c.HasIndex(x => new { x.UserId, x.CreatedAt });
+            c.HasIndex(x => x.DocumentId);
             c.HasOne(x => x.User)
                 .WithMany(u => u.ChatMessages)
                 .HasForeignKey(x => x.UserId)

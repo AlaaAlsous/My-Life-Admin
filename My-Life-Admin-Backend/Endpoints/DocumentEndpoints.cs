@@ -226,6 +226,11 @@ public static class DocumentEndpoints
             var result = await documentAnalyzer.AnalyzeAsync(
                 content, file.Document.FileName, contentType, cancellationToken);
 
+            if (!string.IsNullOrWhiteSpace(result.ExtractedText))
+            {
+                await documentService.SaveExtractedTextAsync(id, userId, result.ExtractedText);
+            }
+
             return TypedResults.Ok(result);
         }
         catch (AiServiceException)

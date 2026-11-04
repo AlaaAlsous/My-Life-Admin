@@ -24,6 +24,9 @@ public sealed class ChatMessageRepositoryTests : IDisposable
         _db.Users.AddRange(
             new User { Id = 1, Name = "Anna", Email = "anna@example.com" },
             new User { Id = 2, Name = "Bo", Email = "bo@example.com" });
+        _db.Documents.AddRange(
+            new Document { Id = 7, UserId = 1, Title = "Passport", FileName = "passport.pdf", FilePath = "uploads/7" },
+            new Document { Id = 8, UserId = 1, Title = "Insurance", FileName = "insurance.pdf", FilePath = "uploads/8" });
         _db.SaveChanges();
 
         _repository = new ChatMessageRepository(_db);
@@ -35,7 +38,7 @@ public sealed class ChatMessageRepositoryTests : IDisposable
         _connection.Dispose();
     }
 
-    private async Task SeedAsync(int userId, int count, ChatRole role = ChatRole.User)
+    private async Task SeedAsync(int userId, int count, ChatRole role = ChatRole.User, int documentId = 7)
     {
         var start = new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc);
         for (var i = 1; i <= count; i++)
@@ -45,6 +48,7 @@ public sealed class ChatMessageRepositoryTests : IDisposable
                 UserId = userId,
                 Role = role,
                 Content = $"u{userId}-m{i}",
+                DocumentId = documentId,
                 CreatedAt = start.AddMinutes(i)
             });
         }
@@ -56,7 +60,7 @@ public sealed class ChatMessageRepositoryTests : IDisposable
     {
         await SeedAsync(1, 5);
 
-        var history = await _repository.GetHistoryAsync(1, 3);
+        var history = await _repository.GetHistoryAsync(1, 3, 7);
 
         Assert.Equal(["u1-m3", "u1-m4", "u1-m5"], history.Select(m => m.Content));
     }
@@ -67,10 +71,22 @@ public sealed class ChatMessageRepositoryTests : IDisposable
         await SeedAsync(1, 2);
         await SeedAsync(2, 3);
 
-        var history = await _repository.GetHistoryAsync(2, 10);
+        var history = await _repository.GetHistoryAsync(2, 10, 7);
 
         Assert.Equal(3, history.Count);
         Assert.All(history, m => Assert.Equal(2, m.UserId));
+    }
+
+    [Fact]
+    public async Task GetHistoryAsync_OnlyReturnsMessagesForRequestedDocument()
+    {
+        await SeedAsync(1, 2, ChatRole.User, 7);
+        await SeedAsync(1, 3, ChatRole.User, 8);
+
+        var history = await _repository.GetHistoryAsync(1, 10, 8);
+
+        Assert.Equal(3, history.Count);
+        Assert.All(history, m => Assert.Equal(8, m.DocumentId));
     }
 
     [Fact]
@@ -78,7 +94,7 @@ public sealed class ChatMessageRepositoryTests : IDisposable
     {
         await SeedAsync(1, 2);
 
-        var history = await _repository.GetHistoryAsync(1, 50);
+        var history = await _repository.GetHistoryAsync(1, 50, 7);
 
         Assert.Equal(2, history.Count);
     }
@@ -90,7 +106,7 @@ public sealed class ChatMessageRepositoryTests : IDisposable
     {
         await SeedAsync(1, 2);
 
-        var history = await _repository.GetHistoryAsync(1, count);
+        var history = await _repository.GetHistoryAsync(1, count, 7);
 
         Assert.Empty(history);
     }
@@ -98,7 +114,7 @@ public sealed class ChatMessageRepositoryTests : IDisposable
     [Fact]
     public async Task GetHistoryAsync_UserWithoutMessages_ReturnsEmpty()
     {
-        var history = await _repository.GetHistoryAsync(1, 10);
+        var history = await _repository.GetHistoryAsync(1, 10, 7);
 
         Assert.Empty(history);
     }
@@ -113,12 +129,13 @@ public sealed class ChatMessageRepositoryTests : IDisposable
             {
                 UserId = 1,
                 Content = content,
+                DocumentId = 7,
                 CreatedAt = timestamp
             });
         }
         await _repository.SaveChangesAsync();
 
-        var history = await _repository.GetHistoryAsync(1, 2);
+        var history = await _repository.GetHistoryAsync(1, 2, 7);
 
         Assert.Equal(["second", "third"], history.Select(m => m.Content));
     }

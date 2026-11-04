@@ -48,20 +48,20 @@ describe('ChatService', () => {
     expect(result).toEqual(response);
   });
 
-  it('gets history without a count so the backend default applies', () => {
+  it('gets a document history without a count so the backend default applies', () => {
     let result: ChatMessageDto[] | undefined;
 
-    service.getHistory().subscribe((value) => (result = value));
-    const request = http.expectOne(`${chatUrl}/history`);
+    service.getHistory(undefined, 7).subscribe((value) => (result = value));
+    const request = http.expectOne(`${chatUrl}/history?documentId=7`);
     expect(request.request.method).toBe('GET');
     request.flush([userMessage, reply]);
 
     expect(result).toEqual([userMessage, reply]);
   });
 
-  it('passes the requested history count', () => {
-    service.getHistory(10).subscribe();
-    const request = http.expectOne(`${chatUrl}/history?count=10`);
+  it('passes the requested history count and document id', () => {
+    service.getHistory(10, 7).subscribe();
+    const request = http.expectOne(`${chatUrl}/history?count=10&documentId=7`);
     expect(request.request.method).toBe('GET');
     request.flush([]);
   });

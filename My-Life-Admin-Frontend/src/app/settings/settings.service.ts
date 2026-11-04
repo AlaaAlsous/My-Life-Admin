@@ -13,7 +13,7 @@ export class SettingsService {
     return this.http.get<SettingsDto>(this.url);
   }
 
-  updateSettings(settings: SettingsDto): Observable<void> {
-    return this.http.put<void>(this.url, settings);
+  updateSettings(settings: SettingsDto): Observable<SettingsDto> {
+    return this.http.put<SettingsDto>(this.url, settings);
   }
 }

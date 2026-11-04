@@ -24,9 +24,12 @@ public class DocumentAnalysisEndpointsTests
         _serviceMock
             .Setup(s => s.OpenFileAsync(1, UserId))
             .ReturnsAsync(new DocumentFile(Passport(), new MemoryStream([1, 2, 3])));
+        _serviceMock
+            .Setup(s => s.SaveExtractedTextAsync(1, UserId, "PASSPORT TEXT"))
+            .ReturnsAsync(Passport());
         _analyzerMock
             .Setup(a => a.AnalyzeAsync(It.IsAny<Stream>(), "passport.pdf", "application/pdf", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new DocumentAnalysisResult("Passport", "ID", new DateTime(2030, 1, 1), "My passport"));
+            .ReturnsAsync(new DocumentAnalysisResult("Passport", "ID", new DateTime(2030, 1, 1), "My passport", "PASSPORT TEXT"));
 
         var result = await DocumentEndpoints.AnalyzeAsync(
             1, _user, _serviceMock.Object, _analyzerMock.Object, CancellationToken.None);
@@ -36,6 +39,7 @@ public class DocumentAnalysisEndpointsTests
         Assert.Equal("ID", ok.Value.Category);
         Assert.Equal(new DateTime(2030, 1, 1), ok.Value.ExpiryDate);
         Assert.Equal("My passport", ok.Value.Description);
+        _serviceMock.Verify(s => s.SaveExtractedTextAsync(1, UserId, "PASSPORT TEXT"), Times.Once);
     }
 
     [Fact]

@@ -1,14 +1,16 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { DocumentsPage } from './documents-page';
+import { ConfirmationService } from '../shared/confirmation/confirmation.service';
 
 describe('DocumentsPage', () => {
   const documentsUrl = 'http://localhost:5076/api/documents/';
 
   function setup() {
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     });
     const fixture = TestBed.createComponent(DocumentsPage);
     const http = TestBed.inject(HttpTestingController);
@@ -133,23 +135,41 @@ describe('DocumentsPage', () => {
     expect(revokeObjectURL).toHaveBeenCalledWith('blob:download');
   });
 
-  it('reloads the list after deleting a document', async () => {
+  const doc = {
+    id: 1,
+    title: 'Passport',
+    fileName: 'passport.pdf',
+    description: null,
+    category: null,
+    expiryDate: null,
+    uploadedAt: '2026-06-01T00:00:00Z',
+  };
+
+  it('does not delete when the confirmation is cancelled', async () => {
     const { fixture, http, el } = setup();
-    http.expectOne(documentsUrl).flush([
-      {
-        id: 1,
-        title: 'Passport',
-        fileName: 'passport.pdf',
-        description: null,
-        category: null,
-        expiryDate: null,
-        uploadedAt: '2026-06-01T00:00:00Z',
-      },
-    ]);
+    http.expectOne(documentsUrl).flush([doc]);
     await fixture.whenStable();
     fixture.detectChanges();
 
     el.querySelector<HTMLButtonElement>('ul li button:last-child')!.click();
+    TestBed.inject(ConfirmationService).cancel();
+
+    http.expectNone(`${documentsUrl}1`);
+    expect(TestBed.inject(ConfirmationService).state()).toBeNull();
+  });
+
+  it('reloads the list after confirming deletion of a document', async () => {
+    const { fixture, http, el } = setup();
+    http.expectOne(documentsUrl).flush([doc]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    el.querySelector<HTMLButtonElement>('ul li button:last-child')!.click();
+    const confirmation = TestBed.inject(ConfirmationService);
+    expect(confirmation.state()?.title).toBe('Delete document?');
+    http.expectNone(`${documentsUrl}1`);
+
+    confirmation.accept();
     const deleteRequest = http.expectOne(`${documentsUrl}1`);
     expect(deleteRequest.request.method).toBe('DELETE');
     deleteRequest.flush(null);
