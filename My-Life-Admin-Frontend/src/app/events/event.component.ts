@@ -12,11 +12,12 @@ import { ConfirmationService } from '../shared/confirmation/confirmation.service
 import { EventCalendar } from './event-calendar';
 import { EventService } from './event.service';
 import { ReminderService } from './reminder.service';
+import { EventTimeline } from './event-timeline';
 
 @Component({
   selector: 'app-event',
   standalone: true,
-  imports: [DatePipe, FormsModule, RouterLink, ErrorState, LoadingState, EventCalendar],
+  imports: [DatePipe, FormsModule, RouterLink, ErrorState, LoadingState, EventCalendar, EventTimeline],
   templateUrl: './event.component.html',
 })
 export class EventComponent implements OnInit, OnDestroy {

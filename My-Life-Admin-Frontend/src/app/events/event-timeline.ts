@@ -33,4 +33,6 @@ export class EventTimeline {
   protected selectEvent(event: EventDto): void {
     this.eventSelected.emit(event);
   }
+
+  readonly selectedDate = input<Date>(new Date());
 }

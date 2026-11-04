@@ -1,0 +1,28 @@
+<section class="rounded-card bg-white p-6 shadow-soft ring-1 ring-border-soft">
+  <h2 class="text-title text-plum">
+    {{ selectedDate() | date: 'EEEE, MMMM d, y' }}
+  </h2>
+
+  <div class="mt-6">
+    @for (hour of hours; track hour) {
+    <div class="flex min-h-20 gap-4 border-t border-border-soft py-3">
+      <span class="w-14 shrink-0 text-label text-text-muted">
+        {{ hour.toString().padStart(2, '0') }}:00
+      </span>
+
+      <div class="flex-1 space-y-2">
+        @for (event of eventsAtHour(hour); track event.id) {
+        <button type="button"
+                class="block w-full rounded-control bg-primary/10 p-3 text-left hover:bg-primary/20"
+                (click)="selectEvent(event)">
+          <p class="font-semibold text-plum">{{ event.title }}</p>
+          <p class="text-label text-text-muted">
+            {{ event.eventDate | date: 'medium' }}
+          </p>
+        </button>
+        }
+      </div>
+    </div>
+    }
+  </div>
+</section>
