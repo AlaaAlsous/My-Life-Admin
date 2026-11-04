@@ -206,6 +206,27 @@ public class ChatServiceTests
     }
 
     [Fact]
+    public async Task SendAsync_WithDocumentId_IncludesExtractedTextInContext()
+    {
+        _documentRepository.Documents.Add(new Document
+        {
+            Id = 7,
+            UserId = 1,
+            Title = "Passport",
+            FileName = "passport.pdf",
+            ExtractedText = "Name: Jane Doe\nPassport No: 12345"
+        });
+
+        await _service.SendAsync(1, "What is the passport number?", documentId: 7);
+
+        Assert.NotNull(_aiClient.LastConversation);
+        var first = _aiClient.LastConversation[0];
+        Assert.Equal(ChatRole.System, first.Role);
+        Assert.Contains("Jane Doe", first.Content);
+        Assert.Contains("12345", first.Content);
+    }
+
+    [Fact]
     public async Task SendAsync_WithUnknownDocumentId_DoesNotAddSystemContext()
     {
         await _service.SendAsync(1, "Hello", documentId: 999);
