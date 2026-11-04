@@ -33,6 +33,11 @@ export class EventComponent implements OnInit, OnDestroy {
   protected readonly successMessage = signal('');
   protected readonly selectedDate = signal<Date | null>(null);
   protected readonly selectedEvents = signal<EventDto[] | null>(null);
+  protected readonly showTimeline = signal(false);
+
+  protected toggleView(): void {
+    this.showTimeline.update(value => !value);
+  }
 
   protected readonly ReminderStatus = ReminderStatus;
 
