@@ -20,6 +20,7 @@ export class AppLayout {
   private readonly tokenService = inject(AuthTokenService);
 
   readonly status = input('');
+  readonly themeError = input<string | null>(null);
 
   protected readonly isLoggedIn = this.tokenService.isLoggedIn;
   protected readonly showLogin = signal(false);
