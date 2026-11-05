@@ -48,10 +48,7 @@
             [class.text-white]="message.role === 'user'"
           >
             @if (message.role === 'assistant') {
-              <div
-                class="space-y-2"
-                [innerHTML]="renderMarkdown(message.content)"
-              ></div>
+              <div class="space-y-2" [innerHTML]="renderMarkdown(message.content)"></div>
             } @else {
               {{ message.content }}
             }
