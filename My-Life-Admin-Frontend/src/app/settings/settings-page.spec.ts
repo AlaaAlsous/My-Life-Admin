@@ -7,6 +7,11 @@ describe('SettingsPage', () => {
   const settingsUrl = 'http://localhost:5076/api/settings';
   const settings = { id: 3, userId: 7, darkMode: false, emailNotifications: true };
 
+  beforeEach(() => {
+    localStorage.removeItem('my-life-admin.dark-mode');
+    document.documentElement.classList.remove('dark');
+  });
+
   function setup() {
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideHttpClientTesting()],
@@ -42,6 +47,20 @@ describe('SettingsPage', () => {
 
     expect(el.querySelector<HTMLInputElement>('#setting-email')!.checked).toBe(true);
     expect(el.querySelector<HTMLInputElement>('#setting-dark-mode')!.checked).toBe(false);
+  });
+
+  it('applies the saved dark mode immediately and persists later changes', async () => {
+    const { fixture, http, el } = setup();
+    http.expectOne(settingsUrl).flush({ ...settings, darkMode: true });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(document.documentElement.classList.contains('dark')).toBe(true);
+    expect(localStorage.getItem('my-life-admin.dark-mode')).toBe('true');
+
+    toggle(el, '#setting-dark-mode');
+    expect(document.documentElement.classList.contains('dark')).toBe(false);
+    expect(localStorage.getItem('my-life-admin.dark-mode')).toBe('false');
   });
 
   it('shows an error with retry when loading fails', async () => {
