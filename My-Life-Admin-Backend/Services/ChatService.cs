@@ -10,7 +10,9 @@ public class ChatService(
     IChatMessageRepository repository,
     IAiChatClient aiClient,
     IOptions<AiOptions> aiOptions,
-    IDocumentRepository documentRepository) : IChatService
+    IDocumentRepository documentRepository,
+    IEventRepository eventRepository,
+    IReminderRepository reminderRepository) : IChatService
 {
     public const int DefaultHistoryCount = 50;
     public const int MaxHistoryCount = 200;
@@ -71,6 +73,20 @@ public class ChatService(
             var history = await repository.GetHistoryAsync(
                 userId, Math.Max(0, aiOptions.Value.MaxHistoryMessages), docId);
             conversation.AddRange(history);
+        }
+        else
+        {
+            var documents = await documentRepository.GetAllForUserAsync(userId);
+            var events = await eventRepository.GetByUserIdAsync(userId);
+            var reminders = await reminderRepository.GetByUserIdAsync(userId);
+
+            conversation.Add(new ChatMessage
+            {
+                UserId = userId,
+                Role = ChatRole.System,
+                Content = BuildAccountContext(documents, events, reminders),
+                CreatedAt = DateTime.UtcNow
+            });
         }
 
         conversation.Add(userMessage);
@@ -136,6 +152,52 @@ public class ChatService(
         parts.Add("Use the details above when relevant, and say so when the document does not contain the answer.");
 
         return string.Join('\n', parts);
+    }
+
+    private static string BuildAccountContext(
+        IEnumerable<Document> documents,
+        IEnumerable<Event> events,
+        IEnumerable<Reminder> reminders)
+    {
+        var parts = new List<string>
+        {
+            "You are answering questions about the user's account. Here is a summary of their data."
+        };
+
+        var documentLines = documents
+            .OrderBy(d => d.ExpiryDate ?? DateTime.MaxValue)
+            .Select(d => d.ExpiryDate is { } e ? $"- {d.Title} (expires {e:yyyy-MM-dd})" : $"- {d.Title}")
+            .ToList();
+
+        if (documentLines.Count > 0)
+        {
+            parts.Add($"Documents:\n{string.Join('\n', documentLines)}");
+        }
+
+        var eventLines = events
+            .OrderBy(e => e.EventDate)
+            .Select(e => $"- {e.Title} ({e.EventDate:yyyy-MM-dd})")
+            .ToList();
+
+        if (eventLines.Count > 0)
+        {
+            parts.Add($"Events:\n{string.Join('\n', eventLines)}");
+        }
+
+        var reminderLines = reminders
+            .OrderBy(r => r.ReminderDate)
+            .Select(r => $"- {r.ReminderDate:yyyy-MM-dd} ({r.Status})")
+            .ToList();
+
+        if (reminderLines.Count > 0)
+        {
+            parts.Add($"Reminders:\n{string.Join('\n', reminderLines)}");
+        }
+
+        parts.Add(
+            "Answer questions about the data above. If the user asks about something not listed, say you do not have that information.");
+
+        return Truncate(string.Join("\n\n", parts), 12_000);
     }
 
     private static string ValidateContent(string content)

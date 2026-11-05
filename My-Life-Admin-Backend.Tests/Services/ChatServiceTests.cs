@@ -1,3 +1,4 @@
+using Moq;
 using My_Life_Admin.Ai;
 using My_Life_Admin.Models;
 using My_Life_Admin.Options;
@@ -10,17 +11,28 @@ public class ChatServiceTests
 {
     private readonly FakeChatMessageRepository _repository = new();
     private readonly FakeDocumentRepository _documentRepository = new();
+    private readonly Mock<IEventRepository> _eventRepositoryMock = new();
+    private readonly Mock<IReminderRepository> _reminderRepositoryMock = new();
     private readonly FakeAiChatClient _aiClient = new();
     private readonly AiOptions _aiOptions = new() { MaxHistoryMessages = 20 };
     private readonly ChatService _service;
 
     public ChatServiceTests()
     {
+        _eventRepositoryMock
+            .Setup(r => r.GetByUserIdAsync(It.IsAny<int>()))
+            .ReturnsAsync(Enumerable.Empty<Event>());
+        _reminderRepositoryMock
+            .Setup(r => r.GetByUserIdAsync(It.IsAny<int>()))
+            .ReturnsAsync(Enumerable.Empty<Reminder>());
+
         _service = new ChatService(
             _repository,
             _aiClient,
             Microsoft.Extensions.Options.Options.Create(_aiOptions),
-            _documentRepository);
+            _documentRepository,
+            _eventRepositoryMock.Object,
+            _reminderRepositoryMock.Object);
     }
 
     [Fact]
@@ -128,6 +140,42 @@ public class ChatServiceTests
         Assert.Equal("General question", exchange.UserMessage.Content);
         Assert.Empty(_repository.Messages);
         Assert.Equal(0, _repository.SaveCount);
+    }
+
+    [Fact]
+    public async Task SendAsync_WithoutDocumentId_IncludesAccountContext()
+    {
+        _documentRepository.Documents.Add(new Document
+        {
+            Id = 1,
+            UserId = 1,
+            Title = "Passport",
+            ExpiryDate = new DateTime(2030, 1, 1)
+        });
+        _eventRepositoryMock
+            .Setup(r => r.GetByUserIdAsync(1))
+            .ReturnsAsync([new Event { UserId = 1, Title = "Dentist", EventDate = new DateTime(2026, 3, 1) }]);
+        _reminderRepositoryMock
+            .Setup(r => r.GetByUserIdAsync(1))
+            .ReturnsAsync(
+            [
+                new Reminder
+                {
+                    UserId = 1,
+                    ReminderDate = new DateTime(2026, 3, 1),
+                    Status = ReminderStatus.Pending
+                }
+            ]);
+
+        await _service.SendAsync(1, "What do I have coming up?");
+
+        Assert.NotNull(_aiClient.LastConversation);
+        var first = _aiClient.LastConversation[0];
+        Assert.Equal(ChatRole.System, first.Role);
+        Assert.Contains("Passport", first.Content);
+        Assert.Contains("Dentist", first.Content);
+        Assert.Contains("Reminders", first.Content);
+        Assert.Equal("What do I have coming up?", _aiClient.LastConversation[^1].Content);
     }
 
     [Fact]

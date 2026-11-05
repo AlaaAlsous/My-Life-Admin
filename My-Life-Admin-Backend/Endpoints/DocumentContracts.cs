@@ -19,3 +19,9 @@ public class CreateDocumentForm
 }
 
 public record UpdateDocumentRequest(string Title, string? Description, string? Category, DateTime? ExpiryDate);
+
+public record DocumentAnalysisResponse(
+    string? Title,
+    string? Category,
+    DateTime? ExpiryDate,
+    string? Description);

@@ -34,7 +34,7 @@ public class DocumentAnalysisEndpointsTests
         var result = await DocumentEndpoints.AnalyzeAsync(
             1, _user, _serviceMock.Object, _analyzerMock.Object, CancellationToken.None);
 
-        var ok = Assert.IsType<Ok<DocumentAnalysisResult>>(result);
+        var ok = Assert.IsType<Ok<DocumentAnalysisResponse>>(result);
         Assert.Equal("Passport", ok.Value!.Title);
         Assert.Equal("ID", ok.Value.Category);
         Assert.Equal(new DateTime(2030, 1, 1), ok.Value.ExpiryDate);
