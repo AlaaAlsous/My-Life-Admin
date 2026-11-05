@@ -144,6 +144,55 @@ export class EventComponent implements OnInit, OnDestroy {
     this.editingEventId.set(null);
   }
 
+  protected saveEvent(): void {
+    const id = this.editingEventId();
+
+    if (id === null || !this.editTitle.trim() || !this.editDate) {
+      return;
+    }
+
+    const originalEvent = this.events().find(event => event.id === id);
+
+    if (!originalEvent) {
+      this.errorMessage.set('Could not find event.');
+      return;
+    }
+
+    this.savingEvent.set(true);
+    this.errorMessage.set('');
+    this.successMessage.set('');
+
+    this.eventService.update(id, {
+      documentId: originalEvent.documentId,
+      title: this.editTitle.trim(),
+      description: this.editDescription.trim() || null,
+      category: this.editCategory.trim(),
+      eventDate: new Date(this.editDate).toISOString(),
+    }).subscribe({
+      next: (updatedEvent) => {
+        this.events.update(events =>
+          events.map(event =>
+            event.id === id ? updatedEvent : event
+          )
+        );
+
+        this.selectedEvents.update(events =>
+          events?.map(event =>
+            event.id === id ? updatedEvent : event
+          ) ?? null
+        );
+
+        this.savingEvent.set(false);
+        this.editingEventId.set(null);
+        this.successMessage.set('Event updated successfully.');
+      },
+      error: () => {
+        this.savingEvent.set(false);
+        this.errorMessage.set('Could not update event.');
+      },
+    });
+  }
+
   protected onDaySelected(day: CalendarDay): void {
     this.selectedDate.set(day.date);
     this.selectedEvents.set(day.events);

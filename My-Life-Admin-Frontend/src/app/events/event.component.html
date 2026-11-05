@@ -160,7 +160,15 @@
 
           <div class="flex gap-2">
             <button type="button"
+                    class="rounded-control bg-primary px-4 py-2 text-label font-medium text-white hover:bg-primary-hover disabled:opacity-50"
+                    [disabled]="savingEvent()"
+                    (click)="saveEvent()">
+              {{ savingEvent() ? 'Saving...' : 'Save Changes' }}
+            </button>
+
+            <button type="button"
                     class="rounded-control border border-border-soft px-4 py-2 text-label hover:bg-surface-muted"
+                    [disabled]="savingEvent()"
                     (click)="cancelEditing()">
               Cancel
             </button>
