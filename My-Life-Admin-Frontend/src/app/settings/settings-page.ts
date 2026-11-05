@@ -48,6 +48,7 @@ export class SettingsPage {
     this.darkMode.set(value);
     this.themeService.setDarkMode(value);
     this.saved.set(false);
+    this.save();
   }
 
   protected setEmailNotifications(value: boolean): void {
