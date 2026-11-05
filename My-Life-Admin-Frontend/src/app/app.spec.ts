@@ -3,10 +3,14 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { App } from './app';
+import { AuthTokenService } from './auth/auth-token.service';
 import { ConfirmationService } from './shared/confirmation/confirmation.service';
 
 describe('App', () => {
   beforeEach(async () => {
+    localStorage.removeItem('my-life-admin.auth-token');
+    localStorage.removeItem('my-life-admin.dark-mode');
+    document.documentElement.classList.remove('dark');
     await TestBed.configureTestingModule({
       imports: [App],
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
@@ -42,5 +46,23 @@ describe('App', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('app-layout')).toBeTruthy();
     expect(compiled.querySelector('footer')?.textContent).toContain('Healthy');
+  });
+
+  it('loads the signed-in user theme across the app', async () => {
+    TestBed.inject(AuthTokenService).setToken('jwt');
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const http = TestBed.inject(HttpTestingController);
+
+    http.expectOne('http://localhost:5076/api/health').flush({ status: 'Healthy' });
+    http
+      .expectOne('http://localhost:5076/api/settings')
+      .flush({ id: 1, userId: 1, darkMode: true, emailNotifications: true });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(document.documentElement.classList.contains('dark')).toBe(true);
+    expect(localStorage.getItem('my-life-admin.dark-mode')).toBe('true');
+    TestBed.inject(AuthTokenService).clearToken();
   });
 });
