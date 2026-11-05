@@ -35,6 +35,13 @@ export class EventComponent implements OnInit, OnDestroy {
   protected readonly selectedDate = signal<Date | null>(null);
   protected readonly selectedEvents = signal<EventDto[] | null>(null);
   protected readonly showTimeline = signal(false);
+  protected readonly editingEventId = signal<number | null>(null);
+  protected readonly savingEvent = signal(false);
+
+  protected editTitle = '';
+  protected editDescription = '';
+  protected editCategory = '';
+  protected editDate = '';
 
   protected readonly sortedEvents = computed(() =>
     [...this.events()].sort(
@@ -116,6 +123,25 @@ export class EventComponent implements OnInit, OnDestroy {
   protected onEventSelected(event: EventDto): void {
     this.selectedDate.set(null);
     this.selectedEvents.set([event]);
+  }
+
+  protected startEditing(event: EventDto): void {
+    this.editingEventId.set(event.id);
+
+    this.editTitle = event.title;
+    this.editDescription = event.description ?? '';
+    this.editCategory = event.category;
+
+    const date = new Date(event.eventDate);
+    const localDate = new Date(
+      date.getTime() - date.getTimezoneOffset() * 60000
+    );
+
+    this.editDate = localDate.toISOString().slice(0, 16);
+  }
+
+  protected cancelEditing(): void {
+    this.editingEventId.set(null);
   }
 
   protected onDaySelected(day: CalendarDay): void {
