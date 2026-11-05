@@ -25,9 +25,18 @@ export class EventTimeline {
   );
 
   protected eventsAtHour(hour: number): EventDto[] {
-    return this.timelineEvents().filter(
-      event => new Date(event.eventDate).getHours() === hour
-    );
+    const selected = this.selectedDate();
+
+    return this.timelineEvents().filter(event => {
+      const eventDate = new Date(event.eventDate);
+
+      const sameDay =
+        eventDate.getFullYear() === selected.getFullYear() &&
+        eventDate.getMonth() === selected.getMonth() &&
+        eventDate.getDate() === selected.getDate();
+
+      return sameDay && eventDate.getHours() === hour;
+    });
   }
 
   protected selectEvent(event: EventDto): void {
