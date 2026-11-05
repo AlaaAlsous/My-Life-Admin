@@ -157,6 +157,40 @@
   >
     <h2 id="list-heading" class="text-title text-plum">Your files</h2>
 
+    <div class="mt-4">
+      <label for="document-search" class="block text-label font-medium text-plum">
+        Search documents
+      </label>
+
+      <input
+        id="document-search"
+        type="search"
+        placeholder="Search by title..."
+        class="mt-1 w-full rounded-control border border-border bg-white px-3 py-2"
+        [value]="searchQuery()"
+        (input)="searchQuery.set($any($event.target).value)"
+      />
+    </div>
+
+    <div class="mt-4">
+      <label for="category-filter" class="block text-label font-medium text-plum">
+        Filter by category
+      </label>
+
+      <select
+        id="category-filter"
+        class="mt-1 w-full rounded-control border border-border bg-white px-3 py-2"
+        [value]="selectedCategory()"
+        (change)="selectedCategory.set($any($event.target).value)"
+      >
+        <option value="">All categories</option>
+
+        @for (category of categories(); track category) {
+          <option [value]="category">{{ category }}</option>
+        }
+      </select>
+    </div>
+
     @if (loading()) {
       <div class="mt-4">
         <app-loading-state label="Loading documents…" [lineCount]="5" />
@@ -176,12 +210,29 @@
           message="Upload your first document using the form."
         />
       </div>
+    } @else if (filteredDocuments().length === 0) {
+      <div class="mt-4">
+        <app-empty-state
+          title="No matching documents"
+          message="Try searching for a different title."
+        />
+      </div>
     } @else {
       <ul class="mt-4 divide-y divide-border-soft">
-        @for (document of documents(); track document.id) {
+        @for (document of filteredDocuments(); track document.id) {
           <li class="flex flex-wrap items-center justify-between gap-3 py-4">
             <div class="min-w-0">
-              <p class="font-medium text-plum">{{ document.title }}</p>
+              <div class="flex flex-wrap items-center gap-2">
+                <p class="font-medium text-plum">{{ document.title }}</p>
+
+                @if (isExpiringSoon(document)) {
+                  <span
+                    class="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800"
+                  >
+                    Expiring soon
+                  </span>
+                }
+              </div>
               <p class="text-label text-text-muted">
                 {{ document.fileName }}
                 @if (document.category) {

@@ -100,6 +100,8 @@
                     Pending
                   } @else if (reminder.status === ReminderStatus.Sent) {
                     Sent
+                  } @else if (reminder.status === ReminderStatus.Skipped) {
+                    Skipped (email reminders are off)
                   } @else {
                     Failed
                   }
