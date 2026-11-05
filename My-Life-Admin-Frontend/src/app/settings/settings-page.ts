@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { SettingsDto } from '../models/settings.dto';
 import { ErrorState } from '../shared/states/error-state';
 import { LoadingState } from '../shared/states/loading-state';
+import { ThemeService } from '../shared/theme/theme.service';
 import { SettingsService } from './settings.service';
 
 @Component({
@@ -11,6 +12,7 @@ import { SettingsService } from './settings.service';
 })
 export class SettingsPage {
   private readonly settingsService = inject(SettingsService);
+  private readonly themeService = inject(ThemeService);
 
   protected readonly loading = signal(true);
   protected readonly failed = signal(false);
@@ -44,6 +46,7 @@ export class SettingsPage {
 
   protected setDarkMode(value: boolean): void {
     this.darkMode.set(value);
+    this.themeService.setDarkMode(value);
     this.saved.set(false);
   }
 
@@ -85,6 +88,7 @@ export class SettingsPage {
   private apply(settings: SettingsDto): void {
     this.settings.set(settings);
     this.darkMode.set(settings.darkMode);
+    this.themeService.setDarkMode(settings.darkMode);
     this.emailNotifications.set(settings.emailNotifications);
   }
 }
