@@ -1,6 +1,6 @@
 <section
   aria-labelledby="documents-heading"
-  class="relative isolate overflow-hidden rounded-4xl bg-linear-to-br from-white via-[#f6ecf0] to-blush/60 px-6 py-10 shadow-soft ring-1 ring-border-soft sm:px-12 sm:py-14"
+  class="relative isolate overflow-hidden rounded-4xl bg-linear-to-br from-surface via-surface-muted to-blush/60 px-6 py-10 shadow-soft ring-1 ring-border-soft sm:px-12 sm:py-14"
 >
   <div
     aria-hidden="true"
@@ -241,7 +241,7 @@
                 · Added {{ document.uploadedAt | date: 'mediumDate' }}
               </p>
             </div>
-            <div class="flex shrink-0 gap-2">
+            <div class="flex w-full flex-wrap gap-2 sm:w-auto">
               <a
                 [routerLink]="['/documents', document.id]"
                 class="rounded-full bg-primary px-4 py-2 text-label font-medium text-white hover:bg-primary-hover"
