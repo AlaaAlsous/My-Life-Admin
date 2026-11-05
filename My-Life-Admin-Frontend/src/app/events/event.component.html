@@ -117,7 +117,56 @@
     <div class="mt-4 space-y-4">
       @for (event of selected; track event.id) {
       <article class="rounded-control bg-surface-muted p-4">
-        <h3 class="text-lg font-semibold text-plum">{{ event.title }}</h3>
+        <div class="flex items-center justify-between gap-3">
+          <h3 class="text-lg font-semibold text-plum">
+            {{ event.title }}
+          </h3>
+
+          <button type="button"
+                  class="rounded-control bg-primary px-3 py-1 text-label text-white hover:bg-primary-hover"
+                  (click)="startEditing(event)">
+            Edit
+          </button>
+        </div>
+
+        @if (editingEventId() === event.id) {
+        <div class="mt-4 space-y-3 rounded-control bg-white p-4">
+          <div>
+            <label class="block text-label font-medium">Title</label>
+            <input type="text"
+                   class="mt-1 w-full rounded-control border border-border-soft px-3 py-2"
+                   [(ngModel)]="editTitle" />
+          </div>
+
+          <div>
+            <label class="block text-label font-medium">Description</label>
+            <textarea class="mt-1 w-full rounded-control border border-border-soft px-3 py-2"
+                      [(ngModel)]="editDescription"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-label font-medium">Category</label>
+            <input type="text"
+                   class="mt-1 w-full rounded-control border border-border-soft px-3 py-2"
+                   [(ngModel)]="editCategory" />
+          </div>
+
+          <div>
+            <label class="block text-label font-medium">Date and time</label>
+            <input type="datetime-local"
+                   class="mt-1 w-full rounded-control border border-border-soft px-3 py-2"
+                   [(ngModel)]="editDate" />
+          </div>
+
+          <div class="flex gap-2">
+            <button type="button"
+                    class="rounded-control border border-border-soft px-4 py-2 text-label hover:bg-surface-muted"
+                    (click)="cancelEditing()">
+              Cancel
+            </button>
+          </div>
+        </div>
+        }
 
         @if (event.description) {
         <p class="mt-1 text-text-muted">{{ event.description }}</p>
