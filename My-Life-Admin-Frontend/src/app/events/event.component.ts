@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, computed, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -35,6 +35,14 @@ export class EventComponent implements OnInit, OnDestroy {
   protected readonly selectedDate = signal<Date | null>(null);
   protected readonly selectedEvents = signal<EventDto[] | null>(null);
   protected readonly showTimeline = signal(false);
+
+  protected readonly sortedEvents = computed(() =>
+    [...this.events()].sort(
+      (a, b) =>
+        new Date(a.eventDate).getTime() -
+        new Date(b.eventDate).getTime()
+    )
+  );
 
   protected toggleView(): void {
     this.showTimeline.update(value => !value);
