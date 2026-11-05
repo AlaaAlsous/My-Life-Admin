@@ -27,6 +27,39 @@
   <app-loading-state label="Loading events…" [lineCount]="2" />
   }
 
+  <section aria-labelledby="all-events-heading"
+           class="rounded-card bg-white p-5 shadow-soft ring-1 ring-border-soft sm:p-7">
+    <h2 id="all-events-heading" class="text-title text-plum">
+      All Events
+    </h2>
+
+    @if (events().length === 0) {
+    <p class="mt-4 text-text-muted">No events available.</p>
+    } @else {
+    <div class="mt-4 max-h-80 space-y-3 overflow-y-auto">
+      @for (event of events(); track event.id) {
+      <button type="button"
+              class="flex w-full items-center justify-between gap-4 rounded-control bg-surface-muted p-4 text-left hover:bg-blush/50"
+              (click)="onEventSelected(event)">
+        <div>
+          <h3 class="font-semibold text-plum">
+            {{ event.title }}
+          </h3>
+
+          <p class="mt-1 text-label text-text-muted">
+            {{ event.eventDate | date: 'EEEE, MMMM d, y, HH:mm' }}
+          </p>
+
+          <p class="text-label text-text-muted">
+            {{ event.category }}
+          </p> 
+        </div>
+      </button>
+      }
+    </div>
+    }
+  </section>
+
   <div class="flex items-center justify-between gap-3">
     <h2 class="text-title text-plum">
       {{ showTimeline() ? 'Timeline' : 'Calendar' }}
