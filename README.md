@@ -1,44 +1,53 @@
-# net25-devops-grupp-9
+# MyLife Admin
 
-## JWT setup (backend)
+MyLife Admin är en webbapp för att samla vardagsadministration på ett ställe. Håll koll på händelser och påminnelser, hantera dokument och få en överblick via dashboarden. Appen består av en Angular-frontend och ett .NET API.
 
-Backenden kräver en signeringsnyckel för JWT som **inte** får ligga i source control.
+## Funktionalitet
 
-Sätt den via miljövariabel innan du startar API:t:
+- Skapa ett konto och logga in för att komma åt dina personliga sidor.
+- Se nyligen tillagda dokument, kommande händelser och påminnelser som behöver uppmärksamhet på dashboarden.
+- Ladda upp, sök efter och visa dokument. Lägg till utgångsdatum som kan följas i kalendern.
+- Håll koll på viktiga datum i kalendern och hantera påminnelser, inklusive e-postaviseringar.
+- Chatta med AI-assistenten om du har konfigurerat Azure OpenAI.
+
+## Kom igång
+
+Du behöver .NET 10 SDK och Node.js 20 eller senare.
+
+1. Starta API:t i en terminal:
+
+   ```powershell
+   cd My-Life-Admin-Backend
+   $env:Jwt__SigningKey = "byt-till-en-lang-slumpmassig-nyckel"
+   dotnet run
+   ```
+
+   API:t startar på `http://localhost:5076`. I utvecklingsläge används SQLite och databasmigreringar körs automatiskt. JWT-nyckeln är lokal konfiguration och får inte checkas in i källkod.
+
+2. Starta webbappen i en annan terminal:
+
+   ```powershell
+   cd My-Life-Admin-Frontend
+   npm install
+   npm start
+   ```
+
+   Öppna `http://localhost:4200`.
+
+## JWT-konfiguration
+
+API:t kräver en signeringsnyckel för JWT. Konfigurera den med miljövariabeln `Jwt__SigningKey` som ovan. Övriga inställningar kan anges med `Jwt__Issuer`, `Jwt__Audience` och `Jwt__ExpiresMinutes`.
+
+## AI-assistent (valfri)
+
+Chatten (`POST /api/chat`) använder Azure OpenAI när alla tre inställningarna är angivna. Om alla är tomma svarar API:t med en platshållartext; om bara några är angivna startar inte API:t.
+
+Hämta `Endpoint` och `ApiKey` från Azure OpenAI-resursens **Keys and Endpoint**. `Deployment` är namnet på modellens deployment, inte modellnamnet. Spara värden lokalt med user-secrets från backendmappen:
 
 ```powershell
-$env:Jwt__SigningKey = "replace-with-a-long-random-secret"
-```
-
-Konfigurationsnycklar:
-
-- `Jwt__Issuer`
-- `Jwt__Audience`
-- `Jwt__ExpiresMinutes`
-- `Jwt__SigningKey`
-
-## AI-assistent (backend)
-
-Chatten (`POST /api/chat`) använder Azure OpenAI när `Endpoint`, `ApiKey` och `Deployment` är satta. Är alla tre tomma svarar API:t med en platshållartext, så att chatten går att använda innan Azure-resursen finns. Är bara några av dem satta startar inte API:t.
-
-Värdena finns på Azure OpenAI-resursen under **Keys and Endpoint**. `Deployment` är namnet ni gav deploymenten av modellen (inte modellnamnet, t.ex. `gpt-4o-mini`).
-
-Konfigurationsnycklar:
-
-- `Ai__Endpoint`
-- `Ai__ApiKey`
-- `Ai__Deployment`
-- `Ai__SystemPrompt` (valfri, instruktion till modellen)
-- `Ai__MaxHistoryMessages` (valfri, antal tidigare meddelanden som skickas med, standard 20)
-- `Ai__MaxOutputTokens` (valfri, max längd på svaret, standard 800)
-
-Sätt värdena lokalt med user-secrets (hamnar inte i source control):
-
-```powershell
-cd My-Life-Admin-Backend
-dotnet user-secrets set "Ai:Endpoint" "https://mylife-admin-openai.openai.azure.com/"
+dotnet user-secrets set "Ai:Endpoint" "https://din-resurs.openai.azure.com/"
 dotnet user-secrets set "Ai:ApiKey" "DIN_OPENAI_NYCKEL"
-dotnet user-secrets set "Ai:Deployment" "gpt-5.4-mini"
-dotnet user-secrets set "DocumentIntelligence:Endpoint" "https://mylife-admin-di.cognitiveservices.azure.com/"
-dotnet user-secrets set "DocumentIntelligence:ApiKey" "DIN_DOC_INTELLIGENCE_NYCKEL"
+dotnet user-secrets set "Ai:Deployment" "DIN_DEPLOYMENT"
 ```
+
+`Ai__SystemPrompt`, `Ai__MaxHistoryMessages` och `Ai__MaxOutputTokens` är valfria inställningar. Dokumentanalys kan också konfigureras med `DocumentIntelligence:Endpoint` och `DocumentIntelligence:ApiKey` via user-secrets.
