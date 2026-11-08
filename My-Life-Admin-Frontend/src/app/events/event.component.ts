@@ -1,5 +1,16 @@
 import { DatePipe } from '@angular/common';
-import { Component, computed, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  ElementRef,
+  inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -32,6 +43,8 @@ export class EventComponent implements OnInit, OnDestroy {
   private readonly eventService = inject(EventService);
   private readonly reminderService = inject(ReminderService);
   private readonly confirmation = inject(ConfirmationService);
+  private readonly injector = inject(Injector);
+  private readonly eventDetails = viewChild<ElementRef<HTMLElement>>('eventDetails');
 
   private eventsRequest?: Subscription;
   private allEventsRequest?: Subscription;
@@ -157,8 +170,35 @@ export class EventComponent implements OnInit, OnDestroy {
 
   protected onEventSelected(event: EventDto): void {
     this.cancelEditing();
-    this.selectedDate.set(new Date(event.eventDate));
+
+    const eventDate = new Date(event.eventDate);
+    const eventMonth = this.startOfMonth(eventDate);
+
+    if (this.month().getTime() !== eventMonth.getTime()) {
+      this.month.set(eventMonth);
+      this.loadEvents();
+    }
+
+    this.selectedDate.set(eventDate);
     this.selectedEvents.set([event]);
+
+    afterNextRender(
+      () => {
+        const element = this.eventDetails()?.nativeElement;
+
+        if (element) {
+          const extraScroll = -150;
+
+          const position = element.getBoundingClientRect().top + window.scrollY + extraScroll;
+
+          window.scrollTo({
+            top: position,
+            behavior: 'smooth',
+          });
+        }
+      },
+      { injector: this.injector },
+    );
   }
 
   protected onDaySelected(day: CalendarDay): void {
