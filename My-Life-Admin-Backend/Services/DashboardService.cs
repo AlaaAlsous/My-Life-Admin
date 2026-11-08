@@ -8,7 +8,7 @@ public sealed record DashboardDocument(int Id, string Title, string? Category, D
 
 public sealed record DashboardEvent(int Id, string Title, string Category, DateTime EventDate);
 
-public sealed record DashboardReminder(int Id, DateTime ReminderDate, string? Title);
+public sealed record DashboardReminder(int Id, DateTime ReminderDate, string? Title, int? EventId, int? DocumentId);
 
 public sealed record DashboardSummary(
     IReadOnlyList<DashboardDocument> RecentDocuments,
@@ -50,7 +50,9 @@ public class DashboardService(ApplicationDbContext db) : IDashboardService
             .Select(r => new DashboardReminder(
                 r.Id,
                 r.ReminderDate,
-                r.Event != null ? r.Event.Title : r.Document != null ? r.Document.Title : null))
+                r.Event != null ? r.Event.Title : r.Document != null ? r.Document.Title : null,
+                r.EventId,
+                r.DocumentId))
             .ToListAsync();
 
         return new DashboardSummary(documents, events, reminders);

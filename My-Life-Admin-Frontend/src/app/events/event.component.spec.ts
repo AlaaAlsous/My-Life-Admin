@@ -83,7 +83,7 @@ describe('EventComponent', () => {
     expect(details?.textContent).toContain('Passport expires');
     expect(details?.textContent).toContain('Identity');
     expect(details?.textContent).toContain('Renew in time');
-    expect(details?.querySelector('a')?.getAttribute('href')).toBe('/documents');
+    expect(details?.querySelector('a')?.getAttribute('href')).toBe('/documents/7');
   });
 
   async function openReminder(setupResult: ReturnType<typeof setup>) {
