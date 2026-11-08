@@ -105,7 +105,17 @@
           <ul class="mt-4 divide-y divide-border-soft">
             @for (reminder of data.latestReminders; track reminder.id) {
               <li>
-                <a routerLink="/events" class="group block py-3">
+                <a
+                  [routerLink]="
+                    reminder.eventId != null
+                      ? ['/events']
+                      : reminder.documentId != null
+                        ? ['/documents', reminder.documentId]
+                        : ['/events']
+                  "
+                  [queryParams]="reminder.eventId != null ? { event: reminder.eventId } : {}"
+                  class="group block py-3"
+                >
                   <p class="font-medium text-plum transition group-hover:text-primary">
                     {{ reminder.title ?? 'Reminder' }}
                   </p>

@@ -21,7 +21,7 @@ public class DashboardEndpointsTests
     private static DashboardSummary TestSummary() => new(
         [new DashboardDocument(1, "Passport", "ID", new DateTime(2026, 10, 1), new DateTime(2030, 1, 1))],
         [new DashboardEvent(2, "Dentist", "Health", new DateTime(2026, 11, 5, 9, 0, 0))],
-        [new DashboardReminder(3, new DateTime(2026, 10, 28), "Dentist")]);
+        [new DashboardReminder(3, new DateTime(2026, 10, 28), "Dentist", 2, null)]);
 
     [Fact]
     public async Task GetDashboard_ReturnsSummaryForUser()

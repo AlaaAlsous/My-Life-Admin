@@ -1,7 +1,18 @@
 import { DatePipe } from '@angular/common';
-import { Component, computed, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  ElementRef,
+  inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { EventDto } from '../models/event.dto';
 import { ReminderDto, ReminderStatus } from '../models/reminder.dto';
@@ -32,9 +43,13 @@ export class EventComponent implements OnInit, OnDestroy {
   private readonly eventService = inject(EventService);
   private readonly reminderService = inject(ReminderService);
   private readonly confirmation = inject(ConfirmationService);
+  private readonly injector = inject(Injector);
+  private readonly route = inject(ActivatedRoute);
+  private readonly eventDetails = viewChild<ElementRef<HTMLElement>>('eventDetails');
 
   private eventsRequest?: Subscription;
   private allEventsRequest?: Subscription;
+  private pendingEventId: number | null = null;
 
   protected readonly month = signal(this.startOfMonth(new Date()));
   protected readonly events = signal<EventDto[]>([]);
@@ -81,6 +96,17 @@ export class EventComponent implements OnInit, OnDestroy {
   protected customEditReminderDate: Record<number, string> = {};
 
   ngOnInit(): void {
+    this.route.queryParamMap.subscribe((params) => {
+      const raw = params.get('event');
+      const id = raw ? Number(raw) : NaN;
+
+      this.pendingEventId = Number.isFinite(id) ? id : null;
+
+      if (this.pendingEventId != null) {
+        this.trySelectEvent(this.pendingEventId);
+      }
+    });
+
     this.loadEvents();
     this.loadAllEvents();
     this.loadReminders();
@@ -89,6 +115,15 @@ export class EventComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.eventsRequest?.unsubscribe();
     this.allEventsRequest?.unsubscribe();
+  }
+
+  private trySelectEvent(id: number): void {
+    const event = this.allEvents().find((e) => e.id === id);
+
+    if (event) {
+      this.pendingEventId = null;
+      this.onEventSelected(event);
+    }
   }
 
   protected toggleView(): void {
@@ -134,6 +169,10 @@ export class EventComponent implements OnInit, OnDestroy {
       next: (events) => {
         this.allEvents.set(events);
         this.isLoadingAllEvents.set(false);
+
+        if (this.pendingEventId != null) {
+          this.trySelectEvent(this.pendingEventId);
+        }
       },
       error: () => {
         this.errorMessage.set('Could not load all events.');
@@ -157,8 +196,35 @@ export class EventComponent implements OnInit, OnDestroy {
 
   protected onEventSelected(event: EventDto): void {
     this.cancelEditing();
-    this.selectedDate.set(new Date(event.eventDate));
+
+    const eventDate = new Date(event.eventDate);
+    const eventMonth = this.startOfMonth(eventDate);
+
+    if (this.month().getTime() !== eventMonth.getTime()) {
+      this.month.set(eventMonth);
+      this.loadEvents();
+    }
+
+    this.selectedDate.set(eventDate);
     this.selectedEvents.set([event]);
+
+    afterNextRender(
+      () => {
+        const element = this.eventDetails()?.nativeElement;
+
+        if (element) {
+          const extraScroll = -150;
+
+          const position = element.getBoundingClientRect().top + window.scrollY + extraScroll;
+
+          window.scrollTo({
+            top: position,
+            behavior: 'smooth',
+          });
+        }
+      },
+      { injector: this.injector },
+    );
   }
 
   protected onDaySelected(day: CalendarDay): void {
