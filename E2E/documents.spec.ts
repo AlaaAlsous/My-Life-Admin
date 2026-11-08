@@ -81,6 +81,6 @@ test.describe('Documents: filter, download & delete', () => {
     await expect(confirm).toContainText('Delete document?');
     await confirm.getByRole('button', { name: 'Delete', exact: true }).click();
 
-    await expect(page.getByText(title)).toBeHidden();
+    await expect(page.getByText(title, { exact: true })).toBeHidden();
   });
 });
