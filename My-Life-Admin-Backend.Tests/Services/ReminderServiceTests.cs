@@ -273,5 +273,13 @@ public class ReminderServiceTests
                     .Where(r => r.Status == ReminderStatus.Pending)
                     .OrderBy(r => r.ReminderDate)
                     .ToList());
+
+        public Task<IEnumerable<Reminder>> GetByEventIdAsync(int eventId) =>
+            Task.FromResult<IEnumerable<Reminder>>(
+                Reminders.Where(r => r.EventId == eventId).ToList());
+
+        public Task<IEnumerable<Reminder>> GetByDocumentIdAsync(int documentId) =>
+            Task.FromResult<IEnumerable<Reminder>>(
+                Reminders.Where(r => r.DocumentId == documentId).ToList());
     }
 }

@@ -9,15 +9,18 @@ public class DocumentService : IDocumentService
     private readonly IDocumentRepository _documentRepository;
     private readonly IFileStorage _fileStorage;
     private readonly IDocumentEventSynchronizer _eventSynchronizer;
+    private readonly IReminderRepository _reminderRepository;
 
     public DocumentService(
         IDocumentRepository documentRepository,
         IFileStorage fileStorage,
-        IDocumentEventSynchronizer eventSynchronizer)
+        IDocumentEventSynchronizer eventSynchronizer,
+        IReminderRepository reminderRepository)
     {
         _documentRepository = documentRepository;
         _fileStorage = fileStorage;
         _eventSynchronizer = eventSynchronizer;
+        _reminderRepository = reminderRepository;
     }
 
     public async Task<Document?> GetByIdAsync(int id, int userId)
@@ -104,6 +107,14 @@ public class DocumentService : IDocumentService
         if (document == null)
         {
             return false;
+        }
+
+        // Cascade: delete reminders linked directly to the document.
+        var reminders = await _reminderRepository.GetByDocumentIdAsync(document.Id);
+
+        foreach (var reminder in reminders)
+        {
+            _reminderRepository.Delete(reminder);
         }
 
         await _eventSynchronizer.RemoveAsync(document);

@@ -13,14 +13,20 @@ public class DocumentServiceTests
     private readonly Mock<IDocumentRepository> _repositoryMock = new();
     private readonly Mock<IFileStorage> _fileStorageMock = new();
     private readonly Mock<IDocumentEventSynchronizer> _synchronizerMock = new();
+    private readonly Mock<IReminderRepository> _reminderRepositoryMock = new();
     private readonly DocumentService _service;
 
     public DocumentServiceTests()
     {
+        _reminderRepositoryMock
+            .Setup(r => r.GetByDocumentIdAsync(It.IsAny<int>()))
+            .ReturnsAsync(new List<Reminder>());
+
         _service = new DocumentService(
             _repositoryMock.Object,
             _fileStorageMock.Object,
-            _synchronizerMock.Object);
+            _synchronizerMock.Object,
+            _reminderRepositoryMock.Object);
     }
 
     [Fact]
