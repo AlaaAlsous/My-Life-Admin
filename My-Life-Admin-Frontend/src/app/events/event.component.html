@@ -277,6 +277,20 @@
             }
           </select>
 
+          @if (selectedEditReminder[event.id] === customReminderOption) {
+          <div class="mt-3">
+            <label class="block text-label font-medium"
+                   [for]="'custom-edit-reminder-' + event.id">
+              Reminder date and time
+            </label>
+
+            <input type="datetime-local"
+                   [id]="'custom-edit-reminder-' + event.id"
+                   class="mt-1 w-full rounded-control border border-border-soft px-3 py-2"
+                   [(ngModel)]="customEditReminderDate[event.id]" />
+          </div>
+          }
+
           <div class="mt-2 flex flex-wrap gap-2">
             @if (selectedEditReminder[event.id] !== undefined) {
             <button type="button"
@@ -314,9 +328,23 @@
             }
           </select>
 
+          @if (selectedReminder[event.id] === customReminderOption) {
+          <div class="mt-3">
+            <label class="block text-label font-medium"
+                   [for]="'custom-reminder-' + event.id">
+              Reminder date and time
+            </label>
+
+            <input type="datetime-local"
+                   [id]="'custom-reminder-' + event.id"
+                   class="mt-1 w-full rounded-control border border-border-soft px-3 py-2"
+                   [(ngModel)]="customReminderDate[event.id]" />
+          </div>
+          }
+
           @if (selectedReminder[event.id] !== undefined) {
           <button type="button"
-                  class="ml-2 rounded-control bg-primary px-3 py-1 text-label text-white hover:bg-primary-hover"
+                  class="mt-3 rounded-control bg-primary px-3 py-1 text-label text-white hover:bg-primary-hover"
                   (click)="createReminder(event)">
             Add reminder
           </button>
@@ -329,4 +357,5 @@
   </section>
   }
 </div>
+
 
