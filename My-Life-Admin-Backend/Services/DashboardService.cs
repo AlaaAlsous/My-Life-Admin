@@ -13,7 +13,7 @@ public sealed record DashboardReminder(int Id, DateTime ReminderDate, string? Ti
 public sealed record DashboardSummary(
     IReadOnlyList<DashboardDocument> RecentDocuments,
     IReadOnlyList<DashboardEvent> UpcomingEvents,
-    IReadOnlyList<DashboardReminder> DueReminders);
+    IReadOnlyList<DashboardReminder> LatestReminders);
 
 public interface IDashboardService
 {
@@ -44,8 +44,8 @@ public class DashboardService(ApplicationDbContext db) : IDashboardService
 
         var reminders = await db.Reminders
             .AsNoTracking()
-            .Where(r => r.UserId == userId && r.Status == ReminderStatus.Pending && r.ReminderDate <= now)
-            .OrderBy(r => r.ReminderDate)
+            .Where(r => r.UserId == userId && r.Status == ReminderStatus.Pending)
+            .OrderByDescending(r => r.ReminderDate)
             .Take(MaxItems)
             .Select(r => new DashboardReminder(
                 r.Id,

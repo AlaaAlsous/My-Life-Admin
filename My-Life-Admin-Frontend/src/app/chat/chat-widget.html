@@ -1,7 +1,7 @@
 <div class="fixed bottom-5 right-5 z-50 flex flex-col items-end">
   @if (open()) {
     <div
-      class="mb-3 flex h-[28rem] w-[22rem] max-w-[calc(100vw-2.5rem)] flex-col overflow-hidden rounded-card bg-white shadow-lift ring-1 ring-border-soft"
+      class="mb-3 flex h-112 max-h-[calc(100dvh-6rem)] w-88 max-w-[calc(100vw-2.5rem)] flex-col overflow-hidden rounded-card bg-white shadow-lift ring-1 ring-border-soft"
     >
       <header class="flex items-center justify-between gap-2 bg-primary px-4 py-3 text-white">
         <div>
@@ -48,10 +48,7 @@
             [class.text-white]="message.role === 'user'"
           >
             @if (message.role === 'assistant') {
-              <div
-                class="space-y-2 [&_a]:underline"
-                [innerHTML]="renderMarkdown(message.content)"
-              ></div>
+              <div class="space-y-2" [innerHTML]="renderMarkdown(message.content)"></div>
             } @else {
               {{ message.content }}
             }

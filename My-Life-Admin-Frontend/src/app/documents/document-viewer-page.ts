@@ -3,6 +3,7 @@ import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DocumentDto } from '../models/document.dto';
+import { ConfirmationService } from '../shared/confirmation/confirmation.service';
 import { ErrorState } from '../shared/states/error-state';
 import { LoadingState } from '../shared/states/loading-state';
 import { DocumentService } from './document.service';
@@ -17,6 +18,7 @@ export class DocumentViewerPage implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly documentService = inject(DocumentService);
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly confirmation = inject(ConfirmationService);
 
   protected readonly loading = signal(true);
   protected readonly failed = signal(false);
@@ -139,8 +141,21 @@ export class DocumentViewerPage implements OnInit, OnDestroy {
       return;
     }
 
-    this.documentService.delete(id).subscribe({
-      next: () => this.router.navigateByUrl('/documents'),
+    const document = this.document();
+
+    void this.confirmation.confirm({
+      title: 'Delete document?',
+      description: document
+        ? `"${document.title}" will be permanently deleted. This cannot be undone.`
+        : 'This document will be permanently deleted. This cannot be undone.',
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      destructive: true,
+      onConfirm: () => {
+        this.documentService.delete(id).subscribe({
+          next: () => this.router.navigateByUrl('/documents'),
+        });
+      },
     });
   }
 

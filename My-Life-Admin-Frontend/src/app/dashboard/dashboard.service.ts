@@ -27,7 +27,7 @@ export interface DashboardReminder {
 export interface DashboardSummary {
   recentDocuments: DashboardDocument[];
   upcomingEvents: DashboardEvent[];
-  dueReminders: DashboardReminder[];
+  latestReminders: DashboardReminder[];
 }
 
 @Injectable({ providedIn: 'root' })

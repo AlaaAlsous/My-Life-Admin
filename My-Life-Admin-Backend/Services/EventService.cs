@@ -3,7 +3,7 @@ using My_Life_Admin.Repositories;
 
 namespace My_Life_Admin.Services;
 
-public class EventService(IEventRepository repository) : IEventService
+public class EventService(IEventRepository repository, IReminderRepository reminderRepository) : IEventService
 {
     public Task<Event?> GetByIdAsync(int id, int userId)
     {
@@ -91,6 +91,14 @@ public class EventService(IEventRepository repository) : IEventService
         if (existing is null)
         {
             return false;
+        }
+
+        // Cascade: delete reminders that belong to this event.
+        var reminders = await reminderRepository.GetByEventIdAsync(id);
+
+        foreach (var reminder in reminders)
+        {
+            reminderRepository.Delete(reminder);
         }
 
         repository.Delete(existing);

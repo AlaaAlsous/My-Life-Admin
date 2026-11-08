@@ -4,5 +4,6 @@ public enum ReminderStatus
 {
     Pending,
     Sent,
-    Failed
+    Failed,
+    Skipped
 }

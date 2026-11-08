@@ -84,6 +84,23 @@ public class LocalFileStorageTests : IDisposable
         await _storage.DeleteAsync("missing.pdf");
     }
 
+    [Fact]
+    public async Task DeleteAsync_WhileReadStreamIsOpen_StillDeletesFile()
+    {
+        var key = await _storage.SaveAsync(new MemoryStream([1, 2, 3]), ".pdf");
+
+        var readStream = await _storage.OpenReadAsync(key);
+        Assert.NotNull(readStream);
+
+        await _storage.DeleteAsync(key);
+        Assert.Null(await _storage.OpenReadAsync(key));
+
+        using var copy = new MemoryStream();
+        await readStream.CopyToAsync(copy);
+        Assert.Equal(new byte[] { 1, 2, 3 }, copy.ToArray());
+        await readStream.DisposeAsync();
+    }
+
     [Theory]
     [InlineData("../secret.txt")]
     [InlineData("..")]
