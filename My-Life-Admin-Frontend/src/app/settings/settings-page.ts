@@ -47,16 +47,15 @@ export class SettingsPage {
   protected setDarkMode(value: boolean): void {
     this.darkMode.set(value);
     this.themeService.setDarkMode(value);
-    this.saved.set(false);
-    this.save();
+    this.persist();
   }
 
   protected setEmailNotifications(value: boolean): void {
     this.emailNotifications.set(value);
-    this.saved.set(false);
+    this.persist();
   }
 
-  protected save(): void {
+  private persist(): void {
     const current = this.settings();
 
     if (!current) {
@@ -65,6 +64,7 @@ export class SettingsPage {
 
     this.saving.set(true);
     this.saveError.set(null);
+    this.saved.set(false);
 
     this.settingsService
       .updateSettings({

@@ -64,21 +64,12 @@ describe('AppLayout', () => {
     expect(el.querySelector('header nav')?.classList).not.toContain('hidden');
   });
 
-  it('shows app info and navigation links in the footer', async () => {
+  it('shows app info in the footer', async () => {
     const { el } = await setup();
     const footer = el.querySelector('footer')!;
 
     expect(footer.textContent).toContain('My-Life-Admin');
-    expect(footer.querySelector('nav')?.getAttribute('aria-label')).toBe('Footer navigation');
-    expect(footer.querySelector('a')?.textContent).toContain('Features');
-  });
-
-  it('shows the backend status in the footer', async () => {
-    const { fixture, el } = await setup();
-    fixture.componentRef.setInput('status', 'Healthy');
-    fixture.detectChanges();
-
-    expect(el.querySelector('footer')?.textContent).toContain('Backend status: Healthy');
+    expect(footer.textContent).toContain(`${new Date().getFullYear()}`);
   });
 
   it('shows Log out and guarded links when logged in, and logs out', async () => {

@@ -35,7 +35,7 @@ describe('App', () => {
     expect(compiled.querySelector('[role="alertdialog"]')?.textContent).toContain('Delete event?');
   });
 
-  it('should render the layout and show the backend status', async () => {
+  it('should render the layout', async () => {
     const fixture = TestBed.createComponent(App);
     TestBed.inject(HttpTestingController)
       .expectOne('http://localhost:5076/api/health')
@@ -45,7 +45,6 @@ describe('App', () => {
 
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('app-layout')).toBeTruthy();
-    expect(compiled.querySelector('footer')?.textContent).toContain('Healthy');
   });
 
   it('loads the signed-in user theme across the app', async () => {

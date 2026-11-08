@@ -44,6 +44,20 @@ public class ReminderRepository : Repository<Reminder>, IReminderRepository
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<Reminder>> GetByEventIdAsync(int eventId)
+    {
+        return await _db.Reminders
+            .Where(r => r.EventId == eventId)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Reminder>> GetByDocumentIdAsync(int documentId)
+    {
+        return await _db.Reminders
+            .Where(r => r.DocumentId == documentId)
+            .ToListAsync();
+    }
+
     public async Task<IEnumerable<Reminder>> GetAllPendingAsync()
     {
         var now = DateTime.UtcNow;

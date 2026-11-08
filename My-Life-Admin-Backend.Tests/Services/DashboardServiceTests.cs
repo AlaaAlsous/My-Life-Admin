@@ -42,6 +42,6 @@ public class DashboardServiceTests
 
         Assert.Equal(new[] { 2, 1 }, summary.RecentDocuments.Select(d => d.Id));
         Assert.Equal(new[] { 2, 1 }, summary.UpcomingEvents.Select(e => e.Id));
-        Assert.Equal(new[] { 1 }, summary.DueReminders.Select(r => r.Id));
+        Assert.Equal(new[] { 2, 1 }, summary.LatestReminders.Select(r => r.Id));
     }
 }

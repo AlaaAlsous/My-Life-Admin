@@ -8,11 +8,18 @@ namespace My_Life_Admin.Tests.Services;
 public class DocumentEventSynchronizerTests
 {
     private readonly Mock<IEventRepository> _eventRepositoryMock = new();
+    private readonly Mock<IReminderRepository> _reminderRepositoryMock = new();
     private readonly DocumentEventSynchronizer _synchronizer;
 
     public DocumentEventSynchronizerTests()
     {
-        _synchronizer = new DocumentEventSynchronizer(_eventRepositoryMock.Object);
+        _reminderRepositoryMock
+            .Setup(r => r.GetByEventIdAsync(It.IsAny<int>()))
+            .ReturnsAsync(new List<Reminder>());
+
+        _synchronizer = new DocumentEventSynchronizer(
+            _eventRepositoryMock.Object,
+            _reminderRepositoryMock.Object);
     }
 
     private static Document Passport(int id = 5, DateTime? expiry = null) => new()

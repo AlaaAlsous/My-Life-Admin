@@ -13,7 +13,7 @@
         @if (isLoggedIn()) {
           <button
             type="button"
-            class="rounded-full bg-primary px-5 py-2 font-medium text-white shadow-soft transition hover:bg-primary-hover hover:shadow-lift"
+            class="rounded-full bg-primary px-5 py-2 font-medium text-white shadow-soft transition hover:bg-primary-hover hover:shadow-lift max-md:hidden"
             (click)="logout()"
           >
             Log out
@@ -31,13 +31,27 @@
         @if (navLinks().length > 0) {
           <button
             type="button"
-            class="rounded-full border border-border-soft bg-white px-4 py-2 text-text md:hidden"
+            class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border-soft bg-white text-text transition hover:bg-surface-muted md:hidden"
             aria-controls="main-nav"
             [attr.aria-label]="menuOpen() ? 'Close navigation menu' : 'Open navigation menu'"
             [attr.aria-expanded]="menuOpen()"
             (click)="toggleMenu()"
           >
-            Menu
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              class="h-5 w-5"
+              aria-hidden="true"
+            >
+              @if (menuOpen()) {
+                <path d="M6 6l12 12M18 6L6 18" />
+              } @else {
+                <path d="M4 7h16M4 12h16M4 17h16" />
+              }
+            </svg>
           </button>
         }
       </div>
@@ -63,6 +77,17 @@
                 </a>
               </li>
             }
+            @if (isLoggedIn()) {
+              <li class="border-t border-border-soft pt-1 md:hidden">
+                <button
+                  type="button"
+                  class="block w-full rounded-control px-2 py-2 text-left font-medium text-error"
+                  (click)="logout()"
+                >
+                  Log out
+                </button>
+              </li>
+            }
           </ul>
         </nav>
       }
@@ -82,46 +107,18 @@
   </main>
 
   <footer class="mt-8 bg-plum text-mauve">
-    <div class="mx-auto max-w-6xl px-4 py-10 text-label">
-      <div class="flex flex-col gap-4 sm:flex-row sm:justify-between">
-        <div class="max-w-sm">
-          <p class="font-display text-title font-semibold text-white">My-Life-Admin</p>
-          <p class="mt-1">
-            Keep your documents, receipts, personal details and important dates organized in one
-            place.
-          </p>
-        </div>
-        <nav aria-label="Footer navigation">
-          <ul class="flex flex-col gap-1">
-            <li>
-              <a
-                routerLink="/"
-                fragment="features"
-                class="text-blush visited:text-blush hover:text-white"
-                >Features</a
-              >
-            </li>
-            @if (!isLoggedIn()) {
-              <li>
-                <button
-                  type="button"
-                  class="text-blush hover:text-white"
-                  (click)="showLogin.set(true)"
-                >
-                  Log in
-                </button>
-              </li>
-            }
-          </ul>
-        </nav>
+    <div
+      class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-6 text-label"
+    >
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+        <p class="font-display text-title font-semibold text-white">My-Life-Admin</p>
+        <p class="hidden sm:inline">
+          Keep your documents, receipts, personal details and important dates organized in one
+          place.
+        </p>
       </div>
-      <div
-        class="mt-4 flex flex-col gap-1 border-t border-white/10 pt-5 sm:flex-row sm:justify-between"
-      >
+      <div class="flex items-center gap-4">
         <p>&copy; {{ currentYear }} My Life Admin</p>
-        @if (status()) {
-          <p>Backend status: {{ status() }}</p>
-        }
       </div>
     </div>
   </footer>

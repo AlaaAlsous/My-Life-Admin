@@ -7,10 +7,10 @@
     class="absolute -left-16 -top-16 -z-10 h-64 w-64 rounded-full bg-rose/25 blur-3xl"
   ></div>
   <p class="text-label font-semibold uppercase tracking-widest text-rose">Dashboard</p>
-  <h1 id="dashboard-heading" class="mt-2 text-4xl text-plum sm:text-5xl">
+  <h1 id="dashboard-heading" class="mt-2 text-3xl text-plum sm:text-4xl">
     Your <span class="text-primary">overview</span>
   </h1>
-  <p class="mt-3 max-w-2xl text-lg text-text-muted">
+  <p class="mt-3 max-w-2xl text-base text-text-muted">
     Recent documents, upcoming events and reminders that need your attention.
   </p>
 </section>
@@ -41,14 +41,18 @@
         } @else {
           <ul class="mt-4 divide-y divide-border-soft">
             @for (doc of data.recentDocuments; track doc.id) {
-              <li class="py-3">
-                <p class="font-medium text-plum">{{ doc.title }}</p>
-                <p class="text-label text-text-muted">
-                  @if (doc.category) {
-                    {{ doc.category }} ·
-                  }
-                  Added {{ doc.uploadedAt | date: 'mediumDate' }}
-                </p>
+              <li>
+                <a [routerLink]="['/documents', doc.id]" class="group block py-3">
+                  <p class="font-medium text-plum transition group-hover:text-primary">
+                    {{ doc.title }}
+                  </p>
+                  <p class="text-label text-text-muted">
+                    @if (doc.category) {
+                      {{ doc.category }} ·
+                    }
+                    Added {{ doc.uploadedAt | date: 'mediumDate' }}
+                  </p>
+                </a>
               </li>
             }
           </ul>
@@ -70,14 +74,18 @@
         } @else {
           <ul class="mt-4 divide-y divide-border-soft">
             @for (event of data.upcomingEvents; track event.id) {
-              <li class="py-3">
-                <p class="font-medium text-plum">{{ event.title }}</p>
-                <p class="text-label text-text-muted">
-                  {{ event.eventDate | date: 'medium' }}
-                  @if (event.category) {
-                    · {{ event.category }}
-                  }
-                </p>
+              <li>
+                <a routerLink="/events" class="group block py-3">
+                  <p class="font-medium text-plum transition group-hover:text-primary">
+                    {{ event.title }}
+                  </p>
+                  <p class="text-label text-text-muted">
+                    {{ event.eventDate | date: 'medium' }}
+                    @if (event.category) {
+                      · {{ event.category }}
+                    }
+                  </p>
+                </a>
               </li>
             }
           </ul>
@@ -88,22 +96,23 @@
         aria-labelledby="reminders-heading"
         class="rounded-card bg-white p-7 shadow-soft ring-1 ring-border-soft"
       >
-        <h2 id="reminders-heading" class="text-title text-plum">Due reminders</h2>
-        @if (data.dueReminders.length === 0) {
+        <h2 id="reminders-heading" class="text-title text-plum">Latest reminders</h2>
+        @if (data.latestReminders.length === 0) {
           <div class="mt-4">
-            <app-empty-state
-              title="Nothing due"
-              message="You have no reminders that need attention."
-            />
+            <app-empty-state title="No reminders" message="Reminders you add will appear here." />
           </div>
         } @else {
           <ul class="mt-4 divide-y divide-border-soft">
-            @for (reminder of data.dueReminders; track reminder.id) {
-              <li class="py-3">
-                <p class="font-medium text-plum">{{ reminder.title ?? 'Reminder' }}</p>
-                <p class="text-label text-text-muted">
-                  Due {{ reminder.reminderDate | date: 'medium' }}
-                </p>
+            @for (reminder of data.latestReminders; track reminder.id) {
+              <li>
+                <a routerLink="/events" class="group block py-3">
+                  <p class="font-medium text-plum transition group-hover:text-primary">
+                    {{ reminder.title ?? 'Reminder' }}
+                  </p>
+                  <p class="text-label text-text-muted">
+                    {{ reminder.reminderDate | date: 'medium' }}
+                  </p>
+                </a>
               </li>
             }
           </ul>

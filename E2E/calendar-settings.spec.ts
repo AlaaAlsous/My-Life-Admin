@@ -33,14 +33,13 @@ test.describe('Calendar', () => {
 });
 
 test.describe('Settings', () => {
-  test('ändrar e-postinställning och sparar', async ({ page }) => {
+  test('ändrar e-postinställning (sparas direkt)', async ({ page }) => {
     await register(page, uniqueUser('settings'));
     await page.goto('/settings');
 
     const email = page.locator('#setting-email');
     const before = await email.isChecked();
     await page.getByText('Email reminders', { exact: true }).click();
-    await page.getByRole('button', { name: 'Save settings' }).click();
 
     await expect(page.getByText('Your settings have been saved.')).toBeVisible();
     await expect(email).toBeChecked({ checked: !before });
@@ -52,8 +51,26 @@ test.describe('Settings', () => {
 
     const dark = page.locator('#setting-dark-mode');
     const before = await dark.isChecked();
+    const htmlDarkBefore = await page.locator('html').evaluate((el) => el.classList.contains('dark'));
     await page.getByText('Dark mode', { exact: true }).click();
 
+    // Temat tillämpas direkt och valet sparas.
+    await expect(page.getByText('Your settings have been saved.')).toBeVisible();
     await expect(dark).toBeChecked({ checked: !before });
+    const htmlDarkAfter = await page.locator('html').evaluate((el) => el.classList.contains('dark'));
+    expect(htmlDarkAfter).toBe(!htmlDarkBefore);
+  });
+
+  test('ändringar finns kvar efter omladdning', async ({ page }) => {
+    await register(page, uniqueUser('persist'));
+    await page.goto('/settings');
+
+    const before = await page.locator('#setting-email').isChecked();
+    await page.getByText('Email reminders', { exact: true }).click();
+    await expect(page.getByText('Your settings have been saved.')).toBeVisible();
+
+    // Ladda om -> ändringen ska finnas kvar (den sparades direkt).
+    await page.reload();
+    await expect(page.locator('#setting-email')).toBeChecked({ checked: !before });
   });
 });

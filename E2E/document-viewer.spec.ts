@@ -66,10 +66,13 @@ test.describe('Document viewer', () => {
 
     await page.locator('li', { hasText: title }).getByRole('link', { name: 'View' }).click();
 
-    // I detaljvyn raderas dokumentet direkt (utan bekräftelsedialog).
+    // I detaljvyn kräver radering en bekräftelse i dialogen.
     await page.getByRole('button', { name: 'Delete' }).click();
+    const confirm = page.getByRole('alertdialog');
+    await expect(confirm).toContainText('Delete document?');
+    await confirm.getByRole('button', { name: 'Delete', exact: true }).click();
 
     await expect(page).toHaveURL(/\/documents$/);
-    await expect(page.getByText(title)).toBeHidden();
+    await expect(page.getByText(title, { exact: true })).toBeHidden();
   });
 });
