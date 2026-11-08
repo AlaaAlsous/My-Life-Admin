@@ -1,5 +1,16 @@
 import { DatePipe } from '@angular/common';
-import { afterNextRender, Component, computed, ElementRef, inject, Injector, OnDestroy, OnInit, signal, viewChild,} from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  ElementRef,
+  inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -178,10 +189,7 @@ export class EventComponent implements OnInit, OnDestroy {
         if (element) {
           const extraScroll = -150;
 
-          const position =
-            element.getBoundingClientRect().top +
-            window.scrollY +
-            extraScroll;
+          const position = element.getBoundingClientRect().top + window.scrollY + extraScroll;
 
           window.scrollTo({
             top: position,
