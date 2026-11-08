@@ -35,7 +35,15 @@ describe('DashboardService', () => {
       upcomingEvents: [
         { id: 2, title: 'Dentist', category: 'Health', eventDate: '2026-07-01T10:00:00Z' },
       ],
-      latestReminders: [{ id: 3, reminderDate: '2026-06-10T00:00:00Z', title: 'Renew insurance', eventId: 2, documentId: null }],
+      latestReminders: [
+        {
+          id: 3,
+          reminderDate: '2026-06-10T00:00:00Z',
+          title: 'Renew insurance',
+          eventId: 2,
+          documentId: null,
+        },
+      ],
     };
     let result: DashboardSummary | undefined;
 
