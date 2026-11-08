@@ -36,12 +36,6 @@ describe('SettingsPage', () => {
     input.dispatchEvent(new Event('change'));
   }
 
-  function saveButton(el: HTMLElement) {
-    return [...el.querySelectorAll<HTMLButtonElement>('button')].find((b) =>
-      b.textContent?.includes('Save settings'),
-    )!;
-  }
-
   it('loads and shows the saved settings', async () => {
     const { el } = await loaded();
 
@@ -49,15 +43,17 @@ describe('SettingsPage', () => {
     expect(el.querySelector<HTMLInputElement>('#setting-dark-mode')!.checked).toBe(false);
   });
 
-  it('applies saved dark mode and automatically persists changes', async () => {
+  it('applies and saves dark mode immediately when toggled', async () => {
     const { fixture, http, el } = setup();
     http.expectOne(settingsUrl).flush({ ...settings, darkMode: true });
     await fixture.whenStable();
     fixture.detectChanges();
 
+    // The saved theme is applied on load.
     expect(document.documentElement.classList.contains('dark')).toBe(true);
     expect(localStorage.getItem('my-life-admin.dark-mode')).toBe('true');
 
+    // Toggling applies the theme and saves immediately.
     toggle(el, '#setting-dark-mode');
     expect(document.documentElement.classList.contains('dark')).toBe(false);
     expect(localStorage.getItem('my-life-admin.dark-mode')).toBe('false');
@@ -67,6 +63,7 @@ describe('SettingsPage', () => {
     expect(request.request.body).toEqual({ ...settings, darkMode: false });
     request.flush({ ...settings, darkMode: false });
     await fixture.whenStable();
+    fixture.detectChanges();
 
     expect(el.textContent).toContain('Your settings have been saved.');
   });
@@ -87,38 +84,26 @@ describe('SettingsPage', () => {
     expect(el.querySelector('#setting-email')).not.toBeNull();
   });
 
-  it('saves the changed settings', async () => {
+  it('saves email notification changes immediately when toggled', async () => {
     const { fixture, http, el } = await loaded();
 
-    toggle(el, '#setting-dark-mode');
-    const darkModeRequest = http.expectOne(settingsUrl);
-    expect(darkModeRequest.request.body).toEqual({ ...settings, darkMode: true });
-    darkModeRequest.flush({ ...settings, darkMode: true });
-    await fixture.whenStable();
-
     toggle(el, '#setting-email');
-    fixture.detectChanges();
-    saveButton(el).click();
 
     const request = http.expectOne(settingsUrl);
     expect(request.request.method).toBe('PUT');
-    expect(request.request.body).toEqual({
-      ...settings,
-      darkMode: true,
-      emailNotifications: false,
-    });
-    request.flush({ ...settings, darkMode: true, emailNotifications: false });
+    expect(request.request.body).toEqual({ ...settings, emailNotifications: false });
+    request.flush({ ...settings, emailNotifications: false });
     await fixture.whenStable();
     fixture.detectChanges();
 
     expect(el.textContent).toContain('Your settings have been saved.');
-    expect(el.querySelector<HTMLInputElement>('#setting-dark-mode')!.checked).toBe(true);
+    expect(el.querySelector<HTMLInputElement>('#setting-email')!.checked).toBe(false);
   });
 
   it('shows an error when saving fails', async () => {
     const { fixture, http, el } = await loaded();
 
-    saveButton(el).click();
+    toggle(el, '#setting-email');
     http.expectOne(settingsUrl).flush(null, { status: 500, statusText: 'Server Error' });
     await fixture.whenStable();
     fixture.detectChanges();
