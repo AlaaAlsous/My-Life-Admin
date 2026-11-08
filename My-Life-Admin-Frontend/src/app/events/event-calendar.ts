@@ -14,6 +14,8 @@ export class EventCalendar {
   readonly events = input<EventDto[]>([]);
   readonly month = input<Date>(new Date());
 
+  readonly selectedDate = input<Date | null>(null);
+
   readonly monthChange = output<Date>();
   readonly eventSelected = output<EventDto>();
   readonly daySelected = output<CalendarDay>();
@@ -48,5 +50,19 @@ export class EventCalendar {
 
   protected selectDay(day: CalendarDay): void {
     this.daySelected.emit(day);
+  }
+
+  protected isSelected(day: CalendarDay): boolean {
+    const selected = this.selectedDate();
+
+    if (!selected) {
+      return false;
+    }
+
+    return (
+      day.date.getFullYear() === selected.getFullYear() &&
+      day.date.getMonth() === selected.getMonth() &&
+      day.date.getDate() === selected.getDate()
+    );
   }
 }

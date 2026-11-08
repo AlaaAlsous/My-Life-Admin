@@ -97,6 +97,7 @@
         <app-event-calendar
           [events]="events()"
           [month]="month()"
+          [selectedDate]="selectedDate()"
           (monthChange)="onMonthChange($event)"
           (eventSelected)="onEventSelected($event)"
           (daySelected)="onDaySelected($event)"
