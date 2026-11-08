@@ -157,7 +157,7 @@ export class EventComponent implements OnInit, OnDestroy {
 
   protected onEventSelected(event: EventDto): void {
     this.cancelEditing();
-    this.selectedDate.set(null);
+    this.selectedDate.set(new Date(event.eventDate));
     this.selectedEvents.set([event]);
   }
 
