@@ -74,10 +74,14 @@ export class EventComponent implements OnInit, OnDestroy {
     { label: '1 month before', months: 1, days: 0 },
     { label: '3 months before', months: 3, days: 0 },
     { label: '6 months before', months: 6, days: 0 },
+    { label: 'Custom date and time', months: 0, days: 0 },
   ];
 
+  protected readonly customReminderOption = 4;
   protected selectedReminder: Record<number, number | undefined> = {};
   protected selectedEditReminder: Record<number, number | undefined> = {};
+  protected customReminderDate: Record<number, string> = {};
+  protected customEditReminderDate: Record<number, string> = {};
 
   ngOnInit(): void {
     this.loadEvents();
