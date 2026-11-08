@@ -64,52 +64,11 @@
                 {{ event.category }}
               </p>
             </div>
-
           </button>
         }
       </div>
     }
   </section>
-
-  <div class="flex items-center justify-between gap-3">
-    <h2 class="text-title text-plum">
-      {{ showTimeline() ? 'Timeline' : 'Calendar' }}
-    </h2>
-
-    <button
-      type="button"
-      class="rounded-control bg-primary px-4 py-2 text-label font-medium text-white hover:bg-primary-hover"
-      (click)="toggleView()"
-    >
-      {{ showTimeline() ? 'Calendar' : 'Timeline' }}
-    </button>
-  </div>
-
-  <div class="relative [perspective:1200px]">
-    <div
-      class="relative grid [transform-style:preserve-3d] transition-transform duration-700 ease-in-out"
-      [class.[transform:rotateY(180deg)]]="showTimeline()"
-    >
-      <div class="col-start-1 row-start-1 [backface-visibility:hidden]">
-        <app-event-calendar
-          [events]="events()"
-          [month]="month()"
-          [selectedDate]="selectedDate()"
-          (monthChange)="onMonthChange($event)"
-          (eventSelected)="onEventSelected($event)"
-          (daySelected)="onDaySelected($event)"
-        />
-      </div>
-
-      <div class="col-start-1 row-start-1 [backface-visibility:hidden] [transform:rotateY(180deg)]">
-        <app-event-timeline
-          [events]="events()"
-          [selectedDate]="selectedDate() ?? month()"
-          (eventSelected)="onEventSelected($event)"
-        />
-      </div>
-    </div>
-  </div>
 
   @if (selectedEvents(); as selected) {
     <section
@@ -396,4 +355,44 @@
       </div>
     </section>
   }
+
+  <div class="flex items-center justify-between gap-3">
+    <h2 class="text-title text-plum">
+      {{ showTimeline() ? 'Timeline' : 'Calendar' }}
+    </h2>
+
+    <button
+      type="button"
+      class="rounded-control bg-primary px-4 py-2 text-label font-medium text-white hover:bg-primary-hover"
+      (click)="toggleView()"
+    >
+      {{ showTimeline() ? 'Calendar' : 'Timeline' }}
+    </button>
+  </div>
+
+  <div class="relative [perspective:1200px]">
+    <div
+      class="relative grid [transform-style:preserve-3d] transition-transform duration-700 ease-in-out"
+      [class.[transform:rotateY(180deg)]]="showTimeline()"
+    >
+      <div class="col-start-1 row-start-1 [backface-visibility:hidden]">
+        <app-event-calendar
+          [events]="events()"
+          [month]="month()"
+          [selectedDate]="selectedDate()"
+          (monthChange)="onMonthChange($event)"
+          (eventSelected)="onEventSelected($event)"
+          (daySelected)="onDaySelected($event)"
+        />
+      </div>
+
+      <div class="col-start-1 row-start-1 [backface-visibility:hidden] [transform:rotateY(180deg)]">
+        <app-event-timeline
+          [events]="events()"
+          [selectedDate]="selectedDate() ?? month()"
+          (eventSelected)="onEventSelected($event)"
+        />
+      </div>
+    </div>
+  </div>
 </div>
