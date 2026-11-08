@@ -22,6 +22,8 @@ export interface DashboardReminder {
   id: number;
   reminderDate: string;
   title: string | null;
+  eventId: number | null;
+  documentId: number | null;
 }
 
 export interface DashboardSummary {

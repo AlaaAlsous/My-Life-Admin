@@ -74,6 +74,22 @@ describe('DashboardPage', () => {
     expect(hrefs.filter((href) => href === '/events').length).toBe(2);
   });
 
+  it('links a reminder with an eventId to the event details', async () => {
+    const { fixture, el, http } = setup();
+    http.expectOne(url).flush({
+      recentDocuments: [],
+      upcomingEvents: [],
+      latestReminders: [
+        { id: 3, reminderDate: '2026-06-10T00:00:00Z', title: 'Renew insurance', eventId: 2, documentId: null },
+      ],
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const hrefs = Array.from(el.querySelectorAll('a')).map((a) => a.getAttribute('href'));
+    expect(hrefs).toContain('/events?event=2');
+  });
+
   it('shows empty states when there is no data', async () => {
     const { fixture, el, http } = setup();
     http.expectOne(url).flush({ recentDocuments: [], upcomingEvents: [], latestReminders: [] });
