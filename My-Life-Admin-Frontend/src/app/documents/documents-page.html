@@ -263,8 +263,8 @@
     } @else {
       <ul class="mt-4 divide-y divide-border-soft">
         @for (document of filteredDocuments(); track document.id) {
-          <li class="flex flex-wrap items-center justify-between gap-3 py-4">
-            <div class="min-w-0">
+          <li class="flex items-center justify-between gap-3 py-4">
+            <div class="min-w-0 flex-1">
               <div class="flex flex-wrap items-center gap-2">
                 <p class="font-medium text-plum">{{ document.title }}</p>
 
@@ -284,7 +284,7 @@
                 · Added {{ document.uploadedAt | date: 'mediumDate' }}
               </p>
             </div>
-            <div class="flex w-full flex-wrap gap-2 sm:w-auto">
+            <div class="flex shrink-0 gap-2">
               <a
                 [routerLink]="['/documents', document.id]"
                 aria-label="View"
