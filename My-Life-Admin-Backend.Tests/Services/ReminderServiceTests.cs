@@ -79,6 +79,42 @@ public class ReminderServiceTests
     }
 
     [Fact]
+    public async Task MarkAsSkippedAsync_ExistingReminder_SetsSkippedWithoutSentAt()
+    {
+        var repository = new FakeReminderRepository();
+
+        repository.Reminders.Add(new Reminder
+        {
+            Id = 1,
+            UserId = UserId,
+            ReminderDate = DateTime.UtcNow,
+            Status = ReminderStatus.Pending
+        });
+
+        var service = new ReminderService(repository);
+
+        var result = await service.MarkAsSkippedAsync(1, UserId);
+
+        Assert.NotNull(result);
+        Assert.Equal(ReminderStatus.Skipped, result.Status);
+        Assert.Null(result.SentAt);
+        Assert.Equal(
+            ReminderStatus.Skipped,
+            repository.Reminders.Single().Status);
+    }
+
+    [Fact]
+    public async Task MarkAsSkippedAsync_UnknownId_ReturnsNull()
+    {
+        var service = new ReminderService(
+            new FakeReminderRepository());
+
+        var result = await service.MarkAsSkippedAsync(999, UserId);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
     public async Task AddAsync_AddsAndReturnsReminder()
     {
         var repository = new FakeReminderRepository();
@@ -237,5 +273,13 @@ public class ReminderServiceTests
                     .Where(r => r.Status == ReminderStatus.Pending)
                     .OrderBy(r => r.ReminderDate)
                     .ToList());
+
+        public Task<IEnumerable<Reminder>> GetByEventIdAsync(int eventId) =>
+            Task.FromResult<IEnumerable<Reminder>>(
+                Reminders.Where(r => r.EventId == eventId).ToList());
+
+        public Task<IEnumerable<Reminder>> GetByDocumentIdAsync(int documentId) =>
+            Task.FromResult<IEnumerable<Reminder>>(
+                Reminders.Where(r => r.DocumentId == documentId).ToList());
     }
 }

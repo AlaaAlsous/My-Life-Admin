@@ -1,7 +1,8 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideRouter, ActivatedRoute } from '@angular/router';
+import { provideRouter, ActivatedRoute, Router } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
+import { ConfirmationService } from '../shared/confirmation/confirmation.service';
 import { DocumentViewerPage } from './document-viewer-page';
 
 describe('DocumentViewerPage', () => {
@@ -116,5 +117,38 @@ describe('DocumentViewerPage', () => {
     fixture.detectChanges();
 
     expect(el.textContent).toContain('New passport');
+  });
+
+  it('asks for confirmation before deleting the document', async () => {
+    const { fixture, http, el } = setup();
+    const confirmation = TestBed.inject(ConfirmationService);
+    const router = TestBed.inject(Router);
+    const navigateSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+    http.expectOne(`${documentsUrl}1`).flush(documentDto);
+    http.expectOne(`${documentsUrl}1/file`).flush(new Blob(['img'], { type: 'image/jpeg' }));
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    // Delete opens the confirmation modal instead of deleting right away.
+    buttonByText(el, 'Delete').click();
+    fixture.detectChanges();
+
+    const state = confirmation.state();
+    expect(state?.title).toBe('Delete document?');
+    expect(state?.description).toContain('Passport');
+    expect(state?.confirmLabel).toBe('Delete');
+    expect(state?.destructive).toBe(true);
+    http.expectNone({ method: 'DELETE', url: `${documentsUrl}1` });
+
+    // Confirming performs the delete and navigates back to the list.
+    confirmation.accept();
+    const deleteRequest = http.expectOne(`${documentsUrl}1`);
+    expect(deleteRequest.request.method).toBe('DELETE');
+    deleteRequest.flush(null);
+    await fixture.whenStable();
+
+    expect(navigateSpy).toHaveBeenCalledWith('/documents');
+    expect(confirmation.state()).toBeNull();
   });
 });

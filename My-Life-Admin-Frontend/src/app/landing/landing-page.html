@@ -1,6 +1,6 @@
 <section
   aria-labelledby="hero-heading"
-  class="relative isolate overflow-hidden rounded-4xl bg-linear-to-br from-white via-[#f6ecf0] to-blush/60 px-6 py-16 text-center shadow-soft ring-1 ring-border-soft sm:px-12 sm:py-24"
+  class="relative isolate overflow-hidden rounded-4xl bg-linear-to-br from-surface via-surface-muted to-blush/60 px-6 py-10 text-center shadow-soft ring-1 ring-border-soft sm:px-12 sm:py-14"
 >
   <div
     aria-hidden="true"
@@ -12,36 +12,18 @@
   ></div>
 
   <p
-    class="mx-auto inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-1.5 text-label font-semibold text-primary shadow-soft ring-1 ring-border-soft"
+    class="mx-auto inline-flex items-center gap-2 rounded-full bg-surface/80 px-4 py-1.5 text-label font-semibold text-primary shadow-soft ring-1 ring-border-soft"
   >
     <span aria-hidden="true" class="h-2 w-2 rounded-full bg-rose"></span>
     My-Life-Admin
   </p>
-  <h1 id="hero-heading" class="mx-auto mt-6 max-w-3xl text-4xl leading-tight text-plum sm:text-6xl">
+  <h1 id="hero-heading" class="mx-auto mt-4 max-w-2xl text-3xl leading-tight text-plum sm:text-4xl">
     All your personal admin, <span class="text-primary">organized in one place</span>
   </h1>
-  <p class="mx-auto mt-6 max-w-2xl text-lg text-text-muted sm:text-xl">
+  <p class="mx-auto mt-4 max-w-xl text-base text-text-muted sm:text-lg">
     Keep your documents, receipts, personal details and important dates together, so you spend less
     time searching and more time living.
   </p>
-  @if (!isLoggedIn()) {
-    <div class="mt-10 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
-      <button
-        type="button"
-        class="rounded-full bg-primary px-8 py-3.5 font-semibold text-white shadow-lift transition hover:-translate-y-0.5 hover:bg-primary-hover motion-reduce:transition-none motion-reduce:hover:translate-y-0"
-        (click)="showLogin.set(true)"
-      >
-        Get Started
-      </button>
-      <button
-        type="button"
-        class="rounded-full bg-white px-8 py-3.5 font-semibold text-primary shadow-soft ring-1 ring-border-soft transition hover:bg-surface-muted hover:ring-rose"
-        (click)="showLogin.set(true)"
-      >
-        Log In
-      </button>
-    </div>
-  }
 </section>
 
 <section id="features" aria-labelledby="features-heading" class="scroll-mt-20 pb-6 pt-16 sm:pt-24">
@@ -65,7 +47,7 @@
         >
           <span
             aria-hidden="true"
-            class="flex h-12 w-12 items-center justify-center rounded-control bg-linear-to-br from-blush to-mauve text-primary transition group-hover:from-rose group-hover:to-rose group-hover:text-white"
+            class="flex h-12 w-12 items-center justify-center rounded-control bg-linear-to-br from-blush to-mauve text-primary transition group-hover:from-rose group-hover:to-rose group-hover:text-plum"
           >
             <svg
               viewBox="0 0 24 24"

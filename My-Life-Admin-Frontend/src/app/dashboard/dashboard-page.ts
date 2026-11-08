@@ -1,5 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { EmptyState } from '../shared/states/empty-state';
 import { ErrorState } from '../shared/states/error-state';
 import { LoadingState } from '../shared/states/loading-state';
@@ -7,7 +8,7 @@ import { DashboardService, DashboardSummary } from './dashboard.service';
 
 @Component({
   selector: 'app-dashboard-page',
-  imports: [DatePipe, EmptyState, ErrorState, LoadingState],
+  imports: [DatePipe, EmptyState, ErrorState, LoadingState, RouterLink],
   templateUrl: './dashboard-page.html',
 })
 export class DashboardPage {

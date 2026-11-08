@@ -1,16 +1,16 @@
 <section
   aria-labelledby="documents-heading"
-  class="relative isolate overflow-hidden rounded-4xl bg-linear-to-br from-white via-[#f6ecf0] to-blush/60 px-6 py-10 shadow-soft ring-1 ring-border-soft sm:px-12 sm:py-14"
+  class="relative isolate overflow-hidden rounded-4xl bg-linear-to-br from-surface via-surface-muted to-blush/60 px-6 py-10 shadow-soft ring-1 ring-border-soft sm:px-12 sm:py-14"
 >
   <div
     aria-hidden="true"
     class="absolute -left-16 -top-16 -z-10 h-64 w-64 rounded-full bg-rose/25 blur-3xl"
   ></div>
   <p class="text-label font-semibold uppercase tracking-widest text-rose">Documents</p>
-  <h1 id="documents-heading" class="mt-2 text-4xl text-plum sm:text-5xl">
+  <h1 id="documents-heading" class="mt-2 text-3xl text-plum sm:text-4xl">
     Your <span class="text-primary">documents</span>
   </h1>
-  <p class="mt-3 max-w-2xl text-lg text-text-muted">
+  <p class="mt-3 max-w-2xl text-base text-text-muted">
     Upload, view and download your files. They are stored securely in Azure Blob Storage.
   </p>
 </section>
@@ -89,7 +89,21 @@
           <label
             class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-primary px-5 py-2.5 font-medium text-white shadow-soft transition hover:bg-primary-hover hover:shadow-lift"
           >
-            Choose file
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="h-5 w-5"
+              aria-hidden="true"
+            >
+              <path
+                d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13"
+              />
+            </svg>
+            Select file
             <input
               id="doc-file"
               type="file"
@@ -102,6 +116,21 @@
           <label
             class="inline-flex cursor-pointer items-center gap-2 rounded-full border border-border px-5 py-2.5 font-medium text-plum transition hover:bg-border-soft"
           >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="h-5 w-5"
+              aria-hidden="true"
+            >
+              <path
+                d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"
+              />
+              <path d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z" />
+            </svg>
             Take photo
             <input
               type="file"
@@ -118,13 +147,27 @@
         </div>
       </div>
 
-      <div class="flex gap-3">
+      <div class="flex justify-center gap-3">
         <button
           type="button"
-          class="rounded-full bg-primary px-6 py-2.5 font-medium text-white shadow-soft transition hover:bg-primary-hover hover:shadow-lift disabled:opacity-50"
+          class="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-2.5 font-medium text-white shadow-soft transition hover:bg-primary-hover hover:shadow-lift disabled:opacity-50"
           [disabled]="uploading() || analyzing() || saving()"
           (click)="submit()"
         >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="h-5 w-5"
+            aria-hidden="true"
+          >
+            <path
+              d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"
+            />
+          </svg>
           @if (uploading()) {
             Uploading…
           } @else if (analyzing()) {
@@ -157,6 +200,40 @@
   >
     <h2 id="list-heading" class="text-title text-plum">Your files</h2>
 
+    <div class="mt-4">
+      <label for="document-search" class="block text-label font-medium text-plum">
+        Search documents
+      </label>
+
+      <input
+        id="document-search"
+        type="search"
+        placeholder="Search by title..."
+        class="mt-1 w-full rounded-control border border-border bg-white px-3 py-2"
+        [value]="searchQuery()"
+        (input)="searchQuery.set($any($event.target).value)"
+      />
+    </div>
+
+    <div class="mt-4">
+      <label for="category-filter" class="block text-label font-medium text-plum">
+        Filter by category
+      </label>
+
+      <select
+        id="category-filter"
+        class="mt-1 w-full rounded-control border border-border bg-white px-3 py-2"
+        [value]="selectedCategory()"
+        (change)="selectedCategory.set($any($event.target).value)"
+      >
+        <option value="">All categories</option>
+
+        @for (category of categories(); track category) {
+          <option [value]="category">{{ category }}</option>
+        }
+      </select>
+    </div>
+
     @if (loading()) {
       <div class="mt-4">
         <app-loading-state label="Loading documents…" [lineCount]="5" />
@@ -176,12 +253,29 @@
           message="Upload your first document using the form."
         />
       </div>
+    } @else if (filteredDocuments().length === 0) {
+      <div class="mt-4">
+        <app-empty-state
+          title="No matching documents"
+          message="Try searching for a different title."
+        />
+      </div>
     } @else {
       <ul class="mt-4 divide-y divide-border-soft">
-        @for (document of documents(); track document.id) {
-          <li class="flex flex-wrap items-center justify-between gap-3 py-4">
-            <div class="min-w-0">
-              <p class="font-medium text-plum">{{ document.title }}</p>
+        @for (document of filteredDocuments(); track document.id) {
+          <li class="flex items-center justify-between gap-3 py-4">
+            <div class="min-w-0 flex-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <p class="font-medium text-plum">{{ document.title }}</p>
+
+                @if (isExpiringSoon(document)) {
+                  <span
+                    class="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800"
+                  >
+                    Expiring soon
+                  </span>
+                }
+              </div>
               <p class="text-label text-text-muted">
                 {{ document.fileName }}
                 @if (document.category) {
@@ -193,23 +287,69 @@
             <div class="flex shrink-0 gap-2">
               <a
                 [routerLink]="['/documents', document.id]"
-                class="rounded-full bg-primary px-4 py-2 text-label font-medium text-white hover:bg-primary-hover"
+                aria-label="View"
+                title="View"
+                class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white shadow-soft transition hover:bg-primary-hover hover:shadow-lift"
               >
-                View
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="h-4 w-4"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"
+                  />
+                  <path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                </svg>
               </a>
               <button
                 type="button"
-                class="rounded-full border border-border px-4 py-2 text-label font-medium text-text-muted hover:bg-border-soft"
+                aria-label="Download"
+                title="Download"
+                class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-white text-text-muted transition hover:bg-surface-muted hover:text-text"
                 (click)="download(document)"
               >
-                Download
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="h-4 w-4"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
+                  />
+                </svg>
               </button>
               <button
                 type="button"
-                class="rounded-full border border-error px-4 py-2 text-label font-medium text-error hover:bg-surface-error"
+                aria-label="Delete"
+                title="Delete"
+                class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-error bg-white text-error transition hover:bg-surface-error"
                 (click)="deleteDocument(document.id)"
               >
-                Delete
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="h-4 w-4"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
+                  />
+                </svg>
               </button>
             </div>
           </li>

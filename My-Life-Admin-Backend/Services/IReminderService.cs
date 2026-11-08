@@ -8,6 +8,8 @@ public interface IReminderService
 
     Task<Reminder?> MarkAsSentAsync(int id, int userId);
 
+    Task<Reminder?> MarkAsSkippedAsync(int id, int userId);
+
     Task<IEnumerable<Reminder>> GetAllAsync(int userId);
 
     Task<Reminder?> GetByIdAsync(int id, int userId);

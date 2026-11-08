@@ -119,6 +119,38 @@ public class ReminderRepositoryTests
         Assert.Equal(UserId, result[0].UserId);
     }
 
+    [Fact]
+    public async Task GetAllPendingAsync_IncludesUserSettings()
+    {
+        using var testDb = CreateDb();
+        var db = testDb.Db;
+
+        db.UserSettings.Add(new UserSettings
+        {
+            UserId = UserId,
+            EmailNotifications = false
+        });
+
+        db.Reminders.Add(new Reminder
+        {
+            Id = 1,
+            UserId = UserId,
+            ReminderDate = DateTime.UtcNow.AddMinutes(-10),
+            Status = ReminderStatus.Pending
+        });
+
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var repository = new ReminderRepository(db);
+
+        var reminder = Assert.Single(
+            await repository.GetAllPendingAsync());
+
+        Assert.NotNull(reminder.User.Settings);
+        Assert.False(reminder.User.Settings.EmailNotifications);
+    }
+
     private static TestDb CreateDb()
     {
         var connection = new SqliteConnection("DataSource=:memory:");

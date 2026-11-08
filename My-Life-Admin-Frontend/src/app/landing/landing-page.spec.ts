@@ -13,14 +13,15 @@ describe('LandingPage', () => {
   });
   afterEach(() => localStorage.clear());
 
-  it('renders the hero with headline and both calls to action', async () => {
+  it('renders a compact hero with the headline and no call-to-action buttons', async () => {
     const fixture = TestBed.createComponent(LandingPage);
     await fixture.whenStable();
-    const el: HTMLElement = fixture.nativeElement;
+    const hero = fixture.nativeElement.querySelector(
+      'section[aria-labelledby="hero-heading"]',
+    ) as HTMLElement;
 
-    expect(el.querySelector('h1')?.textContent).toContain('organized in one place');
-    const buttons = Array.from(el.querySelectorAll('button')).map((b) => b.textContent?.trim());
-    expect(buttons.slice(0, 2)).toEqual(['Get Started', 'Log In']);
+    expect(hero.querySelector('h1')?.textContent).toContain('organized in one place');
+    expect(hero.querySelectorAll('button').length).toBe(0);
   });
 
   it('hides sign-up calls to action and the promotional section when logged in', async () => {
@@ -38,20 +39,14 @@ describe('LandingPage', () => {
     ).not.toContain('Log In');
   });
 
-  it('presents the five feature cards', async () => {
+  it('presents the four feature cards', async () => {
     const fixture = TestBed.createComponent(LandingPage);
     await fixture.whenStable();
     const titles = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('li h3')).map(
       (h) => h.textContent?.trim(),
     );
 
-    expect(titles).toEqual([
-      'Personal Documents',
-      'Receipts and Purchases',
-      'Personal Information',
-      'Reminders and Important Dates',
-      'Everyday Administration',
-    ]);
+    expect(titles).toEqual(['Dashboard', 'Documents', 'Events', 'Settings']);
   });
 
   it('links feature cards to their pages only when logged in', async () => {
@@ -66,11 +61,10 @@ describe('LandingPage', () => {
 
     const links = Array.from(el.querySelectorAll('li a'));
     expect(links.map((link) => link.getAttribute('href'))).toEqual([
-      '/documents',
-      '/documents',
       '/dashboard',
+      '/documents',
       '/events',
-      '/dashboard',
+      '/settings',
     ]);
     expect(links.every((link) => link.querySelector('svg'))).toBe(true);
   });

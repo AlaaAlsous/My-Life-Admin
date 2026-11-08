@@ -231,7 +231,11 @@ public static class DocumentEndpoints
                 await documentService.SaveExtractedTextAsync(id, userId, result.ExtractedText);
             }
 
-            return TypedResults.Ok(result);
+            return TypedResults.Ok(new DocumentAnalysisResponse(
+                result.Title,
+                result.Category,
+                result.ExpiryDate,
+                result.Description));
         }
         catch (AiServiceException)
         {

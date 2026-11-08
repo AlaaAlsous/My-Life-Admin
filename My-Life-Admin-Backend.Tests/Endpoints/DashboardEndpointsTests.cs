@@ -55,7 +55,7 @@ public class DashboardEndpointsTests
 
         Assert.Equal("Passport", Assert.Single(root.GetProperty("recentDocuments").EnumerateArray()).GetProperty("title").GetString());
         Assert.Equal("Dentist", Assert.Single(root.GetProperty("upcomingEvents").EnumerateArray()).GetProperty("title").GetString());
-        Assert.Equal(3, Assert.Single(root.GetProperty("dueReminders").EnumerateArray()).GetProperty("id").GetInt32());
+        Assert.Equal(3, Assert.Single(root.GetProperty("latestReminders").EnumerateArray()).GetProperty("id").GetInt32());
     }
 
     [Fact]

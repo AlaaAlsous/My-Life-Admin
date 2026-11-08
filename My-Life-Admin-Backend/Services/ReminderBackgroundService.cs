@@ -41,6 +41,15 @@ public class ReminderBackgroundService(
             {
                 try
                 {
+                    if (reminder.User.Settings is { EmailNotifications: false })
+                    {
+                        await reminderService.MarkAsSkippedAsync(
+                            reminder.Id,
+                            reminder.UserId);
+
+                        continue;
+                    }
+
                     await emailService.SendReminderAsync(
                         reminder.User.Email,
                         "Reminder",

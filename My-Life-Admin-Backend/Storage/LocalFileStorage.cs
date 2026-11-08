@@ -33,7 +33,7 @@ public sealed class LocalFileStorage : IFileStorage
         var path = GetPath(key);
 
         Stream? stream = File.Exists(path)
-            ? new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, BufferSize, useAsync: true)
+            ? new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, BufferSize, useAsync: true)
             : null;
 
         return Task.FromResult(stream);

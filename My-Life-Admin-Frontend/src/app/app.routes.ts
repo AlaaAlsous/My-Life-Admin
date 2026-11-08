@@ -6,6 +6,7 @@ import { DocumentViewerPage } from './documents/document-viewer-page';
 import { DocumentsPage } from './documents/documents-page';
 import { LandingPage } from './landing/landing-page';
 import { EventComponent } from './events/event.component';
+import { SettingsPage } from './settings/settings-page';
 
 export const routes: Routes = [
   { path: '', component: LandingPage, title: 'My Life Admin' },
@@ -18,4 +19,5 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   { path: 'events', component: EventComponent, title: 'Events', canActivate: [authGuard] },
+  { path: 'settings', component: SettingsPage, title: 'Settings', canActivate: [authGuard] },
 ];
