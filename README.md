@@ -1,53 +1,142 @@
 # MyLife Admin
 
-MyLife Admin är en webbapp för att samla vardagsadministration på ett ställe. Håll koll på händelser och påminnelser, hantera dokument och få en överblick via dashboarden. Appen består av en Angular-frontend och ett .NET API.
+MyLife Admin är en webbapp för att samla vardagsadministration på ett ställe. Håll koll på dokument, viktiga datum och påminnelser, och få en överblick via dashboarden. Appen består av en **Angular-frontend** och ett **ASP.NET Core-API** (minimal API) med EF Core.
 
 ## Funktionalitet
 
-- Skapa ett konto och logga in för att komma åt dina personliga sidor.
-- Se nyligen tillagda dokument, kommande händelser och påminnelser som behöver uppmärksamhet på dashboarden.
-- Ladda upp, sök efter och visa dokument. Lägg till utgångsdatum som kan följas i kalendern.
-- Håll koll på viktiga datum i kalendern och hantera påminnelser, inklusive e-postaviseringar.
-- Chatta med AI-assistenten om du har konfigurerat Azure OpenAI.
+- Skapa ett konto och logga in (JWT) för att komma åt dina personliga sidor.
+- Dashboard med nyligen tillagda dokument, kommande händelser och senaste påminnelser.
+- Ladda upp, sök, visa, redigera, ladda ner och radera dokument. Ett utgångsdatum skapar automatiskt en kalenderhändelse.
+- Kalender med händelser; skapa och hantera påminnelser med e-postaviseringar.
+- AI-chatt (global och per dokument) med webbsökning om Azure OpenAI är konfigurerat.
+- Mörkt läge och e-postnotiser som sparas per användare.
 
-## Kom igång
+## Teknik
 
-Du behöver .NET 10 SDK och Node.js 20 eller senare.
+- **Backend:** ASP.NET Core (minimal API), EF Core, SQLite (utveckling) / Azure SQL Server (produktion), JWT, xUnit.
+- **Frontend:** Angular (standalone-komponenter), Tailwind CSS, Vitest.
+- **E2E:** Playwright.
+- **CI/CD:** GitHub Actions (`.github/workflows`).
 
-1. Starta API:t i en terminal:
+## Kom igång (utveckling)
 
-   ```powershell
-   cd My-Life-Admin-Backend
-   $env:Jwt__SigningKey = "byt-till-en-lang-slumpmassig-nyckel"
-   dotnet run
-   ```
+Du behöver **.NET 10 SDK** och **Node.js 20+**.
 
-   API:t startar på `http://localhost:5076`. I utvecklingsläge används SQLite och databasmigreringar körs automatiskt. JWT-nyckeln är lokal konfiguration och får inte checkas in i källkod.
-
-2. Starta webbappen i en annan terminal:
-
-   ```powershell
-   cd My-Life-Admin-Frontend
-   npm install
-   npm start
-   ```
-
-   Öppna `http://localhost:4200`.
-
-## JWT-konfiguration
-
-API:t kräver en signeringsnyckel för JWT. Konfigurera den med miljövariabeln `Jwt__SigningKey` som ovan. Övriga inställningar kan anges med `Jwt__Issuer`, `Jwt__Audience` och `Jwt__ExpiresMinutes`.
-
-## AI-assistent (valfri)
-
-Chatten (`POST /api/chat`) använder Azure OpenAI när alla tre inställningarna är angivna. Om alla är tomma svarar API:t med en platshållartext; om bara några är angivna startar inte API:t.
-
-Hämta `Endpoint` och `ApiKey` från Azure OpenAI-resursens **Keys and Endpoint**. `Deployment` är namnet på modellens deployment, inte modellnamnet. Spara värden lokalt med user-secrets från backendmappen:
+### 1. Starta API:t
 
 ```powershell
-dotnet user-secrets set "Ai:Endpoint" "https://din-resurs.openai.azure.com/"
-dotnet user-secrets set "Ai:ApiKey" "DIN_OPENAI_NYCKEL"
+cd My-Life-Admin-Backend
+$env:Jwt__SigningKey = "byt-till-en-lang-slumpmassig-hemlighet"
+dotnet run
+```
+
+API:t startar på `http://localhost:5076`. I utvecklingsläge används SQLite (`Data/mylife.db`) och databasmigreringar körs automatiskt vid start.
+
+> JWT-nyckeln är lokal hemlig konfiguration — checka aldrig in den i källkoden. Ange den med miljövariabeln `Jwt__SigningKey` (som ovan) eller med `dotnet user-secrets set "Jwt:SigningKey" "..."`.
+
+### 2. Starta webbappen
+
+Öppna en annan terminal:
+
+```powershell
+cd My-Life-Admin-Frontend
+npm install
+npm start
+```
+
+Öppna `http://localhost:4200`.
+
+## Konfiguration (valfria integrationer)
+
+Appen körs utan dessa, men vissa funktioner kräver externa tjänster. Spara värdena som **user-secrets** från backendmappen — de hålls utanför källkoden:
+
+```powershell
+cd My-Life-Admin-Backend
+dotnet user-secrets init   # endast första gången
+```
+
+### AI-chatt (Azure OpenAI)
+
+Chatten (`POST /api/chat`) använder Azure OpenAI när alla tre är angivna. Om alla är tomma svarar API:t med en platshållartext; om bara några är angivna startar inte API:t.
+
+```powershell
+dotnet user-secrets set "Ai:Endpoint" "https://din-resurs.openai.azure.com/openai/v1"
+dotnet user-secrets set "Ai:ApiKey" "DIN_API_NYCKEL"
 dotnet user-secrets set "Ai:Deployment" "DIN_DEPLOYMENT"
 ```
 
-`Ai__SystemPrompt`, `Ai__MaxHistoryMessages` och `Ai__MaxOutputTokens` är valfria inställningar. Dokumentanalys kan också konfigureras med `DocumentIntelligence:Endpoint` och `DocumentIntelligence:ApiKey` via user-secrets.
+Hämta `Endpoint` och `ApiKey` från Azure OpenAI-resursens **Keys and Endpoint**. `Deployment` är deployment-namnet (inte modellnamnet). Valfritt: `Ai__SystemPrompt`, `Ai__MaxHistoryMessages` och `Ai__MaxOutputTokens`.
+
+### Dokumentanalys (Azure Document Intelligence)
+
+Ger automatisk textutvinning och förslag på metadata vid dokumentuppladdning.
+
+```powershell
+dotnet user-secrets set "DocumentIntelligence:Endpoint" "https://din-resurs.cognitiveservices.azure.com/"
+dotnet user-secrets set "DocumentIntelligence:ApiKey" "DIN_API_NYCKEL"
+```
+
+### E-postpåminnelser (SMTP)
+
+Skickar e-post när en påminnelse infaller (bakgrundstjänst). Konfigurera valfri SMTP-server — t.ex. Gmail med ett [applösenord](https://support.google.com/accounts/answer/185833):
+
+```powershell
+dotnet user-secrets set "Email:SmtpHost" "smtp.gmail.com"
+dotnet user-secrets set "Email:SmtpPort" "587"
+dotnet user-secrets set "Email:Username" "din-epost@gmail.com"
+dotnet user-secrets set "Email:Password" "DITT_APPLOSENORD"
+dotnet user-secrets set "Email:FromEmail" "din-epost@gmail.com"
+```
+
+## Tester
+
+```powershell
+# Backend (xUnit)
+cd My-Life-Admin-Backend.Tests
+dotnet test
+
+# Frontend (Vitest)
+cd My-Life-Admin-Frontend
+npm test                 # engångskörning: npx ng test --watch=false
+
+# E2E (Playwright) – kräver att backend (5076) och frontend (4200) körs
+cd e2e
+npm install
+npx playwright install
+npm test
+```
+
+## Projektstruktur
+
+```text
+net25-devops-grupp-9/
+├── My-Life-Admin-Backend/          # ASP.NET Core-API (minimal API)
+│   ├── Endpoints/                  # API-endpoints (auth, dokument, events, påminnelser, dashboard, chatt, inställningar)
+│   ├── Services/                   # Affärslogik (auth, dokument, events, påminnelser, e-post, dashboard)
+│   ├── Repositories/               # Datalager mot EF Core
+│   ├── Models/                     # Entiteter (User, Document, Event, Reminder, ChatMessage …)
+│   ├── DTOs/                       # Request- och response-objekt
+│   ├── Options/                    # Konfigurationsklasser (Jwt, Ai, Email, DocumentIntelligence …)
+│   ├── Migrations/                 # EF Core-migrationer (SQLite + SQL Server)
+│   ├── Ai/                         # Azure OpenAI-klient (chatt med webbsökning)
+│   └── Storage/                    # Fillagring (lokalt / Azure Blob Storage)
+│
+├── My-Life-Admin-Backend.Tests/    # xUnit-tester för backend
+│
+├── My-Life-Admin-Frontend/         # Angular-app (standalone-komponenter)
+│   └── src/app/
+│       ├── auth/                   # Inloggnings-token, guard och HTTP-interceptor
+│       ├── dashboard/              # Översiktssidan
+│       ├── documents/              # Dokumentlista, dokumentvy och uppladdning
+│       ├── events/                 # Kalender, händelser och påminnelser
+│       ├── settings/               # Inställningar (tema, e-postnotiser)
+│       ├── chat/                   # AI-chattwidget
+│       ├── layout/                 # Sidhuvud, sidfot och mobilmeny
+│       ├── landing/                # Landningssida
+│       ├── login/ + register/      # Inloggnings- och registreringsdialoger
+│       └── shared/                 # Delat (tema, bekräftelsedialog, laddnings-/tomma tillstånd)
+│
+├── e2e/                            # Playwright E2E-tester
+└── .github/workflows/              # CI/CD-pipelines
+```
+
