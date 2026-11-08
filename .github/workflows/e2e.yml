@@ -1,0 +1,91 @@
+name: E2E (Playwright)
+
+# Körs bara enligt schema + manuellt -> blockerar aldrig pull requests.
+on:
+  schedule:
+    - cron: '0 2 * * *'   # varje natt kl. 02:00 UTC – ändra vid behov
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_VERSION: "10.0.x"
+  NODE_VERSION: "24"
+  ASPNETCORE_ENVIRONMENT: Development
+  # Bara för den tomma testdatabasen – får inte återanvändas i produktion.
+  Jwt__SigningKey: "e2e-only-signing-key-please-replace-me-1234567890"
+
+jobs:
+  e2e:
+    name: Playwright end-to-end
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: E2E/package-lock.json
+
+      - name: Start API (backend)
+        working-directory: My-Life-Admin-Backend
+        run: |
+          nohup dotnet run --launch-profile http --urls http://localhost:5076 > backend.log 2>&1 &
+
+      - name: Install frontend dependencies
+        working-directory: My-Life-Admin-Frontend
+        run: npm ci
+
+      - name: Install E2E dependencies
+        working-directory: E2E
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: E2E
+        run: npx playwright install --with-deps chromium
+
+      - name: Start frontend
+        working-directory: My-Life-Admin-Frontend
+        run: |
+          nohup npm start > frontend.log 2>&1 &
+
+      - name: Wait for backend
+        run: |
+          for i in {1..60}; do
+            if curl -fsS http://localhost:5076/api/health; then exit 0; fi
+            sleep 2
+          done
+          echo "Backend startade inte i tid" >&2
+          exit 1
+
+      - name: Wait for frontend
+        run: |
+          for i in {1..90}; do
+            if curl -fsS http://localhost:4200/; then exit 0; fi
+            sleep 2
+          done
+          echo "Frontend startade inte i tid" >&2
+          exit 1
+
+      - name: Run Playwright tests
+        working-directory: E2E
+        run: npx playwright test
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: E2E/playwright-report/
+          retention-days: 14
