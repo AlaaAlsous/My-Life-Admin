@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, computed, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { afterNextRender, Component, computed, ElementRef, inject, Injector, OnDestroy, OnInit, signal, viewChild,} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -32,6 +32,8 @@ export class EventComponent implements OnInit, OnDestroy {
   private readonly eventService = inject(EventService);
   private readonly reminderService = inject(ReminderService);
   private readonly confirmation = inject(ConfirmationService);
+  private readonly injector = inject(Injector);
+  private readonly eventDetails = viewChild<ElementRef<HTMLElement>>('eventDetails');
 
   private eventsRequest?: Subscription;
   private allEventsRequest?: Subscription;
@@ -159,6 +161,16 @@ export class EventComponent implements OnInit, OnDestroy {
     this.cancelEditing();
     this.selectedDate.set(new Date(event.eventDate));
     this.selectedEvents.set([event]);
+
+    afterNextRender(
+      () => {
+        this.eventDetails()?.nativeElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
+      },
+      { injector: this.injector },
+    );
   }
 
   protected onDaySelected(day: CalendarDay): void {
