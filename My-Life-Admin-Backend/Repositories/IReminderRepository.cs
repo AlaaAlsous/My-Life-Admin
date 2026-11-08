@@ -11,4 +11,8 @@ public interface IReminderRepository : IRepository<Reminder>
     Task<IEnumerable<Reminder>> GetPendingAsync(int userId);
 
     Task<IEnumerable<Reminder>> GetAllPendingAsync();
+
+    Task<IEnumerable<Reminder>> GetByEventIdAsync(int eventId);
+
+    Task<IEnumerable<Reminder>> GetByDocumentIdAsync(int documentId);
 }

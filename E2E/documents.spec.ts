@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { uniqueUser, register } from './auth.helpers';
-import { uploadDocument } from './documents.helpers';
+import { uploadDocument, dateInDays } from './documents.helpers';
 
 test.describe('Documents: upload & search', () => {
   test('laddar upp ett dokument och hittar det via sök', async ({ page }) => {
@@ -81,6 +81,38 @@ test.describe('Documents: filter, download & delete', () => {
     await expect(confirm).toContainText('Delete document?');
     await confirm.getByRole('button', { name: 'Delete', exact: true }).click();
 
-    await expect(page.getByText(title)).toBeHidden();
+    await expect(page.getByText(title, { exact: true })).toBeHidden();
+  });
+
+  test('radering av ett dokument tar också bort dess påminnelser', async ({ page }) => {
+    await register(page, uniqueUser('cascade'));
+
+    const title = `Cascade ${Date.now()}`;
+    await uploadDocument(page, { title, expiry: dateInDays(10) });
+
+    // Skapa en påminnelse på dokumentets kalenderhändelse.
+    await page.goto('/events');
+    await page.getByRole('button', { name: `${title} expires` }).click();
+    const details = page.locator('section[aria-labelledby="event-details-heading"]');
+    await details.getByLabel('Reminder').selectOption({ label: '1 week before' });
+    await details.getByRole('button', { name: 'Add reminder' }).click();
+    await expect(page.getByText('Reminder created successfully.')).toBeVisible();
+
+    // Påminnelsen syns på dashboarden under "Latest reminders".
+    await page.goto('/dashboard');
+    const reminders = page.locator('section', {
+      has: page.getByRole('heading', { name: 'Latest reminders' }),
+    });
+    await expect(reminders.getByText(`${title} expires`)).toBeVisible();
+
+    // Radera dokumentet (med bekräftelse).
+    await page.goto('/documents');
+    await page.locator('li', { hasText: title }).getByRole('button', { name: 'Delete' }).click();
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Delete', exact: true }).click();
+    await expect(page.getByText(title, { exact: true })).toBeHidden();
+
+    // Påminnelsen ska nu vara borta via cascade – dashboarden visar inga påminnelser.
+    await page.goto('/dashboard');
+    await expect(page.getByText('No reminders')).toBeVisible();
   });
 });

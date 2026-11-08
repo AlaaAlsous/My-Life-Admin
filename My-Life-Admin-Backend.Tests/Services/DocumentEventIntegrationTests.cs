@@ -38,7 +38,8 @@ public class DocumentEventIntegrationTests : IDisposable
         _service = new DocumentService(
             new DocumentRepository(_db),
             storage.Object,
-            new DocumentEventSynchronizer(new EventRepository(_db)));
+            new DocumentEventSynchronizer(new EventRepository(_db), new ReminderRepository(_db)),
+            new ReminderRepository(_db));
     }
 
     public void Dispose()

@@ -1,3 +1,4 @@
+using Moq;
 using My_Life_Admin.Models;
 using My_Life_Admin.Repositories;
 using My_Life_Admin.Services;
@@ -9,11 +10,16 @@ public class EventServiceTests
     private const int UserId = 5;
 
     private readonly FakeEventRepository _repository = new();
+    private readonly Mock<IReminderRepository> _reminderRepositoryMock = new();
     private readonly EventService _service;
 
     public EventServiceTests()
     {
-        _service = new EventService(_repository);
+        _reminderRepositoryMock
+            .Setup(r => r.GetByEventIdAsync(It.IsAny<int>()))
+            .ReturnsAsync(new List<Reminder>());
+
+        _service = new EventService(_repository, _reminderRepositoryMock.Object);
     }
 
     [Fact]
@@ -213,6 +219,37 @@ public class EventServiceTests
 
         Assert.True(deleted);
         Assert.Empty(_repository.Events);
+        Assert.Equal(1, _repository.SaveCount);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_ExistingEvent_AlsoRemovesItsReminders()
+    {
+        _repository.Events.Add(new Event
+        {
+            Id = 1,
+            UserId = UserId,
+            Title = "Delete me"
+        });
+
+        var reminders = new List<Reminder>
+        {
+            new() { Id = 10, UserId = UserId, EventId = 1 },
+            new() { Id = 11, UserId = UserId, EventId = 1 }
+        };
+
+        _reminderRepositoryMock
+            .Setup(r => r.GetByEventIdAsync(1))
+            .ReturnsAsync(reminders);
+
+        var deleted = await _service.DeleteAsync(1, UserId);
+
+        Assert.True(deleted);
+        Assert.Empty(_repository.Events);
+        foreach (var reminder in reminders)
+        {
+            _reminderRepositoryMock.Verify(r => r.Delete(reminder), Times.Once);
+        }
         Assert.Equal(1, _repository.SaveCount);
     }
 

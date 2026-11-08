@@ -11,7 +11,9 @@ public interface IDocumentEventSynchronizer
     Task RemoveAsync(Document document);
 }
 
-public class DocumentEventSynchronizer(IEventRepository eventRepository) : IDocumentEventSynchronizer
+public class DocumentEventSynchronizer(
+    IEventRepository eventRepository,
+    IReminderRepository reminderRepository) : IDocumentEventSynchronizer
 {
     public async Task SyncAsync(Document document)
     {
@@ -59,6 +61,14 @@ public class DocumentEventSynchronizer(IEventRepository eventRepository) : IDocu
 
         foreach (var eventItem in linked)
         {
+            // Cascade: delete reminders that belong to this event.
+            var reminders = await reminderRepository.GetByEventIdAsync(eventItem.Id);
+
+            foreach (var reminder in reminders)
+            {
+                reminderRepository.Delete(reminder);
+            }
+
             eventRepository.Delete(eventItem);
         }
     }
