@@ -1,3 +1,4 @@
+
 import { DatePipe } from '@angular/common';
 import { Component, computed, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -17,24 +18,39 @@ import { EventTimeline } from './event-timeline';
 @Component({
   selector: 'app-event',
   standalone: true,
-  imports: [DatePipe, FormsModule, RouterLink, ErrorState, LoadingState, EventCalendar, EventTimeline],
+  imports: [
+    DatePipe,
+    FormsModule,
+    RouterLink,
+    ErrorState,
+    LoadingState,
+    EventCalendar,
+    EventTimeline,
+  ],
   templateUrl: './event.component.html',
 })
 export class EventComponent implements OnInit, OnDestroy {
   private readonly eventService = inject(EventService);
   private readonly reminderService = inject(ReminderService);
   private readonly confirmation = inject(ConfirmationService);
+
   private eventsRequest?: Subscription;
+  private allEventsRequest?: Subscription;
 
   protected readonly month = signal(this.startOfMonth(new Date()));
   protected readonly events = signal<EventDto[]>([]);
+  protected readonly allEvents = signal<EventDto[]>([]);
   protected readonly reminders = signal<ReminderDto[]>([]);
+
   protected readonly isLoading = signal(false);
+  protected readonly isLoadingAllEvents = signal(false);
   protected readonly errorMessage = signal('');
   protected readonly successMessage = signal('');
+
   protected readonly selectedDate = signal<Date | null>(null);
   protected readonly selectedEvents = signal<EventDto[] | null>(null);
   protected readonly showTimeline = signal(false);
+
   protected readonly editingEventId = signal<number | null>(null);
   protected readonly savingEvent = signal(false);
 
@@ -44,16 +60,12 @@ export class EventComponent implements OnInit, OnDestroy {
   protected editDate = '';
 
   protected readonly sortedEvents = computed(() =>
-    [...this.events()].sort(
+    [...this.allEvents()].sort(
       (a, b) =>
         new Date(a.eventDate).getTime() -
         new Date(b.eventDate).getTime()
     )
   );
-
-  protected toggleView(): void {
-    this.showTimeline.update(value => !value);
-  }
 
   protected readonly ReminderStatus = ReminderStatus;
 
@@ -69,11 +81,17 @@ export class EventComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadEvents();
+    this.loadAllEvents();
     this.loadReminders();
   }
 
   ngOnDestroy(): void {
     this.eventsRequest?.unsubscribe();
+    this.allEventsRequest?.unsubscribe();
+  }
+
+  protected toggleView(): void {
+    this.showTimeline.update(value => !value);
   }
 
   protected loadEvents(): void {
@@ -81,10 +99,10 @@ export class EventComponent implements OnInit, OnDestroy {
     this.errorMessage.set('');
     this.eventsRequest?.unsubscribe();
 
-    // The visible grid includes days from the neighbouring months.
     const grid = buildMonthGrid(this.month(), []);
     const from = grid[0].date;
     const lastDay = grid[grid.length - 1].date;
+
     const to = new Date(
       lastDay.getFullYear(),
       lastDay.getMonth(),
@@ -95,14 +113,32 @@ export class EventComponent implements OnInit, OnDestroy {
       999,
     );
 
-    this.eventsRequest = this.eventService.getAll(from.toISOString(), to.toISOString()).subscribe({
+    this.eventsRequest = this.eventService
+      .getAll(from.toISOString(), to.toISOString())
+      .subscribe({
+        next: (events) => {
+          this.events.set(events);
+          this.isLoading.set(false);
+        },
+        error: () => {
+          this.errorMessage.set('Could not load events.');
+          this.isLoading.set(false);
+        },
+      });
+  }
+
+  protected loadAllEvents(): void {
+    this.isLoadingAllEvents.set(true);
+    this.allEventsRequest?.unsubscribe();
+
+    this.allEventsRequest = this.eventService.getAll().subscribe({
       next: (events) => {
-        this.events.set(events);
-        this.isLoading.set(false);
+        this.allEvents.set(events);
+        this.isLoadingAllEvents.set(false);
       },
       error: () => {
-        this.errorMessage.set('Could not load events.');
-        this.isLoading.set(false);
+        this.errorMessage.set('Could not load all events.');
+        this.isLoadingAllEvents.set(false);
       },
     });
   }
@@ -121,8 +157,21 @@ export class EventComponent implements OnInit, OnDestroy {
   }
 
   protected onEventSelected(event: EventDto): void {
+    this.cancelEditing();
     this.selectedDate.set(null);
     this.selectedEvents.set([event]);
+  }
+
+  protected onDaySelected(day: CalendarDay): void {
+    this.cancelEditing();
+    this.selectedDate.set(day.date);
+    this.selectedEvents.set(day.events);
+  }
+
+  protected clearSelection(): void {
+    this.cancelEditing();
+    this.selectedDate.set(null);
+    this.selectedEvents.set(null);
   }
 
   protected startEditing(event: EventDto): void {
@@ -147,11 +196,18 @@ export class EventComponent implements OnInit, OnDestroy {
   protected saveEvent(): void {
     const id = this.editingEventId();
 
-    if (id === null || !this.editTitle.trim() || !this.editDate) {
+    if (
+      id === null ||
+      this.savingEvent() ||
+      !this.editTitle.trim() ||
+      !this.editDate
+    ) {
       return;
     }
 
-    const originalEvent = this.events().find(event => event.id === id);
+    const originalEvent = this.allEvents().find(
+      event => event.id === id
+    );
 
     if (!originalEvent) {
       this.errorMessage.set('Could not find event.');
@@ -170,11 +226,13 @@ export class EventComponent implements OnInit, OnDestroy {
       eventDate: new Date(this.editDate).toISOString(),
     }).subscribe({
       next: (updatedEvent) => {
-        this.events.update(events =>
+        this.allEvents.update(events =>
           events.map(event =>
             event.id === id ? updatedEvent : event
           )
         );
+
+        this.loadEvents();
 
         this.selectedEvents.update(events =>
           events?.map(event =>
@@ -193,18 +251,52 @@ export class EventComponent implements OnInit, OnDestroy {
     });
   }
 
-  protected onDaySelected(day: CalendarDay): void {
-    this.selectedDate.set(day.date);
-    this.selectedEvents.set(day.events);
+  protected deleteEvent(event: EventDto): void {
+    void this.confirmation.confirm({
+      title: 'Delete event?',
+      description: `Are you sure you want to delete "${event.title}"? This cannot be undone.`,
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      destructive: true,
+      onConfirm: () => this.performDeleteEvent(event.id),
+    });
   }
 
-  protected clearSelection(): void {
-    this.selectedDate.set(null);
-    this.selectedEvents.set(null);
+  private performDeleteEvent(eventId: number): void {
+    this.errorMessage.set('');
+    this.successMessage.set('');
+
+    this.eventService.delete(eventId).subscribe({
+      next: () => {
+        this.events.update(events =>
+          events.filter(event => event.id !== eventId)
+        );
+
+        this.allEvents.update(events =>
+          events.filter(event => event.id !== eventId)
+        );
+
+        this.selectedEvents.update(events =>
+          events?.filter(event => event.id !== eventId) ?? null
+        );
+
+        this.reminders.update(reminders =>
+          reminders.filter(reminder => reminder.eventId !== eventId)
+        );
+
+        this.editingEventId.set(null);
+        this.successMessage.set('Event deleted successfully.');
+      },
+      error: () => {
+        this.errorMessage.set('Could not delete event.');
+      },
+    });
   }
 
   protected getReminderForEvent(eventId: number): ReminderDto | undefined {
-    return this.reminders().find((reminder) => reminder.eventId === eventId);
+    return this.reminders().find(
+      reminder => reminder.eventId === eventId
+    );
   }
 
   protected createReminder(event: EventDto): void {
@@ -217,20 +309,20 @@ export class EventComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.reminderService
-      .create({
-        eventId: event.id,
-        documentId: null,
-        reminderDate: this.reminderDateFor(event, optionIndex),
-      })
-      .subscribe({
-        next: (reminder) => {
-          this.reminders.update((reminders) => [...reminders, reminder]);
-          delete this.selectedReminder[event.id];
-          this.successMessage.set('Reminder created successfully.');
-        },
-        error: () => this.errorMessage.set('Could not create reminder.'),
-      });
+    this.reminderService.create({
+      eventId: event.id,
+      documentId: null,
+      reminderDate: this.reminderDateFor(event, optionIndex),
+    }).subscribe({
+      next: (reminder) => {
+        this.reminders.update(reminders => [...reminders, reminder]);
+        delete this.selectedReminder[event.id];
+        this.successMessage.set('Reminder created successfully.');
+      },
+      error: () => {
+        this.errorMessage.set('Could not create reminder.');
+      },
+    });
   }
 
   protected deleteReminder(reminderId: number): void {
@@ -250,12 +342,15 @@ export class EventComponent implements OnInit, OnDestroy {
 
     this.reminderService.delete(reminderId).subscribe({
       next: () => {
-        this.reminders.update((reminders) =>
-          reminders.filter((reminder) => reminder.id !== reminderId),
+        this.reminders.update(reminders =>
+          reminders.filter(reminder => reminder.id !== reminderId)
         );
+
         this.successMessage.set('Reminder deleted successfully.');
       },
-      error: () => this.errorMessage.set('Could not delete reminder.'),
+      error: () => {
+        this.errorMessage.set('Could not delete reminder.');
+      },
     });
   }
 
@@ -269,24 +364,27 @@ export class EventComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.reminderService
-      .update(reminder.id, {
-        eventId: event.id,
-        documentId: reminder.documentId,
-        reminderDate: this.reminderDateFor(event, optionIndex),
-      })
-      .subscribe({
-        next: (updatedReminder) => {
-          this.reminders.update((reminders) =>
-            reminders.map((existing) =>
-              existing.id === updatedReminder.id ? updatedReminder : existing,
-            ),
-          );
-          delete this.selectedEditReminder[event.id];
-          this.successMessage.set('Reminder updated successfully.');
-        },
-        error: () => this.errorMessage.set('Could not update reminder.'),
-      });
+    this.reminderService.update(reminder.id, {
+      eventId: event.id,
+      documentId: reminder.documentId,
+      reminderDate: this.reminderDateFor(event, optionIndex),
+    }).subscribe({
+      next: (updatedReminder) => {
+        this.reminders.update(reminders =>
+          reminders.map(existing =>
+            existing.id === updatedReminder.id
+              ? updatedReminder
+              : existing
+          )
+        );
+
+        delete this.selectedEditReminder[event.id];
+        this.successMessage.set('Reminder updated successfully.');
+      },
+      error: () => {
+        this.errorMessage.set('Could not update reminder.');
+      },
+    });
   }
 
   private reminderDateFor(event: EventDto, optionIndex: number): string {
@@ -294,17 +392,25 @@ export class EventComponent implements OnInit, OnDestroy {
     const reminderDate = new Date(event.eventDate);
 
     if (option.months > 0) {
-      reminderDate.setMonth(reminderDate.getMonth() - option.months);
+      reminderDate.setMonth(
+        reminderDate.getMonth() - option.months
+      );
     }
 
     if (option.days > 0) {
-      reminderDate.setDate(reminderDate.getDate() - option.days);
+      reminderDate.setDate(
+        reminderDate.getDate() - option.days
+      );
     }
 
     return reminderDate.toISOString();
   }
 
   private startOfMonth(date: Date): Date {
-    return new Date(date.getFullYear(), date.getMonth(), 1);
+    return new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      1
+    );
   }
 }
