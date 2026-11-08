@@ -159,7 +159,16 @@ export class EventComponent implements OnInit, OnDestroy {
 
   protected onEventSelected(event: EventDto): void {
     this.cancelEditing();
-    this.selectedDate.set(new Date(event.eventDate));
+
+    const eventDate = new Date(event.eventDate);
+    const eventMonth = this.startOfMonth(eventDate);
+
+    if (this.month().getTime() !== eventMonth.getTime()) {
+      this.month.set(eventMonth);
+      this.loadEvents();
+    }
+
+    this.selectedDate.set(eventDate);
     this.selectedEvents.set([event]);
 
     afterNextRender(
