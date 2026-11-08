@@ -173,10 +173,21 @@ export class EventComponent implements OnInit, OnDestroy {
 
     afterNextRender(
       () => {
-        this.eventDetails()?.nativeElement.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start',
-        });
+        const element = this.eventDetails()?.nativeElement;
+
+        if (element) {
+          const extraScroll = -150;
+
+          const position =
+            element.getBoundingClientRect().top +
+            window.scrollY +
+            extraScroll;
+
+          window.scrollTo({
+            top: position,
+            behavior: 'smooth',
+          });
+        }
       },
       { injector: this.injector },
     );
