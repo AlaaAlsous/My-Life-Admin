@@ -12,8 +12,8 @@ export class EventTimeline {
   readonly eventSelected = output<EventDto>();
 
   protected readonly hours = Array.from(
-    { length: 13 },
-    (_, index) => index + 8
+    { length: 24 },
+    (_, index) => index
   );
 
   protected readonly timelineEvents = computed(() =>
