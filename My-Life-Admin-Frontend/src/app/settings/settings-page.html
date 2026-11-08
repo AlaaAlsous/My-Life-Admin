@@ -1,6 +1,6 @@
 <section
   aria-labelledby="settings-heading"
-  class="relative isolate overflow-hidden rounded-4xl bg-linear-to-br from-white via-[#f6ecf0] to-blush/60 px-6 py-10 shadow-soft ring-1 ring-border-soft sm:px-12 sm:py-14"
+  class="relative isolate overflow-hidden rounded-4xl bg-linear-to-br from-surface via-surface-muted to-blush/60 px-6 py-10 shadow-soft ring-1 ring-border-soft sm:px-12 sm:py-14"
 >
   <div
     aria-hidden="true"
@@ -59,6 +59,7 @@
               role="switch"
               class="peer sr-only"
               [checked]="emailNotifications()"
+              [disabled]="saving()"
               (change)="setEmailNotifications($any($event.target).checked)"
             />
             <span
@@ -89,6 +90,7 @@
               role="switch"
               class="peer sr-only"
               [checked]="darkMode()"
+              [disabled]="saving()"
               (change)="setDarkMode($any($event.target).checked)"
             />
             <span

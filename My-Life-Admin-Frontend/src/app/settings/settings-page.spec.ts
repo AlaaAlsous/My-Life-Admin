@@ -7,6 +7,11 @@ describe('SettingsPage', () => {
   const settingsUrl = 'http://localhost:5076/api/settings';
   const settings = { id: 3, userId: 7, darkMode: false, emailNotifications: true };
 
+  beforeEach(() => {
+    localStorage.removeItem('my-life-admin.dark-mode');
+    document.documentElement.classList.remove('dark');
+  });
+
   function setup() {
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideHttpClientTesting()],
@@ -44,6 +49,28 @@ describe('SettingsPage', () => {
     expect(el.querySelector<HTMLInputElement>('#setting-dark-mode')!.checked).toBe(false);
   });
 
+  it('applies saved dark mode and automatically persists changes', async () => {
+    const { fixture, http, el } = setup();
+    http.expectOne(settingsUrl).flush({ ...settings, darkMode: true });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(document.documentElement.classList.contains('dark')).toBe(true);
+    expect(localStorage.getItem('my-life-admin.dark-mode')).toBe('true');
+
+    toggle(el, '#setting-dark-mode');
+    expect(document.documentElement.classList.contains('dark')).toBe(false);
+    expect(localStorage.getItem('my-life-admin.dark-mode')).toBe('false');
+
+    const request = http.expectOne(settingsUrl);
+    expect(request.request.method).toBe('PUT');
+    expect(request.request.body).toEqual({ ...settings, darkMode: false });
+    request.flush({ ...settings, darkMode: false });
+    await fixture.whenStable();
+
+    expect(el.textContent).toContain('Your settings have been saved.');
+  });
+
   it('shows an error with retry when loading fails', async () => {
     const { fixture, http, el } = setup();
     http.expectOne(settingsUrl).flush(null, { status: 500, statusText: 'Server Error' });
@@ -64,6 +91,11 @@ describe('SettingsPage', () => {
     const { fixture, http, el } = await loaded();
 
     toggle(el, '#setting-dark-mode');
+    const darkModeRequest = http.expectOne(settingsUrl);
+    expect(darkModeRequest.request.body).toEqual({ ...settings, darkMode: true });
+    darkModeRequest.flush({ ...settings, darkMode: true });
+    await fixture.whenStable();
+
     toggle(el, '#setting-email');
     fixture.detectChanges();
     saveButton(el).click();

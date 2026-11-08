@@ -1,5 +1,5 @@
 <div class="flex min-h-screen flex-col bg-surface-muted text-text">
-  <header class="sticky top-0 z-40 border-b border-border-soft bg-white/80 backdrop-blur">
+  <header class="sticky top-0 z-40 border-b border-border-soft bg-surface/80 backdrop-blur">
     <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
       <a
         routerLink="/"
@@ -33,6 +33,7 @@
             type="button"
             class="rounded-full border border-border-soft bg-white px-4 py-2 text-text md:hidden"
             aria-controls="main-nav"
+            [attr.aria-label]="menuOpen() ? 'Close navigation menu' : 'Open navigation menu'"
             [attr.aria-expanded]="menuOpen()"
             (click)="toggleMenu()"
           >
@@ -69,6 +70,14 @@
   </header>
 
   <main id="main-content" class="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:py-10">
+    @if (themeError(); as error) {
+      <p
+        class="mb-4 rounded-control bg-surface-error px-4 py-3 text-label text-error"
+        role="status"
+      >
+        {{ error }}
+      </p>
+    }
     <router-outlet />
   </main>
 
@@ -96,7 +105,7 @@
               <li>
                 <button
                   type="button"
-                  class="text-blush underline underline-offset-2 hover:text-white"
+                  class="text-blush hover:text-white"
                   (click)="showLogin.set(true)"
                 >
                   Log in
