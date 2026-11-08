@@ -313,14 +313,28 @@ export class EventComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const reminderDate = this.getSelectedReminderDate(
+      event,
+      optionIndex,
+      this.customReminderDate[event.id]
+    );
+
+    if (!reminderDate) {
+      this.errorMessage.set('Please select a valid reminder date and time.');
+      return;
+    }
+
     this.reminderService.create({
       eventId: event.id,
       documentId: null,
-      reminderDate: this.reminderDateFor(event, optionIndex),
+      reminderDate,
     }).subscribe({
       next: (reminder) => {
         this.reminders.update(reminders => [...reminders, reminder]);
+
         delete this.selectedReminder[event.id];
+        delete this.customReminderDate[event.id];
+
         this.successMessage.set('Reminder created successfully.');
       },
       error: () => {
