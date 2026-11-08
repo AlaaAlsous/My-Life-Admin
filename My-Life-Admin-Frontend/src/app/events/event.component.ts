@@ -382,10 +382,21 @@ export class EventComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const reminderDate = this.getSelectedReminderDate(
+      event,
+      optionIndex,
+      this.customEditReminderDate[event.id]
+    );
+
+    if (!reminderDate) {
+      this.errorMessage.set('Please select a valid reminder date and time.');
+      return;
+    }
+
     this.reminderService.update(reminder.id, {
       eventId: event.id,
       documentId: reminder.documentId,
-      reminderDate: this.reminderDateFor(event, optionIndex),
+      reminderDate,
     }).subscribe({
       next: (updatedReminder) => {
         this.reminders.update(reminders =>
@@ -397,6 +408,8 @@ export class EventComponent implements OnInit, OnDestroy {
         );
 
         delete this.selectedEditReminder[event.id];
+        delete this.customEditReminderDate[event.id];
+
         this.successMessage.set('Reminder updated successfully.');
       },
       error: () => {
