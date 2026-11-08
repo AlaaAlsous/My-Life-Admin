@@ -40,7 +40,11 @@ test.describe('Document viewer', () => {
 
     // Kalenderhändelsen ska ha fått det nya namnet "<titel> expires".
     await page.goto('/events');
-    await expect(page.getByRole('button', { name: `${newTitle} expires` })).toBeVisible();
+    await expect(
+      page
+        .locator('section[aria-labelledby="all-events-heading"]')
+        .getByRole('button', { name: `${newTitle} expires` }),
+    ).toBeVisible();
   });
 
   test('laddar ner filen från detaljvyn', async ({ page }) => {

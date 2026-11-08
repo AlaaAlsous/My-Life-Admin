@@ -28,7 +28,11 @@ test.describe('Calendar', () => {
 
     await page.goto('/events');
     // Händelsen skapas automatiskt med titeln "<titel> expires".
-    await expect(page.getByRole('button', { name: `${title} expires` })).toBeVisible();
+    await expect(
+      page
+        .locator('section[aria-labelledby="all-events-heading"]')
+        .getByRole('button', { name: `${title} expires` }),
+    ).toBeVisible();
   });
 });
 

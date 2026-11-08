@@ -3,9 +3,12 @@ import { uniqueUser, register } from './auth.helpers';
 import { uploadDocument, expiryLaterThisMonth } from './documents.helpers';
 
 // Öppnar detaljpanelen för dokumentets automatiskt skapade kalenderhändelse.
+// Events visas både i kalendern och i "All Events"-listan, så vi söker inom listan
+// för att undvika Playwrights stränga-läge-konflikt på dubblerade träffar.
 async function openEventDetails(page: Page, title: string): Promise<Locator> {
   await page.goto('/events');
-  await page.getByRole('button', { name: `${title} expires` }).click();
+  const allEvents = page.locator('section[aria-labelledby="all-events-heading"]');
+  await allEvents.getByRole('button', { name: `${title} expires` }).first().click();
   return page.locator('section[aria-labelledby="event-details-heading"]');
 }
 
@@ -19,7 +22,7 @@ test.describe('Events & påminnelser', () => {
     const details = await openEventDetails(page, title);
     await expect(details.getByRole('heading', { name: `${title} expires` })).toBeVisible();
     await expect(details.getByText('Category')).toBeVisible();
-    await expect(details.getByText('Date')).toBeVisible();
+    await expect(details.getByText('Date', { exact: true })).toBeVisible();
   });
 
   test('skapar, uppdaterar och raderar en påminnelse', async ({ page }) => {

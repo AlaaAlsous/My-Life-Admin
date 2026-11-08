@@ -92,7 +92,11 @@ test.describe('Documents: filter, download & delete', () => {
 
     // Skapa en påminnelse på dokumentets kalenderhändelse.
     await page.goto('/events');
-    await page.getByRole('button', { name: `${title} expires` }).click();
+    await page
+      .locator('section[aria-labelledby="all-events-heading"]')
+      .getByRole('button', { name: `${title} expires` })
+      .first()
+      .click();
     const details = page.locator('section[aria-labelledby="event-details-heading"]');
     await details.getByLabel('Reminder').selectOption({ label: '1 week before' });
     await details.getByRole('button', { name: 'Add reminder' }).click();

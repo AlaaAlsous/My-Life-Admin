@@ -37,7 +37,8 @@ test.describe('Dashboard', () => {
 
     // Skapa en påminnelse (en vecka före händelsen -> ligger i framtiden).
     await page.goto('/events');
-    await page.getByRole('button', { name: `${title} expires` }).click();
+    const allEvents = page.locator('section[aria-labelledby="all-events-heading"]');
+    await allEvents.getByRole('button', { name: `${title} expires` }).first().click();
     const details = page.locator('section[aria-labelledby="event-details-heading"]');
     await details.getByLabel('Reminder').selectOption({ label: '1 week before' });
     await details.getByRole('button', { name: 'Add reminder' }).click();
