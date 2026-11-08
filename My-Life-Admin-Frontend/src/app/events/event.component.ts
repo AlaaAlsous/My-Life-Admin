@@ -391,6 +391,28 @@ export class EventComponent implements OnInit, OnDestroy {
     });
   }
 
+  private getSelectedReminderDate(
+    event: EventDto,
+    optionIndex: number,
+    customDate: string | undefined
+  ): string | null {
+    if (optionIndex === this.customReminderOption) {
+      if (!customDate) {
+        return null;
+      }
+
+      const date = new Date(customDate);
+
+      if (Number.isNaN(date.getTime())) {
+        return null;
+      }
+
+      return date.toISOString();
+    }
+
+    return this.reminderDateFor(event, optionIndex);
+  }
+
   private reminderDateFor(event: EventDto, optionIndex: number): string {
     const option = this.reminderOptions[optionIndex];
     const reminderDate = new Date(event.eventDate);
