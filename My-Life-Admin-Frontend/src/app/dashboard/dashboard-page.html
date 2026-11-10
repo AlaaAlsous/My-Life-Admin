@@ -1,6 +1,6 @@
 <section
   aria-labelledby="dashboard-heading"
-  class="relative isolate overflow-hidden rounded-4xl bg-linear-to-br from-surface via-surface-muted to-blush/60 px-6 py-10 shadow-soft ring-1 ring-border-soft sm:px-12 sm:py-14"
+  class="relative isolate overflow-hidden rounded-4xl bg-linear-to-br from-surface via-surface-muted to-blush/60 px-6 py-10 shadow-soft ring-1 ring-border-soft sm:px-12 sm:py-5"
 >
   <div
     aria-hidden="true"
@@ -50,8 +50,13 @@
                     @if (doc.category) {
                       {{ doc.category }} ·
                     }
-                    Added {{ doc.uploadedAt | date: 'mediumDate' }}
+                    Added {{ doc.uploadedAt | date: 'medium' }}
                   </p>
+                  @if (doc.expiryDate) {
+                    <p class="text-label text-text-muted">
+                      Expires {{ doc.expiryDate | date: 'medium' }}
+                    </p>
+                  }
                 </a>
               </li>
             }
@@ -80,7 +85,7 @@
                     {{ event.title }}
                   </p>
                   <p class="text-label text-text-muted">
-                    {{ event.eventDate | date: 'medium' }}
+                    On {{ event.eventDate | date: 'medium' }}
                     @if (event.category) {
                       · {{ event.category }}
                     }
@@ -120,7 +125,7 @@
                     {{ reminder.title ?? 'Reminder' }}
                   </p>
                   <p class="text-label text-text-muted">
-                    {{ reminder.reminderDate | date: 'medium' }}
+                    On {{ reminder.reminderDate | date: 'medium' }}
                   </p>
                 </a>
               </li>
