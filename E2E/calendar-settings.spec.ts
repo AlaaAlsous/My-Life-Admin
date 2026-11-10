@@ -7,7 +7,9 @@ function expiryInCurrentMonth(): string {
   const month = now.getMonth(); 
   const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
   const day = Math.min(now.getDate() + 7, lastDayOfMonth);
-  return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  const date = new Date(year, month, day, 12, 0, 0, 0);
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 test.describe('Calendar', () => {
