@@ -1,6 +1,6 @@
 <section
   aria-labelledby="documents-heading"
-  class="relative isolate overflow-hidden rounded-4xl bg-linear-to-br from-surface via-surface-muted to-blush/60 px-6 py-10 shadow-soft ring-1 ring-border-soft sm:px-12 sm:py-14"
+  class="relative isolate overflow-hidden rounded-4xl bg-linear-to-br from-surface via-surface-muted to-blush/60 px-6 py-10 shadow-soft ring-1 ring-border-soft sm:px-12 sm:py-5"
 >
   <div
     aria-hidden="true"
@@ -73,19 +73,21 @@
       </div>
 
       <div>
-        <label for="doc-expiry" class="block text-label font-medium text-plum">Expiry date</label>
+        <label for="doc-expiry" class="block text-label font-medium text-plum"
+          >Expiry date &amp; time</label
+        >
         <input
           id="doc-expiry"
-          type="date"
+          type="datetime-local"
           class="mt-1 w-full rounded-control border border-border bg-white px-3 py-2"
-          [value]="expiryDate()"
-          (input)="expiryDate.set($any($event.target).value)"
+          [value]="expiryLocal()"
+          (input)="expiryLocal.set($any($event.target).value)"
         />
       </div>
 
       <div>
         <span class="block text-label font-medium text-plum">File (PDF or image)</span>
-        <div class="mt-1 flex flex-wrap items-center gap-3">
+        <div class="mt-1 flex flex-wrap items-center justify-center gap-3">
           <label
             class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-primary px-5 py-2.5 font-medium text-white shadow-soft transition hover:bg-primary-hover hover:shadow-lift"
           >
@@ -200,38 +202,56 @@
   >
     <h2 id="list-heading" class="text-title text-plum">Your files</h2>
 
-    <div class="mt-4">
-      <label for="document-search" class="block text-label font-medium text-plum">
-        Search documents
-      </label>
+    <div class="mt-4 grid gap-3 sm:grid-cols-2">
+      <div>
+        <label for="document-search" class="block text-label font-medium text-plum">
+          Search documents
+        </label>
 
-      <input
-        id="document-search"
-        type="search"
-        placeholder="Search by title..."
-        class="mt-1 w-full rounded-control border border-border bg-white px-3 py-2"
-        [value]="searchQuery()"
-        (input)="searchQuery.set($any($event.target).value)"
-      />
-    </div>
+        <div class="relative mt-1">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted"
+            aria-hidden="true"
+          >
+            <path d="m21 21-4.34-4.34" />
+            <circle cx="11" cy="11" r="8" />
+          </svg>
 
-    <div class="mt-4">
-      <label for="category-filter" class="block text-label font-medium text-plum">
-        Filter by category
-      </label>
+          <input
+            id="document-search"
+            type="search"
+            placeholder="Search by title..."
+            class="w-full rounded-control border border-border bg-white py-2 pl-10 pr-3 text-plum placeholder:text-text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            [value]="searchQuery()"
+            (input)="searchQuery.set($any($event.target).value)"
+          />
+        </div>
+      </div>
 
-      <select
-        id="category-filter"
-        class="mt-1 w-full rounded-control border border-border bg-white px-3 py-2"
-        [value]="selectedCategory()"
-        (change)="selectedCategory.set($any($event.target).value)"
-      >
-        <option value="">All categories</option>
+      <div>
+        <label for="category-filter" class="block text-label font-medium text-plum">
+          Filter by category
+        </label>
 
-        @for (category of categories(); track category) {
-          <option [value]="category">{{ category }}</option>
-        }
-      </select>
+        <select
+          id="category-filter"
+          class="mt-1 w-full rounded-control border border-border bg-white px-3 py-2 text-plum focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+          [value]="selectedCategory()"
+          (change)="selectedCategory.set($any($event.target).value)"
+        >
+          <option value="">All categories</option>
+
+          @for (category of categories(); track category) {
+            <option [value]="category">{{ category }}</option>
+          }
+        </select>
+      </div>
     </div>
 
     @if (loading()) {
@@ -282,6 +302,9 @@
                   · {{ document.category }}
                 }
                 · Added {{ document.uploadedAt | date: 'mediumDate' }}
+                @if (document.expiryDate) {
+                  · Expires {{ document.expiryDate | date: isDateTime(document.expiryDate) ? 'medium' : 'mediumDate' }}
+                }
               </p>
             </div>
             <div class="flex shrink-0 gap-2">

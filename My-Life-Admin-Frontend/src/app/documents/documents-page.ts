@@ -62,10 +62,22 @@ export class DocumentsPage {
     return daysUntilExpiry >= 0 && daysUntilExpiry <= 30;
   }
 
+  protected isDateTime(value: string): boolean {
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return false;
+    }
+
+    const hasTime = date.getUTCHours() !== 0 || date.getUTCMinutes() !== 0;
+
+    return hasTime;
+  }
+
   protected readonly title = signal('');
   protected readonly category = signal('');
   protected readonly description = signal('');
-  protected readonly expiryDate = signal('');
+  protected readonly expiryLocal = signal('');
   protected readonly file = signal<File | null>(null);
 
   protected readonly uploading = signal(false);
@@ -135,7 +147,7 @@ export class DocumentsPage {
         title,
         category: this.category().trim() || null,
         description: this.description().trim() || null,
-        expiryDate: this.expiryDate() || null,
+        expiryDate: this.expiryIso() || null,
         file: selectedFile,
       })
       .subscribe({
@@ -174,7 +186,7 @@ export class DocumentsPage {
         title,
         category: this.category().trim() || null,
         description: this.description().trim() || null,
-        expiryDate: this.expiryDate() || null,
+        expiryDate: this.expiryIso() || null,
       })
       .subscribe({
         next: () => {
@@ -249,7 +261,7 @@ export class DocumentsPage {
         this.description.set(result.description);
       }
       if (result.expiryDate) {
-        this.expiryDate.set(this.toDateInput(result.expiryDate));
+        this.expiryLocal.set(this.toLocalInput(result.expiryDate));
       }
       this.analysisNote.set(
         'We read the file and filled in the details. Review them and save when ready.',
@@ -265,7 +277,7 @@ export class DocumentsPage {
     this.title.set('');
     this.category.set('');
     this.description.set('');
-    this.expiryDate.set('');
+    this.expiryLocal.set('');
     this.file.set(null);
     this.reviewingId.set(null);
     this.analysisNote.set(null);
@@ -277,8 +289,33 @@ export class DocumentsPage {
     return lastDot > 0 ? name.slice(0, lastDot) : name;
   }
 
-  private toDateInput(value: string): string {
-    return value ? value.slice(0, 10) : '';
+  private expiryIso(): string {
+    const value = this.expiryLocal().trim();
+
+    if (!value) {
+      return '';
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return '';
+    }
+
+    return date.toISOString();
+  }
+
+  private toLocalInput(value: string): string {
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return '';
+    }
+
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    const local = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+
+    return local;
   }
 
   private saveBlob(blob: Blob, fileName: string): void {
