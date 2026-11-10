@@ -35,7 +35,7 @@
             }
             <button
               type="button"
-              class="inline-flex items-center gap-2 rounded-full border border-border-soft bg-white px-5 py-2.5 font-medium text-plum shadow-soft transition hover:border-border hover:bg-surface-muted hover:text-primary hover:shadow-lift"
+              class="inline-flex items-center gap-2 rounded-full border border-border-soft bg-white px-5 py-2 text-label font-medium text-plum shadow-soft transition hover:border-border hover:bg-surface-muted hover:text-primary hover:shadow-lift"
               (click)="logout()"
             >
               <svg
@@ -58,7 +58,7 @@
         } @else {
           <button
             type="button"
-            class="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 font-medium text-white shadow-soft transition hover:bg-primary-hover hover:shadow-lift"
+            class="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-label font-medium text-white shadow-soft transition hover:bg-primary-hover hover:shadow-lift"
             (click)="showLogin.set(true)"
           >
             <svg
@@ -111,7 +111,7 @@
         <nav
           id="main-nav"
           aria-label="Main navigation"
-          class="w-full md:block md:w-auto"
+          class="mt-2 w-full md:mt-0 md:block md:w-auto"
           [class.hidden]="!menuOpen()"
         >
           <ul class="flex flex-col gap-1 md:flex-row md:gap-2">
