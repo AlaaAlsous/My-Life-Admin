@@ -77,6 +77,11 @@ jobs:
           app-settings-json: |
             [
               {
+                "name": "ASPNETCORE_ENVIRONMENT",
+                "value": "Production",
+                "slotSetting": false
+              },
+              {
                 "name": "ConnectionStrings__SqlServerConnection",
                 "value": "${{ secrets.AZURE_SQL_CONNECTION_STRING }}",
                 "slotSetting": false
