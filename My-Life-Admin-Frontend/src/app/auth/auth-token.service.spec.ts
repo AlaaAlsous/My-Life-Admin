@@ -7,6 +7,12 @@ function makeToken(exp: number): string {
   return `${header}.${payload}.signature`;
 }
 
+function makeTokenWithName(exp: number, name: string): string {
+  const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+  const payload = btoa(JSON.stringify({ exp, unique_name: name }));
+  return `${header}.${payload}.signature`;
+}
+
 describe('AuthTokenService', () => {
   beforeEach(() => {
     localStorage.clear();
@@ -70,5 +76,44 @@ describe('AuthTokenService', () => {
 
     expect(service.getToken()).toBe(token);
     expect(service.isLoggedIn()).toBe(true);
+  });
+
+  it('returns the user name from the token', () => {
+    const service = TestBed.inject(AuthTokenService);
+    const token = makeTokenWithName(Math.floor(Date.now() / 1000) + 3600, 'Alaa');
+    service.setToken(token);
+
+    expect(service.getUserName()).toBe('Alaa');
+  });
+
+  it('stores and returns the user name provided at login', () => {
+    const service = TestBed.inject(AuthTokenService);
+    service.setToken('jwt-token', 'Alaa Alsous');
+
+    expect(service.getUserName()).toBe('Alaa Alsous');
+  });
+
+  it('clears the stored user name on logout', () => {
+    const service = TestBed.inject(AuthTokenService);
+    service.setToken('jwt-token', 'Alaa Alsous');
+
+    service.clearToken();
+
+    expect(service.getUserName()).toBeNull();
+    expect(localStorage.getItem('my-life-admin.user-name')).toBeNull();
+  });
+
+  it('returns null for the user name when the token has no name', () => {
+    const service = TestBed.inject(AuthTokenService);
+    const token = makeToken(Math.floor(Date.now() / 1000) + 3600);
+    service.setToken(token);
+
+    expect(service.getUserName()).toBeNull();
+  });
+
+  it('returns null for the user name when not logged in', () => {
+    const service = TestBed.inject(AuthTokenService);
+
+    expect(service.getUserName()).toBeNull();
   });
 });

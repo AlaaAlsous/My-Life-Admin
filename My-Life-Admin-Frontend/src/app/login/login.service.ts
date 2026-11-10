@@ -25,7 +25,7 @@ export class LoginService {
   login(request: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(this.url, request).pipe(
       map((response) => {
-        this.tokenService.setToken(response.token);
+        this.tokenService.setToken(response.token, response.name);
         return response;
       }),
     );

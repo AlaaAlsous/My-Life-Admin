@@ -104,8 +104,8 @@ describe('EventComponent', () => {
     fixture.detectChanges();
     (el.querySelector('app-event-calendar li button') as HTMLButtonElement).click();
     fixture.detectChanges();
-    const button = Array.from(el.querySelectorAll('button')).find((b) =>
-      b.textContent?.includes('Delete reminder'),
+    const button = Array.from(el.querySelectorAll('button')).find(
+      (b) => b.getAttribute('aria-label') === 'Delete reminder',
     ) as HTMLButtonElement;
     return button;
   }
