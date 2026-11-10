@@ -237,7 +237,7 @@ html::-webkit-scrollbar-thumb:hover {
 }
 
 @media (max-width: 639px) {
-  button {
+  button:not([aria-label]) {
     min-height: 2.75rem;
   }
 
