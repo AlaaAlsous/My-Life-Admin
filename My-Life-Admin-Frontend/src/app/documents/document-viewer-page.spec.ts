@@ -46,8 +46,8 @@ describe('DocumentViewerPage', () => {
   }
 
   function buttonByText(el: HTMLElement, text: string): HTMLButtonElement {
-    return Array.from(el.querySelectorAll('button')).find((b) =>
-      b.textContent?.trim().startsWith(text),
+    return Array.from(el.querySelectorAll('button')).find(
+      (b) => b.textContent?.trim().startsWith(text) || b.getAttribute('aria-label') === text,
     ) as HTMLButtonElement;
   }
 
@@ -106,12 +106,19 @@ describe('DocumentViewerPage', () => {
 
     const putRequest = http.expectOne(`${documentsUrl}1`);
     expect(putRequest.request.method).toBe('PUT');
-    expect(putRequest.request.body).toEqual({
-      title: 'New passport',
-      description: 'Travel document',
-      category: 'Identity',
-      expiryDate: '2030-01-01',
-    });
+
+    const body = putRequest.request.body as {
+      title: string;
+      description: string;
+      category: string;
+      expiryDate: string;
+    };
+
+    expect(body.title).toBe('New passport');
+    expect(body.description).toBe('Travel document');
+    expect(body.category).toBe('Identity');
+    // Expiry is now sent as a full ISO timestamp (date + time), not a date-only string.
+    expect(body.expiryDate).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
     putRequest.flush({ ...documentDto, title: 'New passport' });
     await fixture.whenStable();
     fixture.detectChanges();

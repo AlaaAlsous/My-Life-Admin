@@ -35,6 +35,7 @@ describe('LoginService', () => {
     });
 
     expect(tokenService.getToken()).toBe('jwt-token-value');
+    expect(tokenService.getUserName()).toBe('Anna');
     http.verify();
   });
 });

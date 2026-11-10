@@ -3,23 +3,28 @@ import { type Page, expect } from '@playwright/test';
 // Ett datum senare under innevarande månad (klampat till månadens sista dag),
 // så att den automatiskt skapade kalenderhändelsen alltid syns i kalenderns
 // standardvy och i dashboardens "Upcoming events" – och aldrig ligger i det
-// förflutna.
+// förflutna. Returnerar en `datetime-local`-sträng (YYYY-MM-DDTHH:mm) i lokal tid.
 export function expiryLaterThisMonth(): string {
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth(); // 0-baserad
   const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
   const day = Math.min(now.getDate() + 7, lastDayOfMonth);
-  return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  const date = new Date(year, month, day, 12, 0, 0, 0);
+  return toLocalInput(date);
 }
 
-/** Ett datum `days` dagar framåt (YYYY-MM-DD). Kan passera månadsskiftet. */
+/** Ett datum `days` dagar framåt (YYYY-MM-DDTHH:mm) i lokal tid. Kan passera månadsskiftet. */
 export function dateInDays(days: number): string {
   const date = new Date();
   date.setDate(date.getDate() + days);
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${date.getFullYear()}-${month}-${day}`;
+  date.setHours(12, 0, 0, 0);
+  return toLocalInput(date);
+}
+
+function toLocalInput(date: Date): string {
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 export interface UploadOptions {

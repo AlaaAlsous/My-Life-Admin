@@ -27,6 +27,14 @@ export class AppLayout {
   protected readonly showRegister = signal(false);
   protected readonly menuOpen = signal(false);
 
+  protected readonly userName = computed(() => {
+    if (!this.isLoggedIn()) {
+      return null;
+    }
+
+    return this.tokenService.getUserName();
+  });
+
   // Only configured, navigable routes get a link, so there are never dead links.
   // Guarded routes are only listed for logged-in users.
   protected readonly navLinks = computed<NavLink[]>(() =>

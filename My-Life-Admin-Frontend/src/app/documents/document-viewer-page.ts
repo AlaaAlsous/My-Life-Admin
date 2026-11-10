@@ -33,7 +33,7 @@ export class DocumentViewerPage implements OnInit, OnDestroy {
   protected readonly title = signal('');
   protected readonly category = signal('');
   protected readonly description = signal('');
-  protected readonly expiryDate = signal('');
+  protected readonly expiryLocal = signal('');
 
   protected readonly isPdf = computed(
     () => this.document()?.fileName.toLowerCase().endsWith('.pdf') ?? false,
@@ -87,7 +87,7 @@ export class DocumentViewerPage implements OnInit, OnDestroy {
     this.title.set(document.title);
     this.category.set(document.category ?? '');
     this.description.set(document.description ?? '');
-    this.expiryDate.set(document.expiryDate ? document.expiryDate.slice(0, 10) : '');
+    this.expiryLocal.set(document.expiryDate ? this.toLocalInput(document.expiryDate) : '');
     this.saveError.set(null);
     this.editing.set(true);
   }
@@ -119,7 +119,7 @@ export class DocumentViewerPage implements OnInit, OnDestroy {
         title,
         category: this.category().trim() || null,
         description: this.description().trim() || null,
-        expiryDate: this.expiryDate() || null,
+        expiryDate: this.expiryIso() || null,
       })
       .subscribe({
         next: (updated) => {
@@ -214,5 +214,32 @@ export class DocumentViewerPage implements OnInit, OnDestroy {
   private documentId(): number | null {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     return Number.isInteger(id) && id > 0 ? id : null;
+  }
+
+  private expiryIso(): string {
+    const value = this.expiryLocal().trim();
+
+    if (!value) {
+      return '';
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return '';
+    }
+
+    return date.toISOString();
+  }
+
+  private toLocalInput(value: string): string {
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return '';
+    }
+
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
   }
 }
