@@ -303,7 +303,11 @@
                 }
                 · Added {{ document.uploadedAt | date: 'mediumDate' }}
                 @if (document.expiryDate) {
-                  · Expires {{ document.expiryDate | date: isDateTime(document.expiryDate) ? 'medium' : 'mediumDate' }}
+                  · Expires
+                  {{
+                    document.expiryDate
+                      | date: (isDateTime(document.expiryDate) ? 'medium' : 'mediumDate')
+                  }}
                 }
               </p>
             </div>

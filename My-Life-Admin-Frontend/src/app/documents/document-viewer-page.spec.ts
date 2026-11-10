@@ -47,8 +47,7 @@ describe('DocumentViewerPage', () => {
 
   function buttonByText(el: HTMLElement, text: string): HTMLButtonElement {
     return Array.from(el.querySelectorAll('button')).find(
-      (b) =>
-        b.textContent?.trim().startsWith(text) || b.getAttribute('aria-label') === text,
+      (b) => b.textContent?.trim().startsWith(text) || b.getAttribute('aria-label') === text,
     ) as HTMLButtonElement;
   }
 
