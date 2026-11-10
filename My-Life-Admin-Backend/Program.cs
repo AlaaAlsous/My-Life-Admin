@@ -68,7 +68,11 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.Configure<FileStorageOptions>(
     builder.Configuration.GetSection(FileStorageOptions.SectionName));
 
-if (builder.Environment.IsDevelopment())
+var fileStorageOptions = builder.Configuration
+    .GetSection(FileStorageOptions.SectionName)
+    .Get<FileStorageOptions>() ?? new FileStorageOptions();
+
+if (string.IsNullOrWhiteSpace(fileStorageOptions.ConnectionString))
 {
     builder.Services.AddSingleton<IFileStorage, LocalFileStorage>();
 }
