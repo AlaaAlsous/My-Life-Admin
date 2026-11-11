@@ -123,9 +123,7 @@
                         : ['/events']
                   "
                   [queryParams]="
-                    reminder.eventId != null
-                      ? { event: reminder.eventId, focus: 'details' }
-                      : {}
+                    reminder.eventId != null ? { event: reminder.eventId, focus: 'details' } : {}
                   "
                   class="group block py-3"
                 >
