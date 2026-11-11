@@ -29,7 +29,7 @@ test.describe('Chat / AI-assistent', () => {
     await uploadDocument(page, { title });
 
     // Öppna dokumentet och dess chatt ("Asking about this document").
-    await page.locator('li', { hasText: title }).getByRole('link', { name: 'View' }).click();
+    await page.locator('li', { hasText: title }).getByRole('link').click();
     await page.getByRole('button', { name: 'Open AI chat' }).click();
 
     const message = `Kom ihåg detta ${Date.now()}`;
