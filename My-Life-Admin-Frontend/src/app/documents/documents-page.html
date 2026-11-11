@@ -20,9 +20,34 @@
     aria-labelledby="upload-heading"
     class="min-w-0 rounded-card bg-white p-7 shadow-soft ring-1 ring-border-soft"
   >
-    <h2 id="upload-heading" class="text-title text-plum">Upload a document</h2>
+    <div class="flex items-center justify-between gap-3">
+      <h2 id="upload-heading" class="text-title text-plum">Upload a document</h2>
 
-    @if (uploadError(); as error) {
+      <button
+        type="button"
+        class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border-soft text-text-muted transition hover:bg-surface-muted hover:text-text"
+        [attr.aria-label]="showUploadForm() ? 'Hide upload form' : 'Show upload form'"
+        [attr.aria-expanded]="showUploadForm()"
+        (click)="showUploadForm.update((v) => !v)"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="h-4 w-4 transition-transform"
+          [class.rotate-180]="!showUploadForm()"
+          aria-hidden="true"
+        >
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
+    </div>
+
+    @if (showUploadForm()) {
+      @if (uploadError(); as error) {
       <div class="mt-4">
         <app-error-state [message]="error" />
       </div>
@@ -219,7 +244,8 @@
           </button>
         }
       </div>
-    </div>
+      </div>
+    }
   </section>
 
   <section
