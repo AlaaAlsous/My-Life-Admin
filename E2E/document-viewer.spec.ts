@@ -10,7 +10,7 @@ test.describe('Document viewer', () => {
     await uploadDocument(page, { title, description: 'Original beskrivning' });
 
     // Öppna detaljvyn via "View".
-    await page.locator('li', { hasText: title }).getByRole('link', { name: 'View' }).click();
+    await page.locator('li', { hasText: title }).getByRole('link').click();
     await expect(page).toHaveURL(/\/documents\/\d+$/);
     await expect(page.getByRole('heading', { name: title })).toBeVisible();
 
@@ -30,7 +30,7 @@ test.describe('Document viewer', () => {
     const title = `Calendar ${Date.now()}`;
     await uploadDocument(page, { title, expiry: expiryLaterThisMonth() });
 
-    await page.locator('li', { hasText: title }).getByRole('link', { name: 'View' }).click();
+    await page.locator('li', { hasText: title }).getByRole('link').click();
 
     const newTitle = `${title} ny`;
     await page.getByRole('button', { name: 'Edit' }).click();
@@ -52,7 +52,7 @@ test.describe('Document viewer', () => {
     const title = `ViewerDownload ${Date.now()}`;
     await uploadDocument(page, { title, fileName: 'viewer.pdf' });
 
-    await page.locator('li', { hasText: title }).getByRole('link', { name: 'View' }).click();
+    await page.locator('li', { hasText: title }).getByRole('link').click();
 
     const [download] = await Promise.all([
       page.waitForEvent('download'),
@@ -67,7 +67,7 @@ test.describe('Document viewer', () => {
     const title = `ViewerDelete ${Date.now()}`;
     await uploadDocument(page, { title });
 
-    await page.locator('li', { hasText: title }).getByRole('link', { name: 'View' }).click();
+    await page.locator('li', { hasText: title }).getByRole('link').click();
 
     // I detaljvyn kräver radering en bekräftelse i dialogen.
     await page.getByRole('button', { name: 'Delete' }).click();

@@ -65,6 +65,10 @@ public class ReminderBackgroundService(
                         ex,
                         "Failed to send reminder {ReminderId}",
                         reminder.Id);
+
+                    await reminderService.MarkAsFailedAsync(
+                        reminder.Id,
+                        reminder.UserId);
                 }
             }
         }
