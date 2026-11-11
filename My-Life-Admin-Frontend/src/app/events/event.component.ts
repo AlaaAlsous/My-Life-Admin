@@ -50,6 +50,7 @@ export class EventComponent implements OnInit, OnDestroy {
   private eventsRequest?: Subscription;
   private allEventsRequest?: Subscription;
   private pendingEventId: number | null = null;
+  private pendingOpenDetails = false;
 
   protected readonly month = signal(this.startOfMonth(new Date()));
   protected readonly events = signal<EventDto[]>([]);
@@ -63,6 +64,7 @@ export class EventComponent implements OnInit, OnDestroy {
 
   protected readonly selectedDate = signal<Date | null>(null);
   protected readonly selectedEvents = signal<EventDto[] | null>(null);
+  protected readonly highlightedEventId = signal<number | null>(null);
   protected readonly showTimeline = signal(false);
 
   protected readonly editingEventId = signal<number | null>(null);
@@ -111,9 +113,11 @@ export class EventComponent implements OnInit, OnDestroy {
       const id = raw ? Number(raw) : NaN;
 
       this.pendingEventId = Number.isFinite(id) ? id : null;
+      this.pendingOpenDetails = params.get('focus') === 'details';
+      this.highlightedEventId.set(this.pendingEventId);
 
       if (this.pendingEventId != null) {
-        this.trySelectEvent(this.pendingEventId);
+        this.tryResolvePendingEvent();
       }
     });
 
@@ -127,13 +131,41 @@ export class EventComponent implements OnInit, OnDestroy {
     this.allEventsRequest?.unsubscribe();
   }
 
-  private trySelectEvent(id: number): void {
+  private tryResolvePendingEvent(): void {
+    const id = this.pendingEventId;
+
+    if (id == null) {
+      return;
+    }
+
     const event = this.allEvents().find((e) => e.id === id);
 
-    if (event) {
-      this.pendingEventId = null;
-      this.onEventSelected(event);
+    if (!event) {
+      return;
     }
+
+    this.pendingEventId = null;
+    this.highlightedEventId.set(id);
+
+    if (this.pendingOpenDetails) {
+      this.pendingOpenDetails = false;
+      this.onEventSelected(event);
+    } else {
+      this.scrollToEventListItem(id);
+    }
+  }
+
+  private scrollToEventListItem(id: number): void {
+    afterNextRender(
+      () => {
+        const element = document.getElementById(`event-${id}`);
+
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      },
+      { injector: this.injector },
+    );
   }
 
   protected toggleView(): void {
@@ -181,7 +213,7 @@ export class EventComponent implements OnInit, OnDestroy {
         this.isLoadingAllEvents.set(false);
 
         if (this.pendingEventId != null) {
-          this.trySelectEvent(this.pendingEventId);
+          this.tryResolvePendingEvent();
         }
       },
       error: () => {
