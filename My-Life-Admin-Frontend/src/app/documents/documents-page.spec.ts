@@ -196,4 +196,53 @@ describe('DocumentsPage', () => {
 
     expect(el.textContent).toContain('No documents yet');
   });
+
+  it('deletes the uploaded document when review is cancelled', async () => {
+    const { fixture, http, el } = setup();
+    http.expectOne(documentsUrl).flush([]);
+
+    const file = new File(['contents'], 'passport.pdf', { type: 'application/pdf' });
+    const fileInput = el.querySelector<HTMLInputElement>('#doc-file')!;
+    Object.defineProperty(fileInput, 'files', { configurable: true, value: [file] });
+    fileInput.dispatchEvent(new Event('change'));
+
+    el.querySelector<HTMLButtonElement>('button')!.click();
+
+    const uploadRequest = http.expectOne(documentsUrl);
+    expect(uploadRequest.request.method).toBe('POST');
+    uploadRequest.flush({
+      id: 1,
+      title: 'Passport',
+      fileName: 'passport.pdf',
+      description: null,
+      category: null,
+      expiryDate: null,
+      uploadedAt: '2026-06-01T00:00:00Z',
+    });
+
+    // The upload triggers a list refresh and then an analysis call.
+    http.expectOne(documentsUrl).flush([]);
+    http.expectOne(`${documentsUrl}1/analyze`).flush({
+      title: null,
+      category: null,
+      expiryDate: null,
+      description: null,
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    // The form is now in review mode with a Cancel button.
+    const cancelButton = Array.from(el.querySelectorAll<HTMLButtonElement>('button')).find(
+      (b) => b.textContent?.trim() === 'Cancel',
+    )!;
+    expect(cancelButton).toBeTruthy();
+    cancelButton.click();
+
+    const deleteRequest = http.expectOne(`${documentsUrl}1`);
+    expect(deleteRequest.request.method).toBe('DELETE');
+    deleteRequest.flush(null);
+
+    await fixture.whenStable();
+    fixture.detectChanges();
+  });
 });
