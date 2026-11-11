@@ -106,6 +106,10 @@ export class EventComponent implements OnInit, OnDestroy {
     return event.title.replace(/\s+expires$/i, '').trim() || event.title;
   }
 
+  protected isPastEvent(event: EventDto): boolean {
+    return new Date(event.eventDate).getTime() < Date.now();
+  }
+
   protected readonly reminderOptions = [
     { label: '1 week before', months: 0, days: 7 },
     { label: '1 month before', months: 1, days: 0 },
