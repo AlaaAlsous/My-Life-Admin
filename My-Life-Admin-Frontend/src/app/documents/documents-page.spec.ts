@@ -33,6 +33,12 @@ describe('DocumentsPage', () => {
     return { fixture, http, tokenService, el: fixture.nativeElement as HTMLElement };
   }
 
+  function uploadButton(el: HTMLElement): HTMLButtonElement {
+    return Array.from(el.querySelectorAll('button')).find(
+      (b) => b.textContent?.trim() === 'Upload',
+    ) as HTMLButtonElement;
+  }
+
   afterEach(() => {
     localStorage.clear();
     vi.unstubAllGlobals();
@@ -64,7 +70,7 @@ describe('DocumentsPage', () => {
     const { fixture, el, http } = setup();
     http.expectOne(documentsUrl).flush([]);
 
-    el.querySelector<HTMLButtonElement>('button')!.click();
+    uploadButton(el).click();
     fixture.detectChanges();
 
     expect(el.textContent).toContain('A file is required.');
@@ -84,7 +90,7 @@ describe('DocumentsPage', () => {
     Object.defineProperty(fileInput, 'files', { configurable: true, value: [file] });
     fileInput.dispatchEvent(new Event('change'));
 
-    el.querySelector<HTMLButtonElement>('button')!.click();
+    uploadButton(el).click();
 
     const uploadRequest = http.expectOne(documentsUrl);
     expect(uploadRequest.request.method).toBe('POST');
@@ -206,7 +212,7 @@ describe('DocumentsPage', () => {
     Object.defineProperty(fileInput, 'files', { configurable: true, value: [file] });
     fileInput.dispatchEvent(new Event('change'));
 
-    el.querySelector<HTMLButtonElement>('button')!.click();
+    uploadButton(el).click();
 
     const uploadRequest = http.expectOne(documentsUrl);
     expect(uploadRequest.request.method).toBe('POST');

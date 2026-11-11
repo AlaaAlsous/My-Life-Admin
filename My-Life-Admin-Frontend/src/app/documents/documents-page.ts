@@ -21,6 +21,7 @@ export class DocumentsPage {
 
   protected readonly loading = signal(true);
   protected readonly failed = signal(false);
+  protected readonly showUploadForm = signal(true);
   protected readonly documents = signal<DocumentDto[]>([]);
 
   protected readonly searchQuery = signal('');
