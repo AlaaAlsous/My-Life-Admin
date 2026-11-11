@@ -65,4 +65,8 @@ export class EventCalendar {
       day.date.getDate() === selected.getDate()
     );
   }
+
+  protected displayTitle(event: EventDto): string {
+    return event.title.replace(/\s+expires$/i, '').trim() || event.title;
+  }
 }

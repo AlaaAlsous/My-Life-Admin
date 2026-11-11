@@ -81,6 +81,18 @@ export class EventComponent implements OnInit, OnDestroy {
 
   protected readonly ReminderStatus = ReminderStatus;
 
+  protected remindersForEvent(eventId: number): ReminderDto[] {
+    return this.reminders()
+      .filter((r) => r.eventId === eventId && r.status === ReminderStatus.Pending)
+      .sort(
+        (a, b) => new Date(a.reminderDate).getTime() - new Date(b.reminderDate).getTime(),
+      );
+  }
+
+  protected displayTitle(event: EventDto): string {
+    return event.title.replace(/\s+expires$/i, '').trim() || event.title;
+  }
+
   protected readonly reminderOptions = [
     { label: '1 week before', months: 0, days: 7 },
     { label: '1 month before', months: 1, days: 0 },
