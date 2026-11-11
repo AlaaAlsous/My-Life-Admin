@@ -8,7 +8,7 @@ import { uploadDocument, expiryLaterThisMonth } from './documents.helpers';
 async function openEventDetails(page: Page, title: string): Promise<Locator> {
   await page.goto('/events');
   const allEvents = page.locator('section[aria-labelledby="all-events-heading"]');
-  await allEvents.getByRole('button', { name: `${title} expires` }).first().click();
+  await allEvents.getByRole('button', { name: new RegExp(title) }).first().click();
   return page.locator('section[aria-labelledby="event-details-heading"]');
 }
 
@@ -20,7 +20,7 @@ test.describe('Events & påminnelser', () => {
     await uploadDocument(page, { title, expiry: expiryLaterThisMonth() });
 
     const details = await openEventDetails(page, title);
-    await expect(details.getByRole('heading', { name: `${title} expires` })).toBeVisible();
+    await expect(details.getByRole('heading', { name: new RegExp(title) }).first()).toBeVisible();
     await expect(details.getByText('Category')).toBeVisible();
     await expect(details.getByText('Date', { exact: true })).toBeVisible();
   });

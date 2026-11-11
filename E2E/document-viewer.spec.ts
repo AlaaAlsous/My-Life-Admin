@@ -38,12 +38,11 @@ test.describe('Document viewer', () => {
     await page.getByRole('button', { name: 'Save', exact: true }).click();
     await expect(page.getByRole('heading', { name: newTitle })).toBeVisible();
 
-    // Kalenderhändelsen ska ha fått det nya namnet "<titel> expires".
+    // Kalenderhändelsen ska ha fått det nya namnet "<titel>".
     await page.goto('/events');
+    const allEvents = page.locator('section[aria-labelledby="all-events-heading"]');
     await expect(
-      page
-        .locator('section[aria-labelledby="all-events-heading"]')
-        .getByRole('button', { name: `${newTitle} expires` }),
+      allEvents.getByRole('button', { name: new RegExp(newTitle) }).first(),
     ).toBeVisible();
   });
 

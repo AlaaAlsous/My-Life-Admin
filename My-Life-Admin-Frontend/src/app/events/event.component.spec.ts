@@ -43,7 +43,7 @@ describe('EventComponent', () => {
     fixture.detectChanges();
 
     expect(el.querySelector('app-event-calendar')).not.toBeNull();
-    expect(el.textContent).toContain('Passport expires');
+    expect(el.textContent).toContain('Passport');
     expect(el.textContent).not.toContain('No events this month.');
   });
 
@@ -80,7 +80,8 @@ describe('EventComponent', () => {
     fixture.detectChanges();
 
     const details = el.querySelector('[aria-labelledby="event-details-heading"]');
-    expect(details?.textContent).toContain('Passport expires');
+    expect(details?.textContent).toContain('Passport');
+    expect(details?.textContent).toContain('Expires');
     expect(details?.textContent).toContain('Identity');
     expect(details?.textContent).toContain('Renew in time');
     expect(details?.querySelector('a')?.getAttribute('href')).toBe('/documents/7');
@@ -204,6 +205,6 @@ describe('EventComponent', () => {
     fixture.detectChanges();
 
     expect(el.querySelector('[role="alert"]')).toBeNull();
-    expect(el.textContent).toContain('Passport expires');
+    expect(el.textContent).toContain('Passport');
   });
 });
