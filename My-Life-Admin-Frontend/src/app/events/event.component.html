@@ -73,20 +73,16 @@
               @if (remindersForEvent(event.id).length > 0) {
                 @for (reminder of remindersForEvent(event.id); track reminder.id) {
                   <span
-                    class="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800"
+                    class="inline-flex items-center gap-1.5 rounded-full bg-surface-muted px-3 py-1 text-xs font-medium ring-1 ring-border-soft"
                   >
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      class="h-3.5 w-3.5"
-                      aria-hidden="true"
-                    >
-                      <path d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                    </svg>
+                    <span
+                      class="h-1.5 w-1.5 rounded-full"
+                      [class.bg-success]="reminder.status === ReminderStatus.Sent"
+                      [class.bg-error]="reminder.status === ReminderStatus.Failed"
+                      [class.bg-border]="reminder.status === ReminderStatus.Skipped"
+                      [class.bg-amber-600]="reminder.status === ReminderStatus.Pending"
+                    ></span>
+                    {{ reminderStatusLabel(reminder) }} ·
                     {{ reminder.reminderDate | date: 'medium' }}
                   </span>
                 }

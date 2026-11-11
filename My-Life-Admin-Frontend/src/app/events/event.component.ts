@@ -85,8 +85,21 @@ export class EventComponent implements OnInit, OnDestroy {
 
   protected remindersForEvent(eventId: number): ReminderDto[] {
     return this.reminders()
-      .filter((r) => r.eventId === eventId && r.status === ReminderStatus.Pending)
+      .filter((r) => r.eventId === eventId)
       .sort((a, b) => new Date(a.reminderDate).getTime() - new Date(b.reminderDate).getTime());
+  }
+
+  protected reminderStatusLabel(reminder: ReminderDto): string {
+    switch (reminder.status) {
+      case ReminderStatus.Sent:
+        return 'Sent';
+      case ReminderStatus.Failed:
+        return 'Failed';
+      case ReminderStatus.Skipped:
+        return 'Skipped';
+      default:
+        return 'Pending';
+    }
   }
 
   protected displayTitle(event: EventDto): string {
