@@ -36,4 +36,8 @@ export class DashboardPage {
       },
     });
   }
+
+  protected stripExpires(title: string): string {
+    return title.replace(/\s+expires$/i, '').trim() || title;
+  }
 }

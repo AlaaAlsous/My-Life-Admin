@@ -22,7 +22,7 @@ test.describe('Dashboard', () => {
     const upcoming = page.locator('section', {
       has: page.getByRole('heading', { name: 'Upcoming events' }),
     });
-    await expect(upcoming.getByText(`${title} expires`)).toBeVisible();
+    await expect(upcoming.getByText(title)).toBeVisible();
 
     // Dokumentlänken är klickbar och leder till dokumentvyn.
     await recent.getByRole('link', { name: title }).click();
@@ -38,7 +38,7 @@ test.describe('Dashboard', () => {
     // Skapa en påminnelse (en vecka före händelsen -> ligger i framtiden).
     await page.goto('/events');
     const allEvents = page.locator('section[aria-labelledby="all-events-heading"]');
-    await allEvents.getByRole('button', { name: `${title} expires` }).first().click();
+    await allEvents.getByRole('button', { name: new RegExp(title) }).first().click();
     const details = page.locator('section[aria-labelledby="event-details-heading"]');
     await details.getByLabel('Reminder').selectOption({ label: '1 week before' });
     await details.getByRole('button', { name: 'Add reminder' }).click();
@@ -49,7 +49,7 @@ test.describe('Dashboard', () => {
     const reminders = page.locator('section', {
       has: page.getByRole('heading', { name: 'Latest reminders' }),
     });
-    await expect(reminders.getByText(`${title} expires`)).toBeVisible();
+    await expect(reminders.getByText(title)).toBeVisible();
   });
 
   test('visar tomma tillstånd för en ny användare', async ({ page }) => {

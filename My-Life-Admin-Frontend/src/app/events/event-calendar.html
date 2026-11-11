@@ -85,7 +85,7 @@
                 [title]="event.title"
                 (click)="selectEvent(event, $event)"
               >
-                {{ event.title }}
+                {{ displayTitle(event) }}
               </button>
             </li>
           }

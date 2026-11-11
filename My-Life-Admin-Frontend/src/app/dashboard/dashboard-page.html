@@ -82,10 +82,10 @@
               <li>
                 <a routerLink="/events" class="group block py-3">
                   <p class="font-medium text-plum transition group-hover:text-primary">
-                    {{ event.title }}
+                    {{ stripExpires(event.title) }}
                   </p>
                   <p class="text-label text-text-muted">
-                    On {{ event.eventDate | date: 'medium' }}
+                    Expires: {{ event.eventDate | date: 'medium' }}
                     @if (event.category) {
                       · {{ event.category }}
                     }
@@ -122,10 +122,10 @@
                   class="group block py-3"
                 >
                   <p class="font-medium text-plum transition group-hover:text-primary">
-                    {{ reminder.title ?? 'Reminder' }}
+                    {{ reminder.title ? stripExpires(reminder.title) : 'Reminder' }}
                   </p>
                   <p class="text-label text-text-muted">
-                    On {{ reminder.reminderDate | date: 'medium' }}
+                    Reminder: {{ reminder.reminderDate | date: 'medium' }}
                   </p>
                 </a>
               </li>

@@ -202,8 +202,14 @@ export class DocumentsPage {
   }
 
   protected cancelReview(): void {
+    const id = this.reviewingId();
+
     this.resetForm();
     this.load();
+
+    if (id !== null) {
+      this.documentService.delete(id).subscribe();
+    }
   }
 
   protected download(document: DocumentDto): void {
