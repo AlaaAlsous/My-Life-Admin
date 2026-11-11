@@ -321,15 +321,24 @@
                     />
                   </svg>
                   <span class="text-text">
-                    @if (reminder.status === 0) {
+                    @if (reminder.status === ReminderStatus.Pending) {
                       <span class="font-medium text-text">Reminder set</span>
-                    } @else if (reminder.status === 1) {
-                      <span class="font-medium text-amber-600">Sent reminder</span>
+                    } @else if (reminder.status === ReminderStatus.Sent) {
+                      <span class="font-medium text-success">
+                        Sent reminder
+                        @if (reminder.sentAt) {
+                          on {{ reminder.sentAt | date: 'short' }}
+                        }
+                      </span>
+                    } @else if (reminder.status === ReminderStatus.Failed) {
+                      <span class="font-medium text-error">Failed to send</span>
                     } @else {
-                      <span class="font-medium text-red-600">Failed reminder</span>
+                      <span class="font-medium text-text-muted">
+                        Reminder skipped (email notifications off)
+                      </span>
                     }
                     <span class="text-text-muted">
-                      at {{ reminder.reminderDate | date: 'short' }}</span
+                      · for {{ reminder.reminderDate | date: 'short' }}</span
                     >
                   </span>
                 </div>
@@ -444,14 +453,16 @@
                   </div>
                 }
 
-                <button
-                  type="button"
-                  class="mt-3 rounded-control bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-hover disabled:opacity-50"
-                  [disabled]="selectedReminder[event.id] === undefined"
-                  (click)="createReminder(event)"
-                >
-                  Add reminder
-                </button>
+                <div class="mt-3 flex justify-center">
+                  <button
+                    type="button"
+                    class="rounded-control bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-hover disabled:opacity-50"
+                    [disabled]="selectedReminder[event.id] === undefined"
+                    (click)="createReminder(event)"
+                  >
+                    Add reminder
+                  </button>
+                </div>
               </div>
             }
           </article>
@@ -474,12 +485,12 @@
     </button>
   </div>
 
-  <div class="relative [perspective:1200px]">
+  <div class="relative perspective-distant">
     <div
-      class="relative grid [transform-style:preserve-3d] transition-transform duration-700 ease-in-out"
+      class="relative grid transform-3d transition-transform duration-700 ease-in-out"
       [class.[transform:rotateY(180deg)]]="showTimeline()"
     >
-      <div class="col-start-1 row-start-1 [backface-visibility:hidden]">
+      <div class="col-start-1 row-start-1 backface-hidden">
         <app-event-calendar
           [events]="events()"
           [month]="month()"
@@ -490,7 +501,7 @@
         />
       </div>
 
-      <div class="col-start-1 row-start-1 [backface-visibility:hidden] [transform:rotateY(180deg)]">
+      <div class="col-start-1 row-start-1 backface-hidden transform-[rotateY(180deg)]">
         <app-event-timeline
           [events]="events()"
           [selectedDate]="selectedDate() ?? month()"

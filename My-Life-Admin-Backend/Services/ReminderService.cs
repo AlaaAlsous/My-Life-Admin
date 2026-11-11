@@ -46,6 +46,24 @@ public class ReminderService(IReminderRepository repository) : IReminderService
         return reminder;
     }
 
+    public async Task<Reminder?> MarkAsFailedAsync(int id, int userId)
+    {
+        var reminder = await repository.GetByIdAndUserIdAsync(id, userId);
+
+        if (reminder is null)
+        {
+            return null;
+        }
+
+        reminder.Status = ReminderStatus.Failed;
+        reminder.SentAt = null;
+
+        repository.Update(reminder);
+        await repository.SaveChangesAsync();
+
+        return reminder;
+    }
+
     public Task<IEnumerable<Reminder>> GetAllAsync(int userId)
     {
         return repository.GetByUserIdAsync(userId);
