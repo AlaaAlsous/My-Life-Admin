@@ -80,7 +80,11 @@
           <ul class="mt-4 divide-y divide-border-soft">
             @for (event of data.upcomingEvents; track event.id) {
               <li>
-                <a routerLink="/events" class="group block py-3">
+                <a
+                  routerLink="/events"
+                  [queryParams]="{ event: event.id }"
+                  class="group block py-3"
+                >
                   <p class="font-medium text-plum transition group-hover:text-primary">
                     {{ stripExpires(event.title) }}
                   </p>
@@ -118,7 +122,9 @@
                         ? ['/documents', reminder.documentId]
                         : ['/events']
                   "
-                  [queryParams]="reminder.eventId != null ? { event: reminder.eventId } : {}"
+                  [queryParams]="
+                    reminder.eventId != null ? { event: reminder.eventId, focus: 'details' } : {}
+                  "
                   class="group block py-3"
                 >
                   <p class="font-medium text-plum transition group-hover:text-primary">
