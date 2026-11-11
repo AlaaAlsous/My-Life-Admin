@@ -71,7 +71,8 @@ describe('DashboardPage', () => {
 
     const hrefs = Array.from(el.querySelectorAll('a')).map((a) => a.getAttribute('href'));
     expect(hrefs).toContain('/documents/1');
-    expect(hrefs.filter((href) => href === '/events').length).toBe(2);
+    expect(hrefs).toContain('/events?event=2');
+    expect(hrefs).toContain('/events');
   });
 
   it('links a reminder with an eventId to the event details', async () => {
@@ -93,7 +94,7 @@ describe('DashboardPage', () => {
     fixture.detectChanges();
 
     const hrefs = Array.from(el.querySelectorAll('a')).map((a) => a.getAttribute('href'));
-    expect(hrefs).toContain('/events?event=2');
+    expect(hrefs).toContain('/events?event=2&focus=details');
   });
 
   it('shows empty states when there is no data', async () => {
