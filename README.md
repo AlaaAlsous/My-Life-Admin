@@ -17,6 +17,26 @@
 ![Playwright](https://img.shields.io/badge/Playwright-2EAD33?logo=playwright&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
+#### Startsida
+
+![Startsida](Assets/Home%20Page.png)
+
+#### Dashboard
+
+![Dashboard](Assets/Dashboard.png)
+
+#### Dokument
+
+![Dokument](Assets/Documents.png)
+
+#### Händelser
+
+![Händelser](Assets/Events.png)
+
+#### Inställningar
+
+![Inställningar](Assets/Settings.png)
+
 ## Beskrivning
 
 MyLife Admin är en webbapplikation för att samla vardagsadministration på ett ställe - dokument, viktiga datum och påminnelser.
@@ -292,4 +312,3 @@ Workflowen bygger frontend, publicerar backend, kopierar frontend till `wwwroot`
 - Jesper Flodkvist Olofsson
 - Johan Norgren
 - Max Holmström
-
