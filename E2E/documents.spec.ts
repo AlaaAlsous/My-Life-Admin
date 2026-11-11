@@ -94,7 +94,7 @@ test.describe('Documents: filter, download & delete', () => {
     await page.goto('/events');
     await page
       .locator('section[aria-labelledby="all-events-heading"]')
-      .getByRole('button', { name: `${title} expires` })
+      .getByRole('button', { name: new RegExp(title) })
       .first()
       .click();
     const details = page.locator('section[aria-labelledby="event-details-heading"]');
@@ -107,7 +107,7 @@ test.describe('Documents: filter, download & delete', () => {
     const reminders = page.locator('section', {
       has: page.getByRole('heading', { name: 'Latest reminders' }),
     });
-    await expect(reminders.getByText(`${title} expires`)).toBeVisible();
+    await expect(reminders.getByText(title)).toBeVisible();
 
     // Radera dokumentet (med bekräftelse).
     await page.goto('/documents');

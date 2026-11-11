@@ -84,9 +84,7 @@ export class EventComponent implements OnInit, OnDestroy {
   protected remindersForEvent(eventId: number): ReminderDto[] {
     return this.reminders()
       .filter((r) => r.eventId === eventId && r.status === ReminderStatus.Pending)
-      .sort(
-        (a, b) => new Date(a.reminderDate).getTime() - new Date(b.reminderDate).getTime(),
-      );
+      .sort((a, b) => new Date(a.reminderDate).getTime() - new Date(b.reminderDate).getTime());
   }
 
   protected displayTitle(event: EventDto): string {

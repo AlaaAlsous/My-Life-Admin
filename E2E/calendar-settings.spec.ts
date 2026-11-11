@@ -29,11 +29,10 @@ test.describe('Calendar', () => {
     await expect(page.getByText(title)).toBeVisible();
 
     await page.goto('/events');
-    // Händelsen skapas automatiskt med titeln "<titel> expires".
+    // Händelsen skapas automatiskt med titeln "<titel>".
+    const allEvents = page.locator('section[aria-labelledby="all-events-heading"]');
     await expect(
-      page
-        .locator('section[aria-labelledby="all-events-heading"]')
-        .getByRole('button', { name: `${title} expires` }),
+      allEvents.getByRole('button', { name: new RegExp(title) }).first(),
     ).toBeVisible();
   });
 });
