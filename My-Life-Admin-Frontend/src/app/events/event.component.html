@@ -56,12 +56,22 @@
             (click)="onEventSelected(event)"
           >
             <div class="min-w-0 flex-1">
-              <h3 class="font-semibold text-plum">
+              <h3
+                class="font-semibold"
+                [class.text-plum]="!isPastEvent(event)"
+                [class.text-text-muted]="isPastEvent(event)"
+              >
                 {{ displayTitle(event) }}
               </h3>
 
-              <p class="mt-1 text-label text-text-muted">
-                Expires: {{ event.eventDate | date: 'EEEE, MMMM d, y, HH:mm' }}
+              <p
+                class="mt-1 text-label"
+                [class.text-text-muted]="!isPastEvent(event)"
+                [class.font-medium]="isPastEvent(event)"
+                [class.text-error]="isPastEvent(event)"
+              >
+                {{ isPastEvent(event) ? 'Expired' : 'Expires' }}:
+                {{ event.eventDate | date: 'EEEE, MMMM d, y, HH:mm' }}
               </p>
 
               <p class="text-label text-text-muted">
@@ -339,51 +349,55 @@
                   </span>
                 </div>
 
-                <label
-                  class="mt-3 block text-sm font-medium text-text-muted"
-                  [for]="'edit-reminder-' + event.id"
-                >
-                  Change reminder
-                </label>
-                <select
-                  class="mt-1 w-full rounded-control border border-border-soft bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                  [id]="'edit-reminder-' + event.id"
-                  [(ngModel)]="selectedEditReminder[event.id]"
-                >
-                  <option [ngValue]="undefined">Select new reminder</option>
-                  @for (option of reminderOptions; track $index) {
-                    <option [ngValue]="$index">
-                      {{ option.label }}
-                    </option>
-                  }
-                </select>
+                @if (!isPastEvent(event)) {
+                  <label
+                    class="mt-3 block text-sm font-medium text-text-muted"
+                    [for]="'edit-reminder-' + event.id"
+                  >
+                    Change reminder
+                  </label>
+                  <select
+                    class="mt-1 w-full rounded-control border border-border-soft bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                    [id]="'edit-reminder-' + event.id"
+                    [(ngModel)]="selectedEditReminder[event.id]"
+                  >
+                    <option [ngValue]="undefined">Select new reminder</option>
+                    @for (option of reminderOptions; track $index) {
+                      <option [ngValue]="$index">
+                        {{ option.label }}
+                      </option>
+                    }
+                  </select>
 
-                @if (selectedEditReminder[event.id] === customReminderOption) {
-                  <div class="mt-3">
-                    <label
-                      class="block text-sm font-medium text-text-muted mb-1.5"
-                      [for]="'custom-edit-reminder-' + event.id"
-                    >
-                      Custom reminder date and time
-                    </label>
-                    <input
-                      type="datetime-local"
-                      [id]="'custom-edit-reminder-' + event.id"
-                      class="w-full rounded-control border border-border-soft bg-white px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                      [(ngModel)]="customEditReminderDate[event.id]"
-                    />
-                  </div>
+                  @if (selectedEditReminder[event.id] === customReminderOption) {
+                    <div class="mt-3">
+                      <label
+                        class="block text-sm font-medium text-text-muted mb-1.5"
+                        [for]="'custom-edit-reminder-' + event.id"
+                      >
+                        Custom reminder date and time
+                      </label>
+                      <input
+                        type="datetime-local"
+                        [id]="'custom-edit-reminder-' + event.id"
+                        class="w-full rounded-control border border-border-soft bg-white px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                        [(ngModel)]="customEditReminderDate[event.id]"
+                      />
+                    </div>
+                  }
                 }
 
                 <div class="mt-3 flex flex-wrap items-center justify-center gap-2">
-                  <button
-                    type="button"
-                    class="rounded-control bg-primary px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-hover"
-                    [disabled]="selectedEditReminder[event.id] === undefined"
-                    (click)="updateReminder(event, reminder)"
-                  >
-                    Update reminder
-                  </button>
+                  @if (!isPastEvent(event)) {
+                    <button
+                      type="button"
+                      class="rounded-control bg-primary px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-hover"
+                      [disabled]="selectedEditReminder[event.id] === undefined"
+                      (click)="updateReminder(event, reminder)"
+                    >
+                      Update reminder
+                    </button>
+                  }
 
                   <button
                     type="button"
@@ -408,6 +422,10 @@
                     </svg>
                   </button>
                 </div>
+              </div>
+            } @else if (isPastEvent(event)) {
+              <div class="mt-4 border-t border-border-soft pt-4">
+                <div class="text-sm text-text-muted mb-3">This event has expired.</div>
               </div>
             } @else {
               <div class="mt-4 border-t border-border-soft pt-4">
